@@ -1,0 +1,79 @@
+body {
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+  margin: 0;
+  padding: 0;
+}
+::-webkit-scrollbar {
+  width: 4px;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(136, 136, 136, .8);
+  border-radius: 20px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(85, 85, 85, .8);
+}
+canvas {
+  margin: 0;
+  position: fixed;
+  top: 0;
+  left: 0;
+  visibility: visible;
+  border: 0;
+}
+.bar {
+  background-color: rgb(243,243,243);
+  border: 1px solid rgba(33,33,33,.5);
+  font-size: 11px;
+  font-family: "微软雅黑";
+  z-index: 9;
+  position: fixed;
+  padding: 7px 5px;
+  max-height: 360px;
+  overflow-y: scroll;
+  border-radius: 4px;
+}
+.bar2 {
+  /* max-height: 200px; */
+  border-top: 1px solid #b9bcc2;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}
+.row_nh {
+  justify-content: space-between;
+  display: flex;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+.row {
+  line-height: 20px;
+  justify-content: space-between;
+  display: flex;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+.division {
+  display: block;
+  height: 1px;
+  width: 100%;
+  margin: 3px 0;
+  background-color: #dcdfe6;
+  position: relative;
+}
+.lg_gem_img {
+  max-height: 30px;
+}
+button {
+  font-size: 11px;
+  border-radius: 4px;
+  padding: 1px 8px;
+  border: 1px solid rgba(33,33,33,.5);
+  box-shadow: none;
+  color: #303133;
+  cursor: pointer;
+}
+button:disabled {
+  color: #7F848F;
+  background-color: rgba(192,196,204,.8);
+}
