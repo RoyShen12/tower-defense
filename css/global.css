@@ -77,3 +77,34 @@ button:disabled {
   color: #7F848F;
   background-color: rgba(192,196,204,.8);
 }
+.sp_btn {
+  font-size: 18px;
+  position: fixed;
+  color: rgba(244,244,244,1);
+  background-color: rgba(64,158,255,.7);
+  border: 0;
+  padding: 4px 15px;
+  width: 90px;
+}
+.sc_btn {
+  font-size: 18px;
+  position: fixed;
+  color: rgba(244,244,244,1);
+  background-color: rgba(230,162,60,.7);
+  border: 0;
+  padding: 4px 15px;
+  width: 90px;
+}
+
+.sp_btn:hover {
+  background-color: rgba(102,177,255,.7);
+}
+.sp_btn:focus, .sp_btn:active {
+  background-color: rgba(58,142,230,.7);
+}
+.sc_btn:hover {
+  background-color: rgba(235,181,99,.7);
+}
+.sc_btn:focus, .sc_btn:active {
+  background-color: rgba(207,146,54,.7);
+}

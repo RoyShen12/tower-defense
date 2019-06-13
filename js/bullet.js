@@ -54,7 +54,7 @@ class CannonBullet extends BulletBase {
 
   static bulletVelocity = 4
 
-  constructor(position, atk, target, bimg, explosionDmg, explosionRadius, burnDotDamage, burnDotInterval, burnDotDuration, extraBV) {
+  constructor(position, atk, target, bimg, explosionDmg, explosionRadius, burnDotDamage, burnDotInterval, burnDotDuration, extraBV, onBossRatio) {
     super(position, 2, 1, 'rgba(15,244,11,.9)', 'rgba(15,12,11,.6)', atk, CannonBullet.bulletVelocity + (extraBV || 0), target)
 
     this.aimPosition = null
@@ -64,6 +64,9 @@ class CannonBullet extends BulletBase {
     this.burnDotDamage = burnDotDamage
     this.burnDotInterval = burnDotInterval
     this.burnDotDuration = burnDotDuration
+
+    this.onBossRatio = onBossRatio
+    if (onBossRatio > 1) console.log('Cannon onBossRatio', onBossRatio)
   }
 
   get isReaching() {
@@ -108,7 +111,7 @@ class CannonBullet extends BulletBase {
    * @param {MonsterBase[]} monsters
    */
   hit(monster, monsters) {
-    if (monster) super.hit(monster)
+    if (monster) super.hit(monster, monster.isBoss ? this.onBossRatio : 1)
 
     const target = this.target ? this.target.position : this.aimPosition
 
@@ -118,7 +121,7 @@ class CannonBullet extends BulletBase {
     // make exploding dmg
     monsters.forEach(m => {
       if (Position.distancePow2(m.position, target) < this.explosionRadius * this.explosionRadius) {
-        m.health -= this.explosionDmg * (1 - m.armorResistance)
+        m.health -= this.explosionDmg * (1 - m.armorResistance) * (m.isBoss ? this.onBossRatio : 1)
         this.emitter(m)
         if (!m.beBurned && !m.isDead) {
           let dotCount = 0
@@ -133,7 +136,7 @@ class CannonBullet extends BulletBase {
             }
             if (m.health > 0) {
               // 跳DOT
-              m.health -= this.burnDotDamage * (1 - m.armorResistance)
+              m.health -= this.burnDotDamage * (1 - m.armorResistance) * (m.isBoss ? this.onBossRatio : 1)
               this.emitter(m)
             }
             if (m.health <= 0) {
@@ -185,7 +188,7 @@ class ClusterBomb extends CannonBullet {
         .filter(ep => Position.distancePow2(m.position, ep) < radius * radius)
         .forEach(() => {
 
-          m.health -= dmg * (1 - m.armorResistance)
+          m.health -= dmg * (1 - m.armorResistance) * (m.isBoss ? this.onBossRatio : 1)
           this.emitter(m)
           if (!m.beBurned && !m.isDead) {
             let dotCount = 0
@@ -200,7 +203,7 @@ class ClusterBomb extends CannonBullet {
               }
               if (m.health > 0) {
                 // 跳DOT
-                m.health -= this.burnDotDamage * (1 - m.armorResistance)
+                m.health -= this.burnDotDamage * (1 - m.armorResistance) * (m.isBoss ? this.onBossRatio : 1)
                 this.emitter(m)
               }
               if (m.health <= 0) {

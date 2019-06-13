@@ -11,7 +11,7 @@ class Tools {
      */
     static __installOptionOnNode(node, option) {
       _.forOwn(option, (v, k) => {
-        if (typeof v === 'string') {
+        if (typeof v === 'string' || typeof v === 'number' || typeof v === 'boolean' || typeof v === 'function') {
           node[k] = v
         }
         else if (typeof v === 'object') {
@@ -688,6 +688,8 @@ class TowerBase extends ItemBase {
     this.__hst_ps_ratio = 1
     this.__atk_ratio = 1
 
+    this.__on_boss_atk_ratio = 1
+
     this.isSold = false
   }
 
@@ -867,7 +869,8 @@ class TowerBase extends ItemBase {
   }
 
   produceBullet(i, monsters) {
-    this.bulletCtl.Factory(this.recordDamage.bind(this), this.bulletCtorName, this.position.copy().dithering(this.radius), this.Atk, this.target, this.bulletImage)
+    const ratio = this.target.isBoss ? this.__on_boss_atk_ratio : 1
+    this.bulletCtl.Factory(this.recordDamage.bind(this), this.bulletCtorName, this.position.copy().dithering(this.radius), this.Atk * ratio, this.target, this.bulletImage)
   }
 
   recordShootTime() {
@@ -1254,8 +1257,6 @@ class TowerBase extends ItemBase {
     }
     else if (/*position < 3 && */pyBhGh > innerHeight) {
       const overflowH = pyBhGh - innerHeight
-      // console.log('yes, g-bar bottom will overflow by ' + overflowH + ' px')
-      // console.log('innerHeight ' + innerHeight + 'px, b-bar top ' + positionTLY + 'px, bHeight ' + bHeight + ' px, gHeight ' + gHeight + ' px')
       positionTLY -= overflowH + 10
     }
     // else if (position > 2 && pyBhGh > innerHeight) {

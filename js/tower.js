@@ -419,7 +419,7 @@ class CannonShooter extends TowerBase {
    * @override
    */
   produceBullet() {
-    this.bulletCtl.Factory(this.recordDamage.bind(this), this.bulletCtorName, this.position.copy().dithering(this.radius), this.Atk, this.target, this.bulletImage, this.EpdAtk, this.EpdRng, this.BrnAtk, this.BrnItv, this.BrnDur, this.extraBulletV)
+    this.bulletCtl.Factory(this.recordDamage.bind(this), this.bulletCtorName, this.position.copy().dithering(this.radius), this.Atk, this.target, this.bulletImage, this.EpdAtk, this.EpdRng, this.BrnAtk, this.BrnItv, this.BrnDur, this.extraBulletV, this.__on_boss_atk_ratio)
   }
 }
 
@@ -638,7 +638,8 @@ class MaskManTower extends TowerBase {
   produceBullet(idx) {
 
     if (this.multipleTarget[idx]) {
-      this.bulletCtl.Factory(this.recordDamage.bind(this), this.bulletCtorName, this.position.copy().dithering(this.radius), this.Atk, this.multipleTarget[idx], this.bulletImage, this.critChance, this.critDamageRatio, this.trapChance, this.trapDuration, this.extraBulletV)
+      const ratio = this.multipleTarget[idx].isBoss ? this.__on_boss_atk_ratio : 1
+      this.bulletCtl.Factory(this.recordDamage.bind(this), this.bulletCtorName, this.position.copy().dithering(this.radius), this.Atk * ratio, this.multipleTarget[idx], this.bulletImage, this.critChance, this.critDamageRatio, this.trapChance, this.trapDuration, this.extraBulletV)
     }
   }
 
@@ -893,14 +894,23 @@ class PoisonTower extends TowerBase {
 
   }
 
+  /**
+   * 中毒DOT间隔时间
+   */
   get Pitv() {
     return this.levelPitvFx(this.level)
   }
 
+  /**
+   * 中毒DOT持续时间
+   */
   get Pdur() {
     return this.levelPdurFx(this.level)
   }
 
+  /**
+   * 中毒DOT伤害
+   */
   get Patk() {
     return this.levelPatkFx(this.level)
   }
@@ -966,7 +976,8 @@ class PoisonTower extends TowerBase {
    * @override
    */
   produceBullet() {
-    this.bulletCtl.Factory(this.recordDamage.bind(this), this.bulletCtorName, this.position.copy().dithering(this.radius), this.Atk, this.target, this.bulletImage, this.Patk, this.Pitv, this.Pdur, this.extraBulletV)
+    const ratio = this.target.isBoss ? this.__on_boss_atk_ratio : 1
+    this.bulletCtl.Factory(this.recordDamage.bind(this), this.bulletCtorName, this.position.copy().dithering(this.radius), this.Atk * ratio, this.target, this.bulletImage, this.Patk * ratio, this.Pitv, this.Pdur, this.extraBulletV)
   }
 }
 
@@ -1120,7 +1131,7 @@ class TeslaTower extends TowerBase {
    * @param {MonsterBase} monster
    */
   shock(monster) {
-    monster.health -= this.Atk * (1 - monster.armorResistance)
+    monster.health -= this.Atk * (1 - monster.armorResistance) * (monster.isBoss ? this.__on_boss_atk_ratio : 1)
     this.recordDamage(monster)
     if (this.canCharge) monster.registerShock(this.shockDurationTick, this.Atk * this.shockChargingPowerRatio, this, this.shockLeakingChance)
     this.extraEffect(monster)
@@ -1240,7 +1251,7 @@ class BlackMagicTower extends TowerBase {
     this.voidSummonChance = 3
 
     /**
-     * percentage of target's current health to damage
+     * 相当于目标当前生命值的额外伤害比例
      */
     this.POTCHD = 0
 
@@ -1335,7 +1346,7 @@ class BlackMagicTower extends TowerBase {
     Game.callAnimation('magic_2', position, w, h, 1, 2)
 
     // console.log(`基础伤害 ${this.Atk} 额外伤害 ${this.target.__inner_current_health * this.POTCHD}`)
-    this.target.health -= (this.Atk + this.target.__inner_current_health * this.POTCHD)
+    this.target.health -= (this.Atk * (this.target.isBoss ? this.__on_boss_atk_ratio : 1) + this.target.__inner_current_health * this.POTCHD)
     this.recordDamage(this.target)
     // 杀死了目标
     if (this.target.isDead) {
@@ -1626,7 +1637,7 @@ class LaserTower extends TowerBase {
    * @param {MonsterBase[]} monsters
    */
   produceBullet(i, monsters) {
-    //console.time('LaserTower.produceBullet')
+    //console.time('LaserTower make damage')
 
 
     const v = new Position(this.target.position.x, this.target.position.y)
@@ -1662,19 +1673,19 @@ class LaserTower extends TowerBase {
     // Game.callCanvasContext('bg').strokeStyle = 'rgba(33,33,33,.3)'
     // Game.callCanvasContext('bg').stroke(flameArea)
 
-    this.target.health -= this.Atk * (1 - this.target.armorResistance)
+    this.target.health -= this.Atk * (1 - this.target.armorResistance) * (this.target.isBoss ? this.__on_boss_atk_ratio : 1)
     this.recordDamage(this.target)
 
     monsters.forEach(mst => {
       if (Game.callCanvasContext('bg').isPointInPath(flameArea, mst.position.x, mst.position.y)) {
-        mst.health -= this.extraLuminousDamage
+        mst.health -= this.extraLuminousDamage * (mst.isBoss ? this.__on_boss_atk_ratio : 1)
         this.recordDamage(this.target)
-        mst.health -= this.Fatk * (1 - mst.armorResistance)
+        mst.health -= this.Fatk * (1 - mst.armorResistance) * (mst.isBoss ? this.__on_boss_atk_ratio : 1)
         this.recordDamage(this.target)
       }
     })
 
-    //console.timeEnd('LaserTower.produceBullet')
+    //console.timeEnd('LaserTower make damage')
   }
 
   /**

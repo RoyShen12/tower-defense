@@ -92,6 +92,8 @@ class Game {
 
     /** @type {(ItemBase)[]} */
     this.towerForSelect = []
+
+    /** @type {ItemBase} */
     this.selectedTowerTypeToBuild = null
 
     this.imageCtl = new ImageManger()
@@ -104,12 +106,12 @@ class Game {
     Game.callCanvasContext = name => this.contextCtl.getContext(name)
 
     /**
-     * @type {ButtonBase}
+     * @type {ButtonOnDom}
      */
     this.startAndPauseButton = null
 
     /**
-     * @type {ButtonBase}
+     * @type {ButtonOnDom}
      */
     this.speedControlButton = null
 
@@ -358,28 +360,6 @@ class Game {
    * @type {((e: MouseEvent) => void) & _.Cancelable}
    */
   mouseMoveHandler = _.throttle(e => {
-    if (e.region) {
-      if (e.region === this.startAndPauseButton.id) {
-        this.startAndPauseButton.onMouseEnter()
-        this.startAndPauseButton.render(this.contextCtl._get_bg)
-      }
-      if (e.region === this.speedControlButton.id) {
-        this.speedControlButton.onMouseEnter()
-        this.speedControlButton.render(this.contextCtl._get_bg)
-      }
-      return
-    }
-    else {
-      if (this.startAndPauseButton.status === 1) {
-        this.startAndPauseButton.onMouseLeave()
-        this.startAndPauseButton.render(this.contextCtl._get_bg)
-      }
-      if (this.speedControlButton.status === 1) {
-        this.speedControlButton.onMouseLeave()
-        this.speedControlButton.render(this.contextCtl._get_bg)
-      }
-    }
-    // console.log(this.selectedTowerTypeToBuild)
     this.contextCtl._get_mouse.clearRect(0, 0, innerWidth, innerHeight)
     const mousePos = new Position(e.offsetX, e.offsetY)
     this.lastMouseMovePosition = mousePos
@@ -400,7 +380,7 @@ class Game {
             position: mousePos,
             informationSeq: [[selectedT.__dn, '']],
             descriptionChuned: (new (eval(selectedT.__ctor_name))).descriptionChuned,
-            exploitsSeq: [],
+            exploitsSeq: [['建造快捷键', `[${selectedT.__od}]`]],
             radius: selectedT.radius
           },
           0, this.midSplitLineX, 0, innerHeight
@@ -441,7 +421,6 @@ class Game {
       break
     case ' ':
       this.startAndPauseButton.onMouseclick()
-      this.startAndPauseButton.render(this.contextCtl._get_bg)
       break
     case 'ArrowUp':
       break
@@ -457,59 +436,51 @@ class Game {
   }
 
   initButtons() {
-    this.startAndPauseButton = new ButtonBase(
-      'b_start_pause',
-      new Position(this.leftAreaWidth + 30, this.gridSize * 7),
-      new Position(this.leftAreaWidth + 110, this.gridSize * 7 + 32),
-      0,
-      null,
-      4,
-      'Start',
-      18,
-      'TimesNewRoman',
-      'rgba(244,244,244,1)',
-      'rgba(64,158,255,.7)',
-      'rgba(102,177,255,.7)',
-      'rgba(58,142,230,.7)'
-    )
 
-    this.startAndPauseButton.onMouseclick = () => {
-      this.isPausing = !this.isPausing
-      this.startAndPauseButton.text = this.isPausing ? 'Start' : 'Pause'
-    }
+    // <button id="start_pause_btn" class="sp_btn" type="button"></button>
+    // <button id="speed_ctrl_btn" class="sc_btn" type="button"></button>
+
+
+    this.startAndPauseButton = new ButtonOnDom({
+      id: 'start_pause_btn',
+      className: 'sp_btn',
+      type: 'button',
+      textContent: 'Start',
+      title: '快捷键 [空格]',
+      style: {
+        zIndex: '8',
+        top: this.gridSize * 7 + 'px',
+        left: this.leftAreaWidth + 30 + 'px'
+      },
+      onclick: () => {
+        console.log(this)
+        this.isPausing = !this.isPausing
+        this.startAndPauseButton.ele.textContent = this.isPausing ? 'Start' : 'Pause'
+      }
+    })
 
     let iterator = this.loopSpeeds[Symbol.iterator]()
 
-    this.speedControlButton = new ButtonBase(
-      'b_speed_ctrl',
-      new Position(this.leftAreaWidth + 130, this.gridSize * 7),
-      new Position(this.leftAreaWidth + 210, this.gridSize * 7 + 32),
-      0,
-      null,
-      4,
-      '1 X',
-      18,
-      'TimesNewRoman',
-      'rgba(244,244,244,1)',
-      'rgba(230,162,60,.7)',
-      'rgba(235,181,99,.7)',
-      'rgba(207,146,54,.7)'
-    )
-
-    this.speedControlButton.onMouseclick = () => {
-      let next = iterator.next()
-      if (next.done) {
-        iterator = this.loopSpeeds[Symbol.iterator]()
-        next = iterator.next()
+    this.speedControlButton = new ButtonOnDom({
+      id: 'speed_ctrl_btn',
+      className: 'sc_btn',
+      type: 'button',
+      textContent: '1 X',
+      style: {
+        zIndex: '8',
+        top: this.gridSize * 7 + 'px',
+        left: this.leftAreaWidth + 130 + 'px'
+      },
+      onclick: () => {
+        let next = iterator.next()
+        if (next.done) {
+          iterator = this.loopSpeeds[Symbol.iterator]()
+          next = iterator.next()
+        }
+        this.updateSpeedRatio = next.value
+        this.speedControlButton.ele.textContent = `${this.updateSpeedRatio} X`
       }
-      this.updateSpeedRatio = next.value
-      this.speedControlButton.text = `${this.updateSpeedRatio} X`
-    }
-
-    return [
-      this.startAndPauseButton,
-      this.speedControlButton
-    ]
+    })
   }
 
   init() {
@@ -556,7 +527,8 @@ class Game {
     // [statis | partial: 60 FPS] 骨架图层, 单次渲染, 局部如金币等信息长更新
     this.contextCtl.createCanvasInstance('bg', { zIndex: '-3' })
 
-    this.__inner_buttons = this.initButtons()
+    // this.__inner_buttons = this.initButtons()
+    this.initButtons()
 
     this.evtCtl.bindEvent([
       {
@@ -571,17 +543,6 @@ class Game {
       {
         ename: 'onmousedown',
         cb: e => {
-          if (e.region) {
-            if (e.region === this.startAndPauseButton.id) {
-              this.startAndPauseButton.onMouseDown()
-              this.startAndPauseButton.render(this.contextCtl._get_bg)
-            }
-            if (e.region === this.speedControlButton.id) {
-              this.speedControlButton.onMouseDown()
-              this.speedControlButton.render(this.contextCtl._get_bg)
-            }
-            return
-          }
           const mousePos = new Position(e.offsetX, e.offsetY)
           switch(e.button) {
           // left click
@@ -597,35 +558,16 @@ class Game {
           }
         }
       },
-      {
-        ename: 'onmouseup',
-        cb: e => {
-          if (e.region) {
-            if (e.region === this.startAndPauseButton.id) {
-              this.startAndPauseButton.onMouseUp()
-              this.startAndPauseButton.render(this.contextCtl._get_bg)
-            }
-            if (e.region === this.speedControlButton.id) {
-              this.speedControlButton.onMouseUp()
-              this.speedControlButton.render(this.contextCtl._get_bg)
-            }
-            return
-          }
-        }
-      },
+      // {
+      //   ename: 'onmouseup',
+      //   cb: e => {
+      //   }
+      // },
       {
         ename: 'onmousemove',
         cb: this.mouseMoveHandler
       }
     ]))
-
-    this.__inner_buttons.forEach(b => {
-      this.contextCtl._get_react.addHitRegion({
-        path: b.pathForDetection,
-        id: b.id,
-        cursor: 'pointer'
-      })
-    })
 
     this.renderOnce()
 
@@ -710,6 +652,8 @@ class Game {
 
       ctorRow.forEach((_t, idx) => {
 
+        // const realIdx = rowIdx * chunkSize + idx
+
         const ax = tsAeraRectTL.x + ((tsItemRadius + 2) * 2 + tsMargin) * idx + tsItemRadius
         const ay = tsAeraRectTL.y + tsItemRadius
 
@@ -736,7 +680,7 @@ class Game {
       this.contextCtl._get_bg.drawImage(img, innerWidth - 190, innerHeight - 54, 18, 18)
     })
 
-    this.__inner_buttons.forEach(b => b.render(this.contextCtl._get_bg))
+    // this.__inner_buttons.forEach(b => b.render(this.contextCtl._get_bg))
   }
 
   run() {

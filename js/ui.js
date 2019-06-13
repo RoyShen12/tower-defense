@@ -1,6 +1,24 @@
-class ButtonBase extends RectangleBase {
+class ButtonOnDom {
 
-  /** 
+  /**
+   * @param {HTMLButtonElement} domOptions
+   */
+  constructor(domOptions, hookOnToDom = true) {
+    this.ele = document.createElement('button')
+
+    if (hookOnToDom) document.body.appendChild(this.ele)
+
+    Tools.Dom.__installOptionOnNode(this.ele, domOptions)
+  }
+
+  onMouseclick() {
+    this.ele.click()
+  }
+}
+
+class ButtonOnCanvas extends RectangleBase {
+
+  /**
    * @param {string | ImageBitmap | Promise<ImageBitmap>} imageFill
    * @param {string | ImageBitmap | Promise<ImageBitmap>} imageFillHover
    * @param {string | ImageBitmap | Promise<ImageBitmap>} imageFillPress
