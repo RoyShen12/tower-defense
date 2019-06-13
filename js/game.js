@@ -202,6 +202,7 @@ class Game {
     tow.__grid_iy = wg[1]
 
     for (let i = 0; i < 49; i++) this.emitMoney(-1 * tow.levelUp(this.money))
+    tow.updateGemPoint += 1e8
     // tow.inlayGem('GogokOfSwiftness')
 
     this.removeOutdatedPath(wg[0], wg[1])

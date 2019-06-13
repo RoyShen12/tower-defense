@@ -6,8 +6,12 @@ class Tools {
      */
     static _cache = new Map()
     /**
+     * @type {Map<string, number>}
+     */
+    static _instance = new Map()
+    /**
      * @param {Node} node
-     * @param {Object} option
+     * @param {HTMLElement} option
      */
     static __installOptionOnNode(node, option) {
       _.forOwn(option, (v, k) => {
@@ -24,7 +28,7 @@ class Tools {
     /**
      * @param {Node} node
      * @param {string} src
-     * @param {Object} option
+     * @param {HTMLImageElement} option
      */
     static generateImg(node, src, option) {
       option = option || {}
@@ -36,8 +40,8 @@ class Tools {
     }
     /**
      * @param {Node} node
-     * @param {Object} leftOpt
-     * @param {Object} rightOpt
+     * @param {HTMLDivElement} leftOpt
+     * @param {HTMLDivElement} rightOpt
      * @param {Node[]} leftChildren
      * @param {Node[]} rightChildren
      */
@@ -61,7 +65,7 @@ class Tools {
     /**
      * @param {Node} node
      * @param {string | null} className
-     * @param {Object} option
+     * @param {HTMLDivElement} option
      * @param {Node[]} children
      */
     static generateRow(node, className, option = {}, children = []) {
@@ -92,6 +96,46 @@ class Tools {
       if (node.style.color) node.style.color = ''
       if (node.textContent) node.textContent = ''
       if (node.className != className) node.className = className
+    }
+    /**
+     * @param {string} uniqueId
+     * @param {HTMLButtonElement} node
+     * @param {VoidFunction} onPressFx - callable
+     * @param {number} onPressFxCallDelay - ms
+     * @param {number} onPressFxCallInterval - ms
+     */
+    static bindLongPressEventHelper(uniqueId, node, onPressFx, onPressFxCallDelay, onPressFxCallInterval) {
+
+      let timerInst = -1
+
+      if (!this._instance.has(uniqueId)) {
+        this._instance.set(uniqueId, -1)
+      }
+
+      node.addEventListener('mousedown', () => {
+
+        timerInst = setTimeout(() => {
+          const intervalInst = setInterval(() => {
+            onPressFx()
+          }, onPressFxCallInterval)
+
+          this._instance.set(uniqueId, intervalInst)
+        }, onPressFxCallDelay)
+      })
+
+      const cancelTokenFx = () => {
+        if (timerInst > 0) {
+          clearTimeout(timerInst)
+          timerInst = -1
+        }
+        if (this._instance.get(uniqueId) > 0) {
+          clearInterval(this._instance.get(uniqueId))
+          this._instance.set(uniqueId, -1)
+        }
+      }
+
+      node.addEventListener('mouseup', cancelTokenFx)
+      node.addEventListener('mouseleave', cancelTokenFx)
     }
   }
 
@@ -363,10 +407,21 @@ class Tools {
 }
 
 /**
+ * 所有[物体]的基类
+ */
+class Base {
+
+  constructor() {
+    this.id = Tools.randomStr(8)
+  }
+}
+
+/**
  * 所有[可用左上和右下两个点描述物体]的基类
  */
-class RectangleBase {
+class RectangleBase extends Base {
   constructor(positionTL, positionBR, bw, bs, bf, br) {
+    super()
     /**
      * @type {Position}
      */
@@ -415,9 +470,9 @@ class RectangleBase {
 /**
  * 所有[可用中心点和半径描述物体]的基类
  */
-class CircleBase {
+class CircleBase extends Base {
   constructor(p, r, bw, bs) {
-
+    super()
     /**
      * 物体的位置，不应在任何时候替换实例的 {this.position}
      * 如果需要改变位置，使用mutable方法
@@ -680,7 +735,7 @@ class TowerBase extends ItemBase {
     this.__total_damage = 0
 
     // 升级
-    this.updatePoint = 0
+    this.updateGemPoint = 0
 
     /** @type {GemBase} */
     this.gem = null
@@ -759,7 +814,7 @@ class TowerBase extends ItemBase {
       ['等级', this.levelHuman],
       ['下一级', this.isMaxLevel ? '最高等级' : '$ ' + Tools.formatterUs.format(Math.round(this.price[this.level + 1]))],
       ['售价', '$ ' + Tools.formatterUs.format(Math.round(this.sellingPrice))],
-      ['可用点数', Tools.formatterUs.format(this.updatePoint)],
+      ['可用点数', Tools.formatterUs.format(this.updateGemPoint)],
       ['伤害', Tools.formatterUs.format(Math.round(this.Atk))],
       ['攻击速度', Tools.roundWithFixed(this.HstPS, 2)],
       ['射程', Tools.formatterUs.format(Math.round(this.Rng))],
@@ -825,11 +880,11 @@ class TowerBase extends ItemBase {
 
     this.__total_damage += lastAbsDmg
 
-    this.updatePoint += TowerBase.damageToPoint(lastAbsDmg)
+    this.updateGemPoint += TowerBase.damageToPoint(lastAbsDmg)
 
     if (isDead) {
       this.recordKill()
-      this.updatePoint += isBoss ? TowerBase.killBossPointEarnings : TowerBase.killNormalPointEarnings
+      this.updateGemPoint += isBoss ? TowerBase.killBossPointEarnings : TowerBase.killNormalPointEarnings
 
       if (this.gem) {
         this.gem.killHook(this, arguments[0])
@@ -951,7 +1006,7 @@ class TowerBase extends ItemBase {
         3
       )
 
-      this.updatePoint += TowerBase.levelUpPointEarnings
+      this.updateGemPoint += TowerBase.levelUpPointEarnings
 
       return this.price[this.level]
     }
@@ -1168,7 +1223,7 @@ class TowerBase extends ItemBase {
         // const rowimg = Tools.Dom.generateRow(gemElement, null, { innerHTML: `<img src="${(eval(selected)).imgSrc}" class="lg_gem_img"></img>` })
         const rowimg = Tools.Dom.generateRow(gemElement)
         Tools.Dom.generateImg(rowimg, eval(selected).imgSrc, { className: 'lg_gem_img' })
-        const rowPrice = Tools.Dom.generateRow(gemElement, null, null, eval(selected).priceSpan)
+        const rowPrice = Tools.Dom.generateRow(gemElement, null, { style: { marginBottom: '5px' } }, eval(selected).priceSpan)
         rowPrice.lastChild.style.color = eval(selected).price <= Game.callMoney()[0] ? '#67C23A' : '#F56C6C'
         const rowDesc = Tools.Dom.generateRow(gemElement, null, {
           textContent: (eval(selected)).stasisDescription,
@@ -1199,9 +1254,9 @@ class TowerBase extends ItemBase {
       }
       // 展示Legendary Gem
       else {
-        const canUpdateNext = this.updatePoint >= this.gem.levelUpPoint
+        const canUpdateNext = this.updateGemPoint >= this.gem.levelUpPoint
 
-        Tools.Dom.generateRow(gemElement, null, { textContent: GemBase.gemName }) // base name line
+        Tools.Dom.generateRow(gemElement, null, { textContent: '升级你的' + GemBase.gemName, style: { marginBottom: '20px' } })
 
         const btn = document.createElement('button')
         btn.type = 'button'
@@ -1213,12 +1268,29 @@ class TowerBase extends ItemBase {
           btn.removeAttribute('disabled')
         }
         btn.onclick = () => {
-          this.updatePoint -= this.gem.levelUp(this.updatePoint)
+          this.updateGemPoint -= this.gem.levelUp(this.updateGemPoint)
 
           this.renderStatusBoard(...arguments)
         }
+        Tools.Dom.bindLongPressEventHelper(
+          this.id,
+          btn,
+          () => {
+            if (canUpdateNext) {
+              btn.onclick()
+            }
+          },
+          200,
+          120
+        )
 
-        const [imgCol] = Tools.Dom.generateTwoCol(Tools.Dom.generateRow(gemElement), null, null, [], [btn]) // img | button line
+        const [imgCol] = Tools.Dom.generateTwoCol(
+          Tools.Dom.generateRow(gemElement, null, { style: { marginBottom: '20px' } }),
+          null,
+          null,
+          [],
+          [btn]
+        ) // img | button line
         Tools.Dom.generateImg(imgCol, this.gem.imgSrc, { className: 'lg_gem_img' })
 
         Tools.Dom.generateTwoCol(Tools.Dom.generateRow(gemElement), { textContent: this.gem.gemName }, { textContent: this.gem.level + '  级' })
