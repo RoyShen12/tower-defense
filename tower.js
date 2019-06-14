@@ -1,9 +1,9 @@
-// @ts-nocheck
+const __testMode = localStorage.getItem('debug_mode') === '1'
 
 const __debug_price_arr = new Proxy({}, {
   get(t, p, r) {
     if (p === 'length') return 1000000
-    else return (+p + 1) ** 2
+    else return (+p + 1) * 2
   }
 })
 
@@ -30,7 +30,12 @@ const TowerManager = new Proxy(
         n: 'cannon0',
         n2: 'cannon1',
         n3: 'cannon2',
-        p: __debug_price_arr,
+        p: __testMode ? __debug_price_arr : new Proxy({}, {
+          get(t, p, r) {
+            if (p === 'length') return 150
+            else return Math.ceil(Math.pow(2.2, +p) * 15)
+          }
+        }),
         r: lvl => lvl * 2 + 120,
         a: lvl => lvl * 2 + 2,
         h: lvl => 0.7 + lvl * 0.004,
@@ -56,7 +61,12 @@ const TowerManager = new Proxy(
         n2: 'archer1',
         n3: 'archer2',
         n4: 'archer3',
-        p: __debug_price_arr,
+        p: __testMode ? __debug_price_arr : new Proxy({}, {
+          get(t, p, r) {
+            if (p === 'length') return 130
+            else return Math.ceil(Math.pow(1.8, +p) * 10)
+          }
+        }),
         r: lvl => lvl * 4 + 180,
         a: lvl => lvl * 2 + 2,
         h: () => 1,
@@ -70,7 +80,12 @@ const TowerManager = new Proxy(
         c: 'FrostTower',
         od: 3,
         n: 'ice',
-        p: __debug_price_arr,
+        p: __testMode ? __debug_price_arr : new Proxy({}, {
+          get(t, p, r) {
+            if (p === 'length') return 50
+            else return Math.ceil(Math.pow(1.45, +p) * 320)
+          }
+        }),
         r: lvl => lvl * 3 + 120,
         a: () => 0,
         h: () => Infinity,
@@ -83,7 +98,12 @@ const TowerManager = new Proxy(
         c: 'PoisonTower',
         od: 4,
         n: 'poison_t',
-        p: __debug_price_arr,
+        p: __testMode ? __debug_price_arr : new Proxy({}, {
+          get(t, p, r) {
+            if (p === 'length') return 90
+            else return Math.ceil(Math.pow(1.9, +p) * 50)
+          }
+        }),
         r: lvl => lvl * 2 + 100,
         a: lvl => Math.round(lvl / 20 + 2),
         h: lvl => 2.1 + lvl * 0.1,
@@ -100,7 +120,12 @@ const TowerManager = new Proxy(
         n: 'tesla0',
         n2: 'tesla1',
         n3: 'tesla2',
-        p: __debug_price_arr,
+        p: __testMode ? __debug_price_arr : new Proxy({}, {
+          get(t, p, r) {
+            if (p === 'length') return 180
+            else return Math.ceil(Math.pow(2, +p) * 125)
+          }
+        }),
         r: () => 100,
         a: lvl => 18 + Math.round((lvl / 2 + 2) * (lvl / 2 + 2)),
         h: lvl => 0.75 + lvl * 0.01,
@@ -114,7 +139,12 @@ const TowerManager = new Proxy(
         n2: 'magic1',
         n3: 'magic2',
         n4: 'magic3',
-        p: __debug_price_arr,
+        p: __testMode ? __debug_price_arr : new Proxy({}, {
+          get(t, p, r) {
+            if (p === 'length') return 150
+            else return Math.ceil(Math.pow(2.5, +p) * 500)
+          }
+        }),
         r: lvl => lvl * 4 + 180,
         a: lvl => 8800 + Math.round((lvl + 4) * (lvl + 4)),
         a2: lvl => 8800 + Math.round((lvl + 5) * (lvl + 5)),
@@ -134,7 +164,12 @@ const TowerManager = new Proxy(
         n3: 'laser2',
         n4: 'laser3',
         n5: 'laser4',
-        p: __debug_price_arr,
+        p: __testMode ? __debug_price_arr : new Proxy({}, {
+          get(t, p, r) {
+            if (p === 'length') return 150
+            else return Math.ceil(Math.pow(2.88, +p) * 1000)
+          }
+        }),
         r: lvl => lvl * 1 + 90,
         a: lvl => Math.round(lvl * 3 + 1),
         h: () => 0.8,
@@ -382,35 +417,35 @@ class CannonShooter extends TowerBase {
             return 250 + Math.floor((this.level - 40) * 30)
           }
         })
-        this.name += ` ${TowerManager.rankPostfixL1}1`
+        this.name += ` ${TowerManager.rankPostfixL1}I`
         break
       case 50:
         this.rankUp()
-        this.name = this.name.replace('1', '2')
+        this.name = this.name.replace('I', 'II')
         break
       case 60:
         this.rankUp()
-        this.name = this.name.replace('2', '3')
+        this.name = this.name.replace('II', 'III')
         break
       case 70:
         this.rankUp()
-        this.name = this.name.replace('3', '4')
+          this.name = this.name.replace('III', 'IV')
         this.extraExplosionDamageRatio = 1.5
         break
       case 80:
         this.rankUp()
-        this.name = this.name.replace('4', '5')
+        this.name = this.name.replace('IV', 'V')
         this.extraExplosionDamageRatio = 1.5 * 1.5
         break
       case 90:
         this.rankUp()
-        this.name = this.name.replace(TowerManager.rankPostfixL1, TowerManager.rankPostfixL2).replace('5', '1')
+        this.name = this.name.replace(TowerManager.rankPostfixL1, TowerManager.rankPostfixL2).replace('V', 'I')
         this.extraExplosionDamageRatio = 1.5 * 1.5 * 1.5
         this.extraExplosionRangeRatio = 1.1
         break
       case 100:
         this.rankUp()
-        this.name = this.name.replace('1', '2')
+        this.name = this.name.replace('I', 'II')
         this.extraExplosionDamageRatio = 1.5 * 1.5 * 1.5 * 1.5
         this.extraExplosionRangeRatio = 1.2
         break
@@ -580,53 +615,53 @@ class MaskManTower extends TowerBase {
         break
       case 20:
         this.rankUp()
-        this.name += ` ${TowerManager.rankPostfixL1}1`
+        this.name += ` ${TowerManager.rankPostfixL1}I`
         this.enhanceCrit(0.05, 5)
         break
       case 30:
         this.rankUp()
-        this.name = this.name.replace('1', '2')
+        this.name = this.name.replace('I', 'II')
         this.enhanceCrit()
         this.trapChance = 6
         this.trapDuration = 3500
         break
       case 40:
         this.rankUp()
-        this.name = this.name.replace('2', '3')
+        this.name = this.name.replace('II', 'III')
         this.enhanceCrit()
         this.trapChance = 7
         this.trapDuration = 4000
         break
       case 50:
         this.rankUp()
-        this.name = this.name.replace('3', '4')
+        this.name = this.name.replace('III', 'IV')
         this.enhanceCrit()
         this.trapChance = 7.5
         this.trapDuration = 4300
         break
       case 60:
         this.rankUp()
-        this.name = this.name.replace('4', '5')
+        this.name = this.name.replace('IV', 'V')
         this.enhanceCrit()
         this.trapChance = 8
         this.trapDuration = 4400
         break
       case 70:
         this.rankUp()
-        this.name = this.name.replace(TowerManager.rankPostfixL1, TowerManager.rankPostfixL2).replace('5', '1')
+        this.name = this.name.replace(TowerManager.rankPostfixL1, TowerManager.rankPostfixL2).replace('V', 'I')
         this.enhanceCrit(0.05, 5)
         this.trapChance = 9
         this.trapDuration = 4500
         break
       case 80:
         this.rankUp()
-        this.name = this.name.replace('1', '2')
+        this.name = this.name.replace('I', 'II')
         this.enhanceCrit()
         this.trapChance = 10
         break
       case 90:
         this.rankUp()
-        this.name = this.name.replace('2', '3')
+        this.name = this.name.replace('II', 'III')
         this.enhanceCrit()
         break
       }

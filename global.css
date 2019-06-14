@@ -107,6 +107,16 @@ button:disabled {
   padding: 4px 15px;
   width: 90px;
 }
+.tm_btn {
+  transform: none;
+  font-size: 14px;
+  position: fixed;
+  color: rgba(244,244,244,1);
+  background-color: rgba(144,147,153,.7);
+  border: 0;
+  padding: 4px 15px;
+  width: auto;
+}
 
 .sp_btn:hover {
   background-color: rgba(102,177,255,.7);
@@ -119,4 +129,10 @@ button:disabled {
 }
 .sc_btn:focus, .sc_btn:active {
   background-color: rgba(207,146,54,.7);
+}
+.tm_btn:hover {
+  background-color: rgba(166,169,173,.7);
+}
+.tm_btn:focus, .sc_btn:active {
+  background-color: rgba(166,169,173,.7);
 }

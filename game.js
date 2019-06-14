@@ -78,6 +78,8 @@ class Game {
 
   constructor(GX = 36, GY = 24) {
 
+    this.__testMode = localStorage.getItem('debug_mode') === '1'
+
     this.tick = 0
 
     // debug only
@@ -92,14 +94,17 @@ class Game {
       y: GX
     }
 
+    /**
+     * @type {boolean}
+     */
     this.isPausing = true
 
     this.updateSpeedRatio = 1
 
     this.__inner_b_arr = [new Array(this.gridX + 2).fill(0)]
 
-    this.money = 1e12
-    this.life = 20
+    this.money = this.__testMode ? 1e12 : 5e2
+    this.life = this.__testMode ? 8e4 : 20
 
     /** @type {(ItemBase)[]} */
     this.towerForSelect = []
@@ -127,7 +132,7 @@ class Game {
      */
     this.speedControlButton = null
 
-    this.loopSpeeds = [2, 3, 5, 1]
+    this.loopSpeeds = this.__testMode ? [2, 3, 5, 10, 1] : [2, 3, 1]
 
     
     Game.callImageBitMap = name => this.imageCtl.getImage(name)
@@ -220,8 +225,12 @@ class Game {
     
     tow.__grid_iy = wg[1]
 
-    for (let i = 0; i < 139; i++) this.emitMoney(-1 * tow.levelUp(this.money))
-    tow.updateGemPoint += 1e8
+    if (this.__testMode) {
+      tow.updateGemPoint += 1e8
+      for (let i = 0; i < 139; i++) {
+        this.emitMoney(-1 * tow.levelUp(this.money))
+      }
+    }
     // tow.inlayGem('GogokOfSwiftness')
 
     this.removeOutdatedPath(wg[0], wg[1])
@@ -509,6 +518,7 @@ class Game {
   }
 
   initButtons() {
+    const buttonTopA = this.gridSize * 7 + 'px'
 
     // <button id="start_pause_btn" class="sp_btn" type="button"></button>
     // <button id="speed_ctrl_btn" class="sc_btn" type="button"></button>
@@ -523,7 +533,7 @@ class Game {
       
       style: {
         zIndex: '8',
-        top: this.gridSize * 7 + 'px',
+        top: buttonTopA,
         left: this.leftAreaWidth + 30 + 'px'
       },
       onclick: () => {
@@ -542,7 +552,7 @@ class Game {
       
       style: {
         zIndex: '8',
-        top: this.gridSize * 7 + 'px',
+        top: buttonTopA,
         left: this.leftAreaWidth + 130 + 'px'
       },
       onclick: () => {
@@ -553,6 +563,21 @@ class Game {
         }
         this.updateSpeedRatio = next.value
         this.speedControlButton.ele.textContent = `${this.updateSpeedRatio} 倍速`
+      }
+    })
+
+    const testModeButton = new ButtonOnDom({
+      className: 'tm_btn',
+      type: 'button',
+      textContent: '以' + (this.__testMode ? '普通' : '测试') + '模式重启',
+      style: {
+        zIndex: '8',
+        top: buttonTopA,
+        right: 30 + 'px'
+      },
+      onclick: () => {
+        localStorage.setItem('debug_mode', this.__testMode ? '0' : '1')
+        window.location.reload()
       }
     })
   }
@@ -689,7 +714,10 @@ class Game {
     ctx.fillStyle = 'rgba(241,141,123,.8)'
     ctx.fillRect((this.gridX - 1) * this.gridSize, (this.gridY / 2) * this.gridSize, this.gridSize, this.gridSize)
 
-    
+    if (this.__testMode) {
+      this.contextCtl.refreshText('[ Test Mode ]', this.contextCtl._get_bg, new Position(10, 25), new Position(8, 5), 120, 26, 'rgba(2,2,2,1)', true, '10px TimesNewRoman')
+    }
+
     this.contextCtl.refreshText('鼠标点击选取建造，连点两次鼠标右键出售已建造的塔', this.contextCtl._get_bg, new Position(this.leftAreaWidth + 30, 30), new Position(this.leftAreaWidth + 28, 10), this.rightAreaWidth, 26, 'rgba(24,24,24,1)', true, '14px TimesNewRoman')
     this.contextCtl.refreshText('出现详情时按[Ctrl]切换详细信息和说明', this.contextCtl._get_bg, new Position(this.leftAreaWidth + 30, 70), new Position(this.leftAreaWidth + 28, 50), this.rightAreaWidth, 26, 'rgba(24,24,24,1)', true, '14px TimesNewRoman')
 
@@ -823,6 +851,12 @@ class Game {
 
   emitLife(changing) {
     this.life += changing
+    if (this.life <= 0) {
+
+      this.life = 0
+
+      this.isPausing = true
+    }
   }
 
   /**
@@ -866,7 +900,9 @@ class Game {
     }
   }
 
-  count = 100
+  count = this.__testMode ? 100 : 0
+
+  stepDivide = this.__testMode ? 2 : 10
 
   update() {
 
@@ -885,16 +921,16 @@ class Game {
       //     'Devil'
       //   )
       // }
-      if (this.tick % 10 === 0) {
+      if (this.tick % (this.__testMode ? 10 : 120) === 0) {
         this.placeMonster(
-          Math.floor(++this.count / 2),
+          Math.floor(++this.count / this.stepDivide),
           new Position(0, (this.gridY / 2 - .5) * this.gridSize),
           _.shuffle(monsterCtors)[0]
         )
       }
-      if (this.tick % 501 === 0) {
+      if (this.tick % (this.__testMode ? 501 : 1201) === 0) {
         this.placeMonster(
-          Math.floor(++this.count / 2 + 100),
+          Math.floor(++this.count / (this.stepDivide * 2) + (this.__testMode ? 100 : 0)),
           new Position(0, (this.gridY / 2 - .5) * this.gridSize),
           'Devil'
         )

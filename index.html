@@ -8,6 +8,14 @@
   <link href="global.css" rel="stylesheet" type="text/css">
   <title>TD</title>
   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lodash@4.17.11/lodash.min.js"></script>
+  <script type="text/javascript">
+    if (!'OffscreenCanvas' in window) {
+      document.body.innerHTML += '<strong>你的浏览器不支持 OffscreenCanvas API</strong><br><strong>Your Browser didn\'t support OffscreenCanvas API</strong>'
+    }
+    if (!localStorage.getItem('debug_mode')) {
+      localStorage.setItem('debug_mode', '0')
+    }
+  </script>
   <script type="text/javascript" src="image.js"></script>
   <script type="text/javascript" src="canvas.js"></script>
   <script type="text/javascript" src="event.js"></script>

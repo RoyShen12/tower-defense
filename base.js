@@ -1416,6 +1416,9 @@ class TowerBase extends ItemBase {
 
       const gemElement = Game.callElement('gem_block')
 
+      const red = '#F51818'
+      const green = '#94C27E'
+
       Tools.Dom.removeAllChildren(gemElement)
 
       gemElement.style.display = 'block'
@@ -1447,7 +1450,7 @@ class TowerBase extends ItemBase {
           rowimg.firstChild.src = ctor.imgSrc
           rowPrice.lastChild.textContent = '$ ' + Tools.formatterUs.format(ctor.price)
           
-          rowPrice.lastChild.style.color = ctor.price <= Game.callMoney()[0] ? '#67C23A' : '#F56C6C'
+          rowPrice.lastChild.style.color = ctor.price <= Game.callMoney()[0] ? green : red
           if (ctor.price > Game.callMoney()[0]) {
             btn.setAttribute('disabled', 'disabled')
           }
@@ -1465,7 +1468,7 @@ class TowerBase extends ItemBase {
         Tools.Dom.generateImg(rowimg, TowerBase.GemNameToGemCtor(selected).imgSrc, { className: 'lg_gem_img' })
         const rowPrice = Tools.Dom.generateRow(gemElement, null, { style: { marginBottom: '5px' } }, TowerBase.GemNameToGemCtor(selected).priceSpan)
         
-        rowPrice.lastChild.style.color = TowerBase.GemNameToGemCtor(selected).price <= Game.callMoney()[0] ? '#67C23A' : '#F56C6C'
+        rowPrice.lastChild.style.color = TowerBase.GemNameToGemCtor(selected).price <= Game.callMoney()[0] ? green : red
         const rowDesc = Tools.Dom.generateRow(gemElement, null, {
           
           textContent: TowerBase.GemNameToGemCtor(selected).stasisDescription,
@@ -1551,7 +1554,7 @@ class TowerBase extends ItemBase {
         // Tools.Dom.generateTwoCol(Tools.Dom.generateRow(gemElement), { textContent: this.gem.gemName }, { textContent: this.gem.level + '  级 / ' + this.gem.maxLevelHuman })
 
         
-        Tools.Dom.generateTwoCol(Tools.Dom.generateRow(gemElement), { textContent: '下一级点数' }, { textContent: this.gem.isMaxLevel ? '最高等级' : Tools.formatterUs.format(this.gem.levelUpPoint), style: { color: canUpdateNext ? '#67C23A' : '#F56C6C' } })
+        Tools.Dom.generateTwoCol(Tools.Dom.generateRow(gemElement), { textContent: '下一级点数' }, { textContent: this.gem.isMaxLevel ? '最高等级' : Tools.formatterUs.format(this.gem.levelUpPoint), style: { color: canUpdateNext ? green : red } })
         Tools.Dom.generateRow(gemElement, null, { textContent: this.gem.description })
       }
     }
