@@ -691,7 +691,9 @@ class Game {
 
     
     this.contextCtl.refreshText('鼠标点击选取建造，连点两次鼠标右键出售已建造的塔', this.contextCtl._get_bg, new Position(this.leftAreaWidth + 30, 30), new Position(this.leftAreaWidth + 28, 10), this.rightAreaWidth, 26, 'rgba(24,24,24,1)', true, '14px TimesNewRoman')
-    const tsAeraRectTL = new Position(this.leftAreaWidth + 30, 50)
+    this.contextCtl.refreshText('出现详情时按[Ctrl]切换详细信息和说明', this.contextCtl._get_bg, new Position(this.leftAreaWidth + 30, 70), new Position(this.leftAreaWidth + 28, 50), this.rightAreaWidth, 26, 'rgba(24,24,24,1)', true, '14px TimesNewRoman')
+
+    const tsAeraRectTL = new Position(this.leftAreaWidth + 30, 90)
     const tsMargin = this.gridSize / 2 - 2
     const tsItemRadius = this.gridSize / 2 + 5
 

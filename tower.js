@@ -273,6 +273,10 @@ class TestTower extends TowerBase {
 
 class CannonShooter extends TowerBase {
 
+  // static informationDesc = new Map(Array.from(TowerBase.informationDesc).concat([
+  //   ['爆炸半径', '炮弹发生爆炸的伤害范围，单位是像素'],
+  // ]))
+
   static rankUpDesc1 = '\n+ 爆炸范围和伤害得到加强'
   static rankUpDesc2 = '\n+ 射程得到大幅加强'
   static rankUpDesc3 = '\n+ 命中后向四周抛出小型炸弹'

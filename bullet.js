@@ -294,11 +294,6 @@ class NormalArrow extends BulletBase {
 
   static bulletVelocity = 18
 
-  /**
-   * index + 2: 暴击伤害倍率
-   * value: 暴击的百分比值
-   * @param {number} critChance
-   */
   constructor(position, atk, target, image, critChance, critRatio, trapChance, trapDuration, extraBV, isSecKill) {
     super(position, 8, 0, null, image, atk, NormalArrow.bulletVelocity + (extraBV || 0), target)
 

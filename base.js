@@ -110,6 +110,7 @@ class Tools {
      */
     static removeNodeTextAndStyle(node, className = 'row') {
       if (node.style.color) node.style.color = ''
+      if (node.style.marginBottom) node.style.marginBottom = ''
       if (node.textContent) node.textContent = ''
       if (node.className != className) node.className = className
     }
@@ -456,6 +457,44 @@ class Tools {
       }, interval)
     }
   }
+  /**
+   * @param {MonsterBase} target
+   * @param {string} dotDebuffName
+   * @param {number} duration
+   * @param {number} interval
+   * @param {(mst: MonsterBase) => void} damageEmitter
+   */
+  static installDotDuplicated(target, dotDebuffName, duration, interval, singleAttack, isIgnoreArmor, damageEmitter) {
+    if (!Array.isArray(target[dotDebuffName])) {
+      console.log(target)
+      throw new Error('target has no debuff mark as name ' + dotDebuffName)
+    }
+    if (target.isDead) {
+      return
+    }
+    else {
+      const thisId = this.randomStr(8)
+
+      let dotCount = 0
+      target[dotDebuffName].push(thisId)
+      console.log(singleAttack, Math.ceil(duration / interval))
+      const itv = setInterval(() => {
+        if (++dotCount > duration / interval) {
+          // 效果结束、结束计时器
+          target[dotDebuffName] = target[dotDebuffName].filter(d => d !== thisId)
+          clearInterval(itv)
+          return
+        }
+        if (target.health > 0) {
+          target.health -= singleAttack * (isIgnoreArmor ? 1 : (1 - target.armorResistance))
+          damageEmitter(target)
+        }
+        else {
+          clearInterval(itv)
+        }
+      }, interval)
+    }
+  }
 }
 
 /**
@@ -696,14 +735,15 @@ class ItemBase extends CircleBase {
 class TowerBase extends ItemBase {
 
   static informationDesc = new Map([
-    ['等级', '鼠标单击或按[C]键来消耗金币以升级，等级影响很多属性，到达某个等级可以晋升，获得新能力'],
-    ['下一级', '下一级需要的金币数量'],
+    ['等级', '鼠标单击图标或按[C]键来消耗金币升级，等级影响很多属性，到达某个等级可以晋升'],
+    ['下一级', '升级到下一级需要的金币数量'],
     ['售价', '出售此塔可以返还的金币数量'],
     ['可用点数', '升级传奇宝石等级的点数，杀敌、制造伤害、升级均可获得点数'],
     ['伤害', '此塔的基础攻击力'],
     ['攻击速度', '此塔的每秒攻击次数'],
     ['射程', '此塔的索敌距离，单位是像素'],
-    ['弹药储备', '此塔每次攻击时发射的弹药数量']
+    ['弹药储备', '此塔每次攻击时发射的弹药数量'],
+    ['DPS', '估计的每秒伤害']
   ])
 
   /**
@@ -741,6 +781,10 @@ class TowerBase extends ItemBase {
     {
       ctor: ZeisStoneOfVengeance,
       name: 'ZeisStoneOfVengeance'
+    },
+    {
+      ctor: EchoOfLight,
+      name: 'EchoOfLight'
     }
   ]
 
@@ -1295,6 +1339,7 @@ class TowerBase extends ItemBase {
           Tools.Dom.removeAllChildren(rowD)
           rowD.textContent = this.constructor.informationDesc.get(data[0])
           rowD.style.color = '#909399'
+          rowD.style.marginBottom = '5px'
           jump++
         }
 
@@ -1386,6 +1431,10 @@ class TowerBase extends ItemBase {
         
         Tools.Dom.generateRow(gemElement, null, { textContent: '选购一颗' + GemBase.gemName, style: { margin: '0 0 8px 0' } })
 
+        if (showMoreDetail) {
+          Tools.Dom.generateRow(gemElement, null, { textContent: GemBase.gemName + '可以极大得提高塔的能力，每个单位只能选择一枚' + GemBase.gemName + '镶嵌，之后可以使用点数升级继续提高' + GemBase.gemName + '的效用', style: { margin: '0 0 8px 0', color: '#909399' } })
+        }
+
         const select = document.createElement('select')
         select.style.width = '100%'
         select.style.fontSize = '12px'
@@ -1396,7 +1445,7 @@ class TowerBase extends ItemBase {
           rowDesc.textContent = ctor.stasisDescription
           
           rowimg.firstChild.src = ctor.imgSrc
-          rowPrice.lastChild.textContent = Tools.formatterUs.format(ctor.price)
+          rowPrice.lastChild.textContent = '$ ' + Tools.formatterUs.format(ctor.price)
           
           rowPrice.lastChild.style.color = ctor.price <= Game.callMoney()[0] ? '#67C23A' : '#F56C6C'
           if (ctor.price > Game.callMoney()[0]) {
@@ -1588,6 +1637,7 @@ class MonsterBase extends ItemBase {
     this.bePoisoned = false // 中毒 outside process
     this.beBloodied = false // 流血 outside process
     this.beBurned = false // 灼烧 outside process
+    this.beOnLightEcho = [] // 圣光 outside process
     // DEBUFF
     // 负面效果的计算，移除由承受单位进行计算
     // 单位若受到前后两个束缚效果，前一个结束后会移除单位的束缚效果，导致后一个效果提前结束
@@ -1863,6 +1913,9 @@ class MonsterBase extends ItemBase {
     }
     if (this.beBurned) {
       debuffs.push(imgCtl.getImage('buff_burn'))
+    }
+    if (this.beOnLightEcho.length > 0) {
+      debuffs.push(imgCtl.getImage('buff_light_echo'))
     }
     if (this.beImprisoned) {
       debuffs.push(imgCtl.getImage('buff_imprison'))
