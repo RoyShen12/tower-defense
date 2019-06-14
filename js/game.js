@@ -87,7 +87,7 @@ class Game {
 
     this.__inner_b_arr = [new Array(this.gridX + 2).fill(0)]
 
-    this.money = 1e6
+    this.money = 1e12
     this.life = 20
 
     /** @type {(ItemBase)[]} */
@@ -201,7 +201,7 @@ class Game {
     tow.__grid_ix = wg[0]
     tow.__grid_iy = wg[1]
 
-    for (let i = 0; i < 49; i++) this.emitMoney(-1 * tow.levelUp(this.money))
+    for (let i = 0; i < 139; i++) this.emitMoney(-1 * tow.levelUp(this.money))
     tow.updateGemPoint += 1e8
     // tow.inlayGem('GogokOfSwiftness')
 
@@ -454,7 +454,6 @@ class Game {
         left: this.leftAreaWidth + 30 + 'px'
       },
       onclick: () => {
-        console.log(this)
         this.isPausing = !this.isPausing
         this.startAndPauseButton.ele.textContent = this.isPausing ? 'Start' : 'Pause'
       }
@@ -611,7 +610,7 @@ class Game {
     const oneTsWidth = tsMargin + 2 * tsItemRadius
     const chunkSize = Math.floor(this.rightAreaWidth / oneTsWidth)
     const chunkedTowerCtors = _.chunk(TowerManager.towerCtors, chunkSize)
-    console.log('chunk size', chunkSize, 'chunk result', chunkedTowerCtors)
+    // console.log('chunk size', chunkSize, 'chunk result', chunkedTowerCtors)
 
     const tsMarginBottom = this.gridSize / 2  + 6
 
@@ -710,9 +709,9 @@ class Game {
   emitMoney(changing, happenedPosition) {
     this.money += changing
 
-    if (happenedPosition) {
-      // Game.callAnimation('gold_spin_small', happenedPosition.x, 22, 22, 1, 0)
-    }
+    // if (happenedPosition) {
+    //   Game.callAnimation('gold_spin_small', happenedPosition.x, 22, 22, 1, 0)
+    // }
   }
 
   emitLife(changing) {
@@ -771,22 +770,27 @@ class Game {
         'Axeman',
         'LionMan'
       ]
+      // if (this.tick === 101) {
+      //   this.placeMonster(
+      //     400,
+      //     new Position(0, (this.gridY / 2 - .5) * this.gridSize),
+      //     'Devil'
+      //   )
+      // }
       if (this.tick % 10 === 0) {
         this.placeMonster(
           Math.floor(++this.count / 2),
           new Position(0, (this.gridY / 2 - .5) * this.gridSize),
-          monsterCtors[_.random(0, monsterCtors.length - 1, false)]
+          _.shuffle(monsterCtors)[0]
         )
       }
-      if (this.tick % 301 === 0) {
+      if (this.tick % 501 === 0) {
         this.placeMonster(
           Math.floor(++this.count / 2 + 100),
           new Position(0, (this.gridY / 2 - .5) * this.gridSize),
-          ['HighPriest', 'Devil'][_.random(0, 1, false)]
+          'Devil'
         )
       }
-      //this.bro()
-      //setTimeout(() => this.bro2(), 2500)
     }
     // ------------------ debug ---------------------
 
@@ -806,6 +810,8 @@ class Game {
     this.renderMoney()
     this.renderLife()
 
+    if (this.tick % 30 === 0) this.renderInformation()
+
     this.contextCtl._get_off_screen_render.clearRect(
       0,
       0,
@@ -816,7 +822,7 @@ class Game {
     this.imageCtl.play(this.contextCtl._get_off_screen_render)
 
     /// this.contextCtl._get_tower_rapid.clearRect(0, 0, innerWidth, innerHeight)
-    this.towerCtl.rapidRender(this.contextCtl._get_off_screen_render)
+    this.towerCtl.rapidRender(this.contextCtl._get_off_screen_render, this.monsterCtl.monsters)
 
     // this.contextCtl._get_main.clearRect(0, 0, innerWidth, innerHeight)
     /// this.bulletsCtl.render(this.contextCtl._get_main)
@@ -848,6 +854,20 @@ class Game {
     const ax = innerWidth - 160
     const ay = innerHeight - 40
     this.contextCtl.refreshText(this.life, this.contextCtl._get_bg, new Position(ax, ay), new Position(ax - 4, ay - 20), 160, 26, 'rgba(24,24,24,1)', true, '14px TimesNewRoman')
+  }
+
+  renderInformation() {
+    const ax = innerWidth - 190
+
+    const ay1 = innerHeight - 70
+    const ay2 = ay1 - 30
+    const ay3 = ay2 - 30
+    // const ay4 = ay3 - 30
+
+    this.contextCtl.refreshText(`CH: ${Tools.chineseFormatter(this.monsterCtl.totalCurrentHealth, 2, ' ')}`, this.contextCtl._get_bg, new Position(ax, ay1), new Position(ax - 4, ay1 - 20), 190, 26, 'rgba(24,24,24,1)', true, '14px TimesNewRoman')
+    this.contextCtl.refreshText(`TD: ${Tools.chineseFormatter(this.towerCtl.totalDamage, 2, ' ')}`, this.contextCtl._get_bg, new Position(ax, ay2), new Position(ax - 4, ay2 - 20), 190, 26, 'rgba(24,24,24,1)', true, '14px TimesNewRoman')
+    this.contextCtl.refreshText(`TK: ${Tools.chineseFormatter(this.towerCtl.totalKill, 2, ' ')}`, this.contextCtl._get_bg, new Position(ax, ay3), new Position(ax - 4, ay3 - 20), 190, 26, 'rgba(24,24,24,1)', true, '14px TimesNewRoman')
+    // this.contextCtl.refreshText(`CH: ${Tools.chineseFormatter(this.monsterCtl.totalCurrentHealth, 2, ' ')}`, this.contextCtl._get_bg, new Position(ax, ay4), new Position(ax - 4, ay4 - 20), 190, 26, 'rgba(24,24,24,1)', true, '14px TimesNewRoman')
   }
 
 }

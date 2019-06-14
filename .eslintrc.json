@@ -1,8 +1,5 @@
 {
   "parser": "babel-eslint",
-  "plugins": [
-    "eslint-plugin-babel"
-  ],
   "env": {
     "es6": true,
     "node": false,
@@ -37,6 +34,7 @@
     "no-trailing-spaces": "error",
     "no-unused-vars": "off",
     "no-undef": "off",
-    "no-class-assign":"off"
+    "no-class-assign": "off",
+    "no-empty-pattern": "off"
   }
 }

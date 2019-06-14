@@ -12,6 +12,9 @@ class MonsterManager {
 
     /** @type {MonsterBase[]} */
     this.monsters = []
+
+    /** @type {Map<string, typeof MonsterBase>} */
+    this.__mctor_cache = new Map()
   }
 
   /**
@@ -24,7 +27,17 @@ class MonsterManager {
    */
   Factory(monsterName, position, image, level, ...extraArgs) {
 
-    const nm = new (eval(monsterName))(position, image, level, ...extraArgs)
+    let ctor = null
+
+    if (this.__mctor_cache.has(monsterName)) {
+      ctor = this.__mctor_cache.get(monsterName)
+    }
+    else {
+      ctor = eval(monsterName)
+      this.__mctor_cache.set(monsterName, ctor)
+    }
+
+    const nm = new ctor(position, image, level, ...extraArgs)
     this.monsters.push(nm)
     return nm
   }
@@ -53,6 +66,14 @@ class MonsterManager {
       }
       return !m.isDead
     })
+  }
+
+  get totalCurrentHealth() {
+    return _.sumBy(this.monsters, '__inner_current_health')
+  }
+
+  get maxLevel() {
+    return this.monsters.length > 0 ? _.maxBy(this.monsters, '__inner_level').__inner_level : 0
   }
 }
 

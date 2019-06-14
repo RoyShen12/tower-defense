@@ -178,6 +178,7 @@ class ImageManger {
 
   loadImages() {
     [
+      { name: 't_test', url: 'img/test_towet.png' },
       { name: 'm_dirt_0', url: 'img/tile_dirt_0.png' },
       { name: 'm_dirt_1', url: 'img/tile_dirt_1.png' },
       { name: 'm_dirt_2', url: 'img/tile_dirt_2.png' },

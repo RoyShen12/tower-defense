@@ -61,6 +61,15 @@ canvas {
   background-color: #dcdfe6;
   position: relative;
 }
+.division_vertical {
+  display: inline-block;
+  width: 1px;
+  height: 1em;
+  margin: 0 3px;
+  vertical-align: middle;
+  background-color: #dcdfe6;
+  position: relative;
+}
 .lg_gem_img {
   max-height: 30px;
 }

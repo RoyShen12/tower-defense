@@ -10,6 +10,9 @@ class BulletManager {
       /** @type {BulletBase[]} */
       this.bullets = []
 
+      /** @type {Map<string, typeof BulletBase>} */
+      this.__bctor_cache = new Map()
+
       BulletManager.instance = this
     }
 
@@ -28,7 +31,17 @@ class BulletManager {
    */
   Factory(emitter, bulletName, position, atk, target, image, ...extraArgs) {
 
-    const bb = new (eval(bulletName))(position, atk, target, image, ...extraArgs)
+    let ctor = null
+
+    if (this.__bctor_cache.has(bulletName)) {
+      ctor = this.__bctor_cache.get(bulletName)
+    }
+    else {
+      ctor = eval(bulletName)
+      this.__bctor_cache.set(bulletName, ctor)
+    }
+
+    const bb = new ctor(position, atk, target, image, ...extraArgs)
     bb.setDamageEmitter(emitter)
     this.bullets.push(bb)
     return bb
@@ -54,7 +67,10 @@ class CannonBullet extends BulletBase {
 
   static bulletVelocity = 4
 
-  constructor(position, atk, target, bimg, explosionDmg, explosionRadius, burnDotDamage, burnDotInterval, burnDotDuration, extraBV, onBossRatio) {
+  /**
+   * @param {(monster: MonsterBase) => number} ratioCalc
+   */
+  constructor(position, atk, target, bimg, explosionDmg, explosionRadius, burnDotDamage, burnDotInterval, burnDotDuration, extraBV, ratioCalc) {
     super(position, 2, 1, 'rgba(15,244,11,.9)', 'rgba(15,12,11,.6)', atk, CannonBullet.bulletVelocity + (extraBV || 0), target)
 
     this.aimPosition = null
@@ -65,8 +81,7 @@ class CannonBullet extends BulletBase {
     this.burnDotInterval = burnDotInterval
     this.burnDotDuration = burnDotDuration
 
-    this.onBossRatio = onBossRatio
-    if (onBossRatio > 1) console.log('Cannon onBossRatio', onBossRatio)
+    this.ratioCalc = ratioCalc
   }
 
   get isReaching() {
@@ -111,7 +126,7 @@ class CannonBullet extends BulletBase {
    * @param {MonsterBase[]} monsters
    */
   hit(monster, monsters) {
-    if (monster) super.hit(monster, monster.isBoss ? this.onBossRatio : 1)
+    if (monster) super.hit(monster, this.ratioCalc(monster))
 
     const target = this.target ? this.target.position : this.aimPosition
 
@@ -121,29 +136,39 @@ class CannonBullet extends BulletBase {
     // make exploding dmg
     monsters.forEach(m => {
       if (Position.distancePow2(m.position, target) < this.explosionRadius * this.explosionRadius) {
-        m.health -= this.explosionDmg * (1 - m.armorResistance) * (m.isBoss ? this.onBossRatio : 1)
+        m.health -= this.explosionDmg * (1 - m.armorResistance) * this.ratioCalc(m)
         this.emitter(m)
-        if (!m.beBurned && !m.isDead) {
-          let dotCount = 0
-          // 目标标记灼烧
-          m.beBurned = true
-          const itv = setInterval(() => {
-            if (++dotCount > this.burnDotCount) {
-              // 效果结束、移除灼烧状态、结束计时器
-              m.beBurned = false
-              clearInterval(itv)
-              return
-            }
-            if (m.health > 0) {
-              // 跳DOT
-              m.health -= this.burnDotDamage * (1 - m.armorResistance) * (m.isBoss ? this.onBossRatio : 1)
-              this.emitter(m)
-            }
-            if (m.health <= 0) {
-              clearInterval(itv)
-            }
-          }, this.burnDotInterval)
-        }
+
+        Tools.installDot(
+          m,
+          'beBurned',
+          this.burnDotDuration,
+          this.burnDotInterval,
+          this.burnDotDamage * this.ratioCalc(m),
+          false,
+          this.emitter.bind(this)
+        )
+        // if (!m.beBurned && !m.isDead) {
+        //   let dotCount = 0
+        //   // 目标标记灼烧
+        //   m.beBurned = true
+        //   const itv = setInterval(() => {
+        //     if (++dotCount > this.burnDotCount) {
+        //       // 效果结束、移除灼烧状态、结束计时器
+        //       m.beBurned = false
+        //       clearInterval(itv)
+        //       return
+        //     }
+        //     if (m.health > 0) {
+        //       // 跳DOT
+        //       m.health -= this.burnDotDamage * (1 - m.armorResistance) * this.ratioCalc(m)
+        //       this.emitter(m)
+        //     }
+        //     if (m.health <= 0) {
+        //       clearInterval(itv)
+        //     }
+        //   }, this.burnDotInterval)
+        // }
       }
     })
   }
@@ -188,29 +213,38 @@ class ClusterBomb extends CannonBullet {
         .filter(ep => Position.distancePow2(m.position, ep) < radius * radius)
         .forEach(() => {
 
-          m.health -= dmg * (1 - m.armorResistance) * (m.isBoss ? this.onBossRatio : 1)
+          m.health -= dmg * (1 - m.armorResistance) * this.ratioCalc(m)
           this.emitter(m)
-          if (!m.beBurned && !m.isDead) {
-            let dotCount = 0
-            // 目标标记灼烧
-            m.beBurned = true
-            const itv = setInterval(() => {
-              if (++dotCount > this.burnDotCount) {
-                // 效果结束、移除灼烧状态、结束计时器
-                m.beBurned = false
-                clearInterval(itv)
-                return
-              }
-              if (m.health > 0) {
-                // 跳DOT
-                m.health -= this.burnDotDamage * (1 - m.armorResistance) * (m.isBoss ? this.onBossRatio : 1)
-                this.emitter(m)
-              }
-              if (m.health <= 0) {
-                clearInterval(itv)
-              }
-            }, this.burnDotInterval)
-          }
+          Tools.installDot(
+            m,
+            'beBurned',
+            this.burnDotDuration,
+            this.burnDotInterval,
+            this.burnDotDamage * this.ratioCalc(m),
+            false,
+            this.emitter.bind(this)
+          )
+          // if (!m.beBurned && !m.isDead) {
+          //   let dotCount = 0
+          //   // 目标标记灼烧
+          //   m.beBurned = true
+          //   const itv = setInterval(() => {
+          //     if (++dotCount > this.burnDotCount) {
+          //       // 效果结束、移除灼烧状态、结束计时器
+          //       m.beBurned = false
+          //       clearInterval(itv)
+          //       return
+          //     }
+          //     if (m.health > 0) {
+          //       // 跳DOT
+          //       m.health -= this.burnDotDamage * (1 - m.armorResistance) * this.ratioCalc(m)
+          //       this.emitter(m)
+          //     }
+          //     if (m.health <= 0) {
+          //       clearInterval(itv)
+          //     }
+          //   }, this.burnDotInterval)
+          // }
         })
     })
   }
@@ -330,30 +364,39 @@ class PoisonCan extends BulletBase {
 
     // 毒罐的dot伤害
     // 无法对已中毒或死亡的目标施毒
-    if (monster.bePoisoned || monster.isDead) {
-      return
-    }
-    else {
-      let dotCount = 0
-      // 目标标记中毒
-      monster.bePoisoned = true
-      const itv = setInterval(() => {
-        if (++dotCount > this.poisonDur / this.poisonItv) {
-          // 效果结束、移除中毒状态、结束计时器
-          monster.bePoisoned = false
-          clearInterval(itv)
-          return
-        }
-        if (monster.health > 0) {
-          // 跳DOT
-          // 无视防御
-          monster.health -= this.poisonAtk
-          this.emitter(monster)
-        }
-        if (monster.health <= 0) {
-          clearInterval(itv)
-        }
-      }, this.poisonItv)
-    }
+    Tools.installDot(
+      monster,
+      'bePoisoned',
+      this.poisonDur,
+      this.poisonItv,
+      this.poisonAtk,
+      true,
+      this.emitter.bind(this)
+    )
+    // if (monster.bePoisoned || monster.isDead) {
+    //   return
+    // }
+    // else {
+    //   let dotCount = 0
+    //   // 目标标记中毒
+    //   monster.bePoisoned = true
+    //   const itv = setInterval(() => {
+    //     if (++dotCount > this.poisonDur / this.poisonItv) {
+    //       // 效果结束、移除中毒状态、结束计时器
+    //       monster.bePoisoned = false
+    //       clearInterval(itv)
+    //       return
+    //     }
+    //     if (monster.health > 0) {
+    //       // 跳DOT
+    //       // 无视防御
+    //       monster.health -= this.poisonAtk
+    //       this.emitter(monster)
+    //     }
+    //     if (monster.health <= 0) {
+    //       clearInterval(itv)
+    //     }
+    //   }, this.poisonItv)
+    // }
   }
 }

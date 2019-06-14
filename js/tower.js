@@ -1,13 +1,25 @@
 const __debug_price_arr = new Proxy({}, {
   get(t, p, r) {
     if (p === 'length') return 1000000
-    else return (+p + 1) * 2
+    else return (+p + 1) ** 2
   }
 })
 
 class TowerManager {
 
   static towerCtors = [
+    {
+      dn: 'Test_Tower',
+      c: 'TestTower',
+      od: 0,
+      n: 't_test',
+      p: [1],
+      r: () => 1000,
+      a: () => 1e16,
+      h: () => 15,
+      s: () => 1,
+      bctor: 'TestTower.TestBullet'
+    },
     {
       dn: '加农炮塔',
       c: 'CannonShooter',
@@ -174,8 +186,8 @@ class TowerManager {
     this.towers.forEach(t => t.render(ctx))
   }
 
-  rapidRender(ctxRapid) {
-    this.towers.forEach(t => t.rapidRender(ctxRapid))
+  rapidRender(ctxRapid, monsters) {
+    this.towers.forEach(t => t.rapidRender(ctxRapid, monsters))
   }
 
   makeHash() {
@@ -207,6 +219,14 @@ class TowerManager {
 
     return needRender
   }
+
+  get totalDamage() {
+    return this.towers.reduce((cv, pv) => cv + pv.__total_damage, 0)
+  }
+
+  get totalKill() {
+    return this.towers.reduce((cv, pv) => cv + pv.__kill_count, 0)
+  }
 }
 
 TowerManager = new Proxy(TowerManager, {
@@ -220,6 +240,32 @@ TowerManager = new Proxy(TowerManager, {
     return Reflect.get(target, property, reciever)
   }
 })
+
+class TestTower extends TowerBase {
+  static TestBullet = class _TestBullet extends BulletBase {
+    constructor(position, atk, target) {
+      super(position, 3, 0, null, 'rgba(15,44,11,1)', atk, 50, target)
+    }
+  }
+  constructor(position, image, bimage, radius) {
+    super(
+      position,
+      radius,
+      0,
+      null,
+      image,
+      TowerManager.TestTower.p,
+      TowerManager.TestTower.a,
+      TowerManager.TestTower.h,
+      TowerManager.TestTower.s,
+      TowerManager.TestTower.r
+    )
+    this.canInsertGem = false
+    this.bulletCtorName = TowerManager.TestTower.bctor
+    this.name = TowerManager.TestTower.dn
+    this.description = 'TOWER FOR TEST DAMAGE'
+  }
+}
 
 class CannonShooter extends TowerBase {
 
@@ -402,13 +448,13 @@ class CannonShooter extends TowerBase {
   }
 
   get Rng() {
-    return super.Rng + this.extraRange
+    return super.Rng + this.reviceRange(this.extraRange)
   }
 
   get informationSeq() {
     return super.informationSeq.concat([
       ['爆炸半径', Tools.roundWithFixed(this.EpdRng, 1)],
-      ['爆炸伤害', Math.round(this.EpdAtk)],
+      ['爆炸伤害', Tools.chineseFormatter(this.EpdAtk, 3)],
       ['每跳灼烧伤害', Math.round(this.BrnAtk)],
       ['灼烧伤害频率', Tools.roundWithFixed(this.BrnItv / 1000, 1) + ' 秒'],
       ['灼烧持续', Tools.roundWithFixed(this.BrnDur / 1000, 1) + ' 秒']
@@ -419,7 +465,7 @@ class CannonShooter extends TowerBase {
    * @override
    */
   produceBullet() {
-    this.bulletCtl.Factory(this.recordDamage.bind(this), this.bulletCtorName, this.position.copy().dithering(this.radius), this.Atk, this.target, this.bulletImage, this.EpdAtk, this.EpdRng, this.BrnAtk, this.BrnItv, this.BrnDur, this.extraBulletV, this.__on_boss_atk_ratio)
+    this.bulletCtl.Factory(this.recordDamage.bind(this), this.bulletCtorName, this.position.copy().dithering(this.radius), this.Atk, this.target, this.bulletImage, this.EpdAtk, this.EpdRng, this.BrnAtk, this.BrnItv, this.BrnDur, this.extraBulletV, this.calculateDamageRatio.bind(this))
   }
 }
 
@@ -593,7 +639,7 @@ class MaskManTower extends TowerBase {
   }
 
   get Rng() {
-    return super.Rng + this.extraRange
+    return super.Rng + this.reviceRange(this.extraRange)
   }
 
   get HstPS() {
@@ -638,7 +684,7 @@ class MaskManTower extends TowerBase {
   produceBullet(idx) {
 
     if (this.multipleTarget[idx]) {
-      const ratio = this.multipleTarget[idx].isBoss ? this.__on_boss_atk_ratio : 1
+      const ratio = this.calculateDamageRatio(this.multipleTarget[idx])
       this.bulletCtl.Factory(this.recordDamage.bind(this), this.bulletCtorName, this.position.copy().dithering(this.radius), this.Atk * ratio, this.multipleTarget[idx], this.bulletImage, this.critChance, this.critDamageRatio, this.trapChance, this.trapDuration, this.extraBulletV)
     }
   }
@@ -722,6 +768,9 @@ class FrostTower extends TowerBase {
     return this.freezeDuration / 1000 * 60
   }
 
+  /**
+   * 减速强度
+   */
   get SPR() {
     return this.levelSprFx(this.level)
   }
@@ -837,8 +886,7 @@ class FrostTower extends TowerBase {
 
       if (i) {
 
-        if (mst.speedRatio === 1) mst.speedRatio *= (1 - this.SPR)
-        else if (1 - this.SPR < mst.speedRatio) mst.speedRatio = 1 - this.SPR
+        if (mst.speedRatio === 1 || 1 - this.SPR < mst.speedRatio) mst.speedRatio = 1 - this.SPR
       }
       else {
         // console.log('out of forst range')
@@ -942,9 +990,11 @@ class PoisonTower extends TowerBase {
    * @param {MonsterBase[]} targetList
    */
   reChooseTarget(targetList) {
-    // 先在未中毒，且为被任何本类型塔的弹药锁定的敌人中快速搜索
-    const unTargeted = targetList.filter(m => {
-      return this.bulletCtl.bullets.every(b => b.target !== m && b.constructor.name === this.bulletCtorName)
+    const unPoisoned = targetList.filter(m => !m.bePoisoned)
+
+    // 先在未中毒，且为被任何本类型塔弹药锁定的敌人中快速搜索
+    const unTargeted = unPoisoned.filter(m => {
+      return this.bulletCtl.bullets.every(b => b.constructor.name === this.bulletCtorName && b.target !== m)
     })
     for (const t of unTargeted) {
       if (this.inRange(t)) {
@@ -953,7 +1003,6 @@ class PoisonTower extends TowerBase {
       }
     }
     // 在未中毒的敌人中搜索
-    const unPoisoned = targetList.filter(m => !m.bePoisoned)
     for (const t of unPoisoned) {
       if (this.inRange(t)) {
         this.target = t
@@ -976,7 +1025,8 @@ class PoisonTower extends TowerBase {
    * @override
    */
   produceBullet() {
-    const ratio = this.target.isBoss ? this.__on_boss_atk_ratio : 1
+    // console.log(this.target.id)
+    const ratio = this.calculateDamageRatio(this.target)
     this.bulletCtl.Factory(this.recordDamage.bind(this), this.bulletCtorName, this.position.copy().dithering(this.radius), this.Atk * ratio, this.target, this.bulletImage, this.Patk * ratio, this.Pitv, this.Pdur, this.extraBulletV)
   }
 }
@@ -1074,7 +1124,7 @@ class TeslaTower extends TowerBase {
   }
 
   get Rng() {
-    return super.Rng + this.extraRange
+    return super.Rng + this.reviceRange(this.extraRange)
   }
 
   get HstPS() {
@@ -1131,10 +1181,10 @@ class TeslaTower extends TowerBase {
    * @param {MonsterBase} monster
    */
   shock(monster) {
-    monster.health -= this.Atk * (1 - monster.armorResistance) * (monster.isBoss ? this.__on_boss_atk_ratio : 1)
+    monster.health -= this.Atk * (1 - monster.armorResistance) * this.calculateDamageRatio(monster)
     this.recordDamage(monster)
     if (this.canCharge) monster.registerShock(this.shockDurationTick, this.Atk * this.shockChargingPowerRatio, this, this.shockLeakingChance)
-    this.extraEffect(monster)
+    // this.extraEffect(monster)
   }
 
   /**
@@ -1188,8 +1238,12 @@ class TeslaTower extends TowerBase {
   /**
    * @override
    * @param {CanvasRenderingContext2D} ctx
+   * @param {MonsterBase[]} monsters
    */
-  rapidRender(ctx) {
+  rapidRender(ctx, monsters) {
+    if (monsters.every(m => !this.inRange(m))) {
+      return
+    }
     if (this.renderPermit > 0) {
       this.renderPermit--
 
@@ -1220,7 +1274,7 @@ class BlackMagicTower extends TowerBase {
 
   static rankUpDesc1 = '\n+ 伤害得到加强'
   static rankUpDesc2 = '\n+ 伤害得到大幅加强'
-  static rankUpDesc3 = '\n+ 附加目标当前生命值 8% 的额外伤害'
+  static rankUpDesc3 = '\n+ 伤害得到大幅加强，附加目标当前生命值 8% 的额外伤害'
 
   constructor(position, image, bimg, radius) {
     super(
@@ -1243,7 +1297,7 @@ class BlackMagicTower extends TowerBase {
     this.levelIdrFx = TowerManager.BlackMagicTower.idr
 
     this.imprecationPower = 0
-    this.imprecationHaste = 0
+    this.imprecationHaste = 1
 
     this.name = TowerManager.BlackMagicTower.dn
 
@@ -1255,16 +1309,16 @@ class BlackMagicTower extends TowerBase {
      */
     this.POTCHD = 0
 
-    this.inner_desc_init = '释放强力魔法，总会瞄准最强的敌人\n- 准备时间非常长\n+ 附加诅咒效果，使目标受到的伤害提高\n+ 无视防御\n+ 每次击杀将增加 10 攻击力并减少 0.1 秒准备时间'
+    this.inner_desc_init = '释放强力魔法，总会瞄准最强的敌人\n- 准备时间非常长\n+ 附加诅咒效果，使目标受到的伤害提高\n+ 无视防御\n+ 每次击杀将增加 10 攻击力并提高 1% 攻击速度（最多提高 150%）'
     this.description = this.inner_desc_init
+  }
+
+  get HstPS() {
+    return super.HstPS * this.imprecationHaste
   }
 
   get Atk() {
     return super.Atk + this.imprecationPower + this.extraPower
-  }
-
-  get Hst() {
-    return Math.max(super.Hst - this.imprecationHaste * 1000, 200)
   }
 
   /**
@@ -1285,7 +1339,8 @@ class BlackMagicTower extends TowerBase {
     return super.informationSeq.concat([
       ['诅咒易伤', Tools.roundWithFixed(this.Ide * 100 - 100, 2) + '%'],
       ['诅咒时间', Tools.roundWithFixed(this.Idr / 1000, 2) + ' 秒'],
-      ['额外攻击力', this.imprecationPower]
+      ['额外攻击力', Tools.chineseFormatter(this.imprecationPower, 0)],
+      ['额外攻击速度', Tools.roundWithFixed(this.imprecationHaste * 100 - 100, 1) + '%'],
     ])
   }
 
@@ -1346,19 +1401,19 @@ class BlackMagicTower extends TowerBase {
     Game.callAnimation('magic_2', position, w, h, 1, 2)
 
     // console.log(`基础伤害 ${this.Atk} 额外伤害 ${this.target.__inner_current_health * this.POTCHD}`)
-    this.target.health -= (this.Atk * (this.target.isBoss ? this.__on_boss_atk_ratio : 1) + this.target.__inner_current_health * this.POTCHD)
+    this.target.health -= (this.Atk * this.calculateDamageRatio(this.target) + this.target.__inner_current_health * this.POTCHD)
     this.recordDamage(this.target)
     // 杀死了目标
     if (this.target.isDead) {
       this.imprecationPower += 10
-      this.imprecationHaste += 0.1
+      if (this.imprecationHaste < 150) this.imprecationHaste += 0.01
     }
     // 诅咒目标
     else if (!this.target.beImprecated) {
       this.target.beImprecated = true
       this.target.imprecatedRatio = this.Ide
       setTimeout(() => {
-        if (!this.target.isDead) {
+        if (this.target && !this.target.isDead) {
           this.target.beImprecated = false
           this.target.imprecatedRatio = 1
         }
@@ -1367,7 +1422,7 @@ class BlackMagicTower extends TowerBase {
   }
 
   rapidRender(ctx) {
-    this.renderPreparationBar(ctx)
+    if (this.HstPS < 45) this.renderPreparationBar(ctx)
   }
 }
 
@@ -1532,7 +1587,7 @@ class LaserTower extends TowerBase {
   }
 
   get Rng() {
-    return super.Rng + this.extraRange
+    return super.Rng + this.reviceRange(this.extraRange)
   }
 
   get Slc() {
@@ -1673,14 +1728,14 @@ class LaserTower extends TowerBase {
     // Game.callCanvasContext('bg').strokeStyle = 'rgba(33,33,33,.3)'
     // Game.callCanvasContext('bg').stroke(flameArea)
 
-    this.target.health -= this.Atk * (1 - this.target.armorResistance) * (this.target.isBoss ? this.__on_boss_atk_ratio : 1)
+    this.target.health -= this.Atk * (1 - this.target.armorResistance) * this.calculateDamageRatio(this.target)
     this.recordDamage(this.target)
 
     monsters.forEach(mst => {
       if (Game.callCanvasContext('bg').isPointInPath(flameArea, mst.position.x, mst.position.y)) {
-        mst.health -= this.extraLuminousDamage * (mst.isBoss ? this.__on_boss_atk_ratio : 1)
+        mst.health -= this.extraLuminousDamage * this.calculateDamageRatio(mst)
         this.recordDamage(this.target)
-        mst.health -= this.Fatk * (1 - mst.armorResistance) * (mst.isBoss ? this.__on_boss_atk_ratio : 1)
+        mst.health -= this.Fatk * (1 - mst.armorResistance) * this.calculateDamageRatio(mst)
         this.recordDamage(this.target)
       }
     })

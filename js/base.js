@@ -100,11 +100,15 @@ class Tools {
     /**
      * @param {string} uniqueId
      * @param {HTMLButtonElement} node
-     * @param {VoidFunction} onPressFx - callable
+     * @param {() => boolean} onPressFx - callable
      * @param {number} onPressFxCallDelay - ms
      * @param {number} onPressFxCallInterval - ms
+     * @param {number} accDelay - ms
+     * @param {number} accInterval - ms
      */
-    static bindLongPressEventHelper(uniqueId, node, onPressFx, onPressFxCallDelay, onPressFxCallInterval) {
+    static bindLongPressEventHelper(uniqueId, node, onPressFx, onPressFxCallDelay, onPressFxCallInterval, accDelay, accInterval) {
+
+      accDelay = accDelay || Infinity
 
       let timerInst = -1
 
@@ -112,16 +116,39 @@ class Tools {
         this._instance.set(uniqueId, -1)
       }
 
-      node.addEventListener('mousedown', () => {
+      node.onmousedown = () => {
 
         timerInst = setTimeout(() => {
+
+          const startLevel1 = performance.now()
+
           const intervalInst = setInterval(() => {
-            onPressFx()
+            // console.log('loop.')
+            const cancel = onPressFx()
+
+            if (cancel) {
+              clearInterval(this._instance.get(uniqueId))
+              this._instance.set(uniqueId, -1)
+            }
+            else if (performance.now() - startLevel1 > accDelay) {
+
+              clearInterval(this._instance.get(uniqueId))
+
+              this._instance.set(uniqueId, setInterval(() => {
+
+                const cancel = onPressFx()
+
+                if (cancel) {
+                  clearInterval(this._instance.get(uniqueId))
+                  this._instance.set(uniqueId, -1)
+                }
+              }, accInterval))
+            }
           }, onPressFxCallInterval)
 
           this._instance.set(uniqueId, intervalInst)
         }, onPressFxCallDelay)
-      })
+      }
 
       const cancelTokenFx = () => {
         if (timerInst > 0) {
@@ -134,8 +161,8 @@ class Tools {
         }
       }
 
-      node.addEventListener('mouseup', cancelTokenFx)
-      node.addEventListener('mouseleave', cancelTokenFx)
+      node.onmouseup = cancelTokenFx
+      node.onmouseleave = cancelTokenFx
     }
   }
 
@@ -162,22 +189,22 @@ class Tools {
     }
   }
 
-  static chineseFormatter(num, precise = 3) {
+  static chineseFormatter(num, precise = 3, block = '') {
     const thisAbs = Math.abs(num)
     if (thisAbs < 1e4) {
-      return num
+      return this.roundWithFixed(num, precise)
     }
     else if (thisAbs < 1e8) {
-      return this.roundWithFixed(num / 1e4, precise) + '万'
+      return this.roundWithFixed(num / 1e4, precise) + block + '万'
     }
     else if (thisAbs < 1e12) {
-      return this.roundWithFixed(num / 1e8, precise) + '亿'
+      return this.roundWithFixed(num / 1e8, precise) + block + '亿'
     }
     else if (thisAbs < 1e16) {
-      return this.roundWithFixed(num / 1e12, precise) + '兆'
+      return this.roundWithFixed(num / 1e12, precise) + block + '兆'
     }
     else/* if (thisAbs < 1e20)*/ {
-      return this.roundWithFixed(num / 1e12, precise) + '京'
+      return this.roundWithFixed(num / 1e16, precise) + block + '京'
     }
   }
 
@@ -187,7 +214,7 @@ class Tools {
   }
 
   /**
-   * 生成指定位数随机16进制字符串
+   * 生成指定位数随机字符串
    * @param {number} bits
    */
   static randomStr(bits) {
@@ -548,7 +575,6 @@ class ItemBase extends CircleBase {
     else if (image instanceof Promise) {
       image.then(r => this.image = r)
     }
-    // this.__inner_id = Tools.randomStr(8)
   }
 
   renderSpriteFrame(context, x, y) {
@@ -637,6 +663,9 @@ class ItemBase extends CircleBase {
 
 class TowerBase extends ItemBase {
 
+  /**
+   * @type {{ name: string, ctor: typeof GemBase }[]}
+   */
   static Gems = [
     {
       ctor: PainEnhancer,
@@ -653,8 +682,31 @@ class TowerBase extends ItemBase {
     {
       ctor: SimplicitysStrength,
       name: 'SimplicitysStrength'
+    },
+    {
+      ctor: BaneOfTheStricken,
+      name: 'BaneOfTheStricken'
+    },
+    {
+      ctor: GemOfEase,
+      name: 'GemOfEase'
+    },
+    {
+      ctor: BaneOfTheTrapped,
+      name: 'BaneOfTheTrapped'
+    },
+    {
+      ctor: ZeisStoneOfVengeance,
+      name: 'ZeisStoneOfVengeance'
     }
   ]
+
+  /**
+   * @param {string} gn
+   */
+  static GemNameToGemCtor(gn) {
+    return this.Gems.find(g => g.name === gn).ctor
+  }
 
   static GemsToOptions = this.Gems.map((gemCtor, idx) => {
     const option = document.createElement('option')
@@ -742,8 +794,14 @@ class TowerBase extends ItemBase {
     this.canInsertGem = true
     this.__hst_ps_ratio = 1
     this.__atk_ratio = 1
+    this.__kill_extra_gold = 0
 
     this.__on_boss_atk_ratio = 1
+    this.__on_trapped_atk_ratio = 1
+    this.__max_rng_atk_ratio = 1
+    this.__min_rng_atk_ratio = 1
+    /** @type {Map<string, number>} */
+    this.__each_monster_damage_ratio = new Map()
 
     this.isSold = false
   }
@@ -794,7 +852,7 @@ class TowerBase extends ItemBase {
    * 射程
    */
   get Rng() {
-    return this.levelRngFx(this.level) + this.radius
+    return this.reviceRange(this.levelRngFx(this.level)) + this.radius
   }
 
   /**
@@ -815,11 +873,11 @@ class TowerBase extends ItemBase {
       ['下一级', this.isMaxLevel ? '最高等级' : '$ ' + Tools.formatterUs.format(Math.round(this.price[this.level + 1]))],
       ['售价', '$ ' + Tools.formatterUs.format(Math.round(this.sellingPrice))],
       ['可用点数', Tools.formatterUs.format(this.updateGemPoint)],
-      ['伤害', Tools.formatterUs.format(Math.round(this.Atk))],
+      ['伤害', Tools.chineseFormatter(Math.round(this.Atk), 3)],
       ['攻击速度', Tools.roundWithFixed(this.HstPS, 2)],
       ['射程', Tools.formatterUs.format(Math.round(this.Rng))],
       ['弹药储备', Math.round(this.Slc)],
-      ['DPS', Tools.formatterUs.format(Tools.roundWithFixed(this.DPS, 1))]
+      ['DPS', Tools.chineseFormatter(this.DPS, 3)]
     ]
     return base
   }
@@ -864,11 +922,19 @@ class TowerBase extends ItemBase {
   }
 
   /**
+   * 对设计稿的距离值进行修正，得到正确的相对距离
+   * @param {number} r 基于设计稿的距离值 px
+   */
+  reviceRange(r) {
+    return r * Game.callGridSideSize() / 39
+  }
+
+  /**
    * 插入 Legendary Gem
    * @param {string} gemCtorName
    */
   inlayGem(gemCtorName) {
-    this.gem = new (eval(gemCtorName))()
+    this.gem = new (TowerBase.GemNameToGemCtor(gemCtorName))()
     this.gem.initEffect(this)
   }
 
@@ -898,6 +964,7 @@ class TowerBase extends ItemBase {
    */
   recordKill() {
     this.__kill_count++
+    Game.callMoney()[1](this.__kill_extra_gold)
   }
 
   /**
@@ -923,8 +990,27 @@ class TowerBase extends ItemBase {
     this.target = null
   }
 
+  /**
+   * @final
+   * @param {MonsterBase} mst
+   */
+  calculateDamageRatio(mst) {
+    const bossR = mst.isBoss ? this.__on_boss_atk_ratio : 1
+    const particularR = this.__each_monster_damage_ratio.has(mst.id) ? this.__each_monster_damage_ratio.get(mst.id) : 1
+    const trapR = mst.isTrapped ? this.__on_trapped_atk_ratio : 1
+    const R = Position.distance(this.position, mst.position) / this.Rng
+    const rangeR = this.__min_rng_atk_ratio * (1 - R) + this.__max_rng_atk_ratio * R
+
+    // console.log(bossR, particularR, trapR, rangeR)
+    return bossR * particularR * trapR * rangeR
+  }
+
+  /**
+   * @param {number} i
+   * @param {MonsterBase[]} monsters
+   */
   produceBullet(i, monsters) {
-    const ratio = this.target.isBoss ? this.__on_boss_atk_ratio : 1
+    const ratio = this.calculateDamageRatio(this.target)
     this.bulletCtl.Factory(this.recordDamage.bind(this), this.bulletCtorName, this.position.copy().dithering(this.radius), this.Atk * ratio, this.target, this.bulletImage)
   }
 
@@ -1129,6 +1215,7 @@ class TowerBase extends ItemBase {
     const renderDataType_2 = (rootNode, dataChunk, offset) => {
       dataChunk.forEach((data, idx) => {
         const row = rootNode.childNodes.item(idx + offset)
+        Tools.Dom.removeNodeTextAndStyle(row)
         Tools.Dom.removeAllChildren(row)
         if (data.includes('+')) row.style.color = 'rgba(204,51,51,1)'
         else if (data.includes('-')) row.style.color = 'rgba(0,102,204,1)'
@@ -1184,6 +1271,11 @@ class TowerBase extends ItemBase {
 
     // 需要显示Legendary Gem面板
     if (showGemPanel) {
+      // 依赖的变量
+      // bWidth
+      // this.gem *
+      // this.id *
+
       const gemElement = Game.callElement('gem_block')
 
       Tools.Dom.removeAllChildren(gemElement)
@@ -1205,11 +1297,12 @@ class TowerBase extends ItemBase {
         select.style.fontSize = '12px'
         select.onchange = () => {
           selected = select.value
-          rowDesc.textContent = (eval(selected)).stasisDescription
-          rowimg.firstChild.src = (eval(selected)).imgSrc
-          rowPrice.lastChild.textContent = Tools.formatterUs.format((eval(selected)).price)
-          rowPrice.lastChild.style.color = eval(selected).price <= Game.callMoney()[0] ? '#67C23A' : '#F56C6C'
-          if (eval(selected).price > Game.callMoney()[0]) {
+          const ctor = TowerBase.GemNameToGemCtor(selected)
+          rowDesc.textContent = ctor.stasisDescription
+          rowimg.firstChild.src = ctor.imgSrc
+          rowPrice.lastChild.textContent = Tools.formatterUs.format(ctor.price)
+          rowPrice.lastChild.style.color = ctor.price <= Game.callMoney()[0] ? '#67C23A' : '#F56C6C'
+          if (ctor.price > Game.callMoney()[0]) {
             btn.setAttribute('disabled', 'disabled')
           }
           else {
@@ -1222,11 +1315,11 @@ class TowerBase extends ItemBase {
 
         // const rowimg = Tools.Dom.generateRow(gemElement, null, { innerHTML: `<img src="${(eval(selected)).imgSrc}" class="lg_gem_img"></img>` })
         const rowimg = Tools.Dom.generateRow(gemElement)
-        Tools.Dom.generateImg(rowimg, eval(selected).imgSrc, { className: 'lg_gem_img' })
-        const rowPrice = Tools.Dom.generateRow(gemElement, null, { style: { marginBottom: '5px' } }, eval(selected).priceSpan)
-        rowPrice.lastChild.style.color = eval(selected).price <= Game.callMoney()[0] ? '#67C23A' : '#F56C6C'
+        Tools.Dom.generateImg(rowimg, TowerBase.GemNameToGemCtor(selected).imgSrc, { className: 'lg_gem_img' })
+        const rowPrice = Tools.Dom.generateRow(gemElement, null, { style: { marginBottom: '5px' } }, TowerBase.GemNameToGemCtor(selected).priceSpan)
+        rowPrice.lastChild.style.color = TowerBase.GemNameToGemCtor(selected).price <= Game.callMoney()[0] ? '#67C23A' : '#F56C6C'
         const rowDesc = Tools.Dom.generateRow(gemElement, null, {
-          textContent: (eval(selected)).stasisDescription,
+          textContent: TowerBase.GemNameToGemCtor(selected).stasisDescription,
           style: {
             lineHeight: '1.2',
             margin: '0 0 8px 0'
@@ -1236,11 +1329,11 @@ class TowerBase extends ItemBase {
         const btn = document.createElement('button')
         btn.type = 'button'
         btn.textContent = '确认'
-        if (eval(selected).price > Game.callMoney()[0]) {
+        if (TowerBase.GemNameToGemCtor(selected).price > Game.callMoney()[0]) {
           btn.setAttribute('disabled', 'disabled')
         }
         btn.onclick = () => {
-          const ct = eval(selected)
+          const ct = TowerBase.GemNameToGemCtor(selected)
           const [money, emitter] = Game.callMoney()
 
           if (money > ct.price) {
@@ -1254,13 +1347,14 @@ class TowerBase extends ItemBase {
       }
       // 展示Legendary Gem
       else {
-        const canUpdateNext = this.updateGemPoint >= this.gem.levelUpPoint
+        const canUpdateNext = !this.gem.isMaxLevel && this.updateGemPoint >= this.gem.levelUpPoint
 
-        Tools.Dom.generateRow(gemElement, null, { textContent: '升级你的' + GemBase.gemName, style: { marginBottom: '20px' } })
+        Tools.Dom.generateRow(gemElement, null, { textContent: '升级你的' + GemBase.gemName })
 
         const btn = document.createElement('button')
         btn.type = 'button'
         btn.textContent = '升级'
+        btn.title = '长按快速升级'
         if (!canUpdateNext) {
           btn.setAttribute('disabled', 'disabled')
         }
@@ -1276,16 +1370,24 @@ class TowerBase extends ItemBase {
           this.id,
           btn,
           () => {
-            if (canUpdateNext) {
+            if (!this.gem.isMaxLevel && this.updateGemPoint >= this.gem.levelUpPoint) {
               btn.onclick()
+              return false
+            }
+            else {
+              return true
             }
           },
           200,
-          120
+          50,
+          1500,
+          10
         )
 
+        Tools.Dom.generateRow(gemElement, null, { textContent: this.gem.gemName, style: { marginBottom: '10px' } })
+
         const [imgCol] = Tools.Dom.generateTwoCol(
-          Tools.Dom.generateRow(gemElement, null, { style: { marginBottom: '20px' } }),
+          Tools.Dom.generateRow(gemElement, null, { style: { marginBottom: '5px' } }),
           null,
           null,
           [],
@@ -1293,9 +1395,11 @@ class TowerBase extends ItemBase {
         ) // img | button line
         Tools.Dom.generateImg(imgCol, this.gem.imgSrc, { className: 'lg_gem_img' })
 
-        Tools.Dom.generateTwoCol(Tools.Dom.generateRow(gemElement), { textContent: this.gem.gemName }, { textContent: this.gem.level + '  级' })
+        Tools.Dom.generateRow(gemElement, null, { textContent: this.gem.level + '  级 / ' + this.gem.maxLevelHuman })
 
-        Tools.Dom.generateTwoCol(Tools.Dom.generateRow(gemElement), { textContent: '下一级点数' }, { textContent: '' + Tools.formatterUs.format(this.gem.levelUpPoint), style: { color: canUpdateNext ? '#67C23A' : '#F56C6C' } })
+        // Tools.Dom.generateTwoCol(Tools.Dom.generateRow(gemElement), { textContent: this.gem.gemName }, { textContent: this.gem.level + '  级 / ' + this.gem.maxLevelHuman })
+
+        Tools.Dom.generateTwoCol(Tools.Dom.generateRow(gemElement), { textContent: '下一级点数' }, { textContent: this.gem.isMaxLevel ? '最高等级' : Tools.formatterUs.format(this.gem.levelUpPoint), style: { color: canUpdateNext ? '#67C23A' : '#F56C6C' } })
         Tools.Dom.generateRow(gemElement, null, { textContent: this.gem.description })
       }
     }
@@ -1329,7 +1433,7 @@ class TowerBase extends ItemBase {
     }
     else if (/*position < 3 && */pyBhGh > innerHeight) {
       const overflowH = pyBhGh - innerHeight
-      positionTLY -= overflowH + 10
+      positionTLY -= overflowH + 30
     }
     // else if (position > 2 && pyBhGh > innerHeight) {
     //   const overflowH = pyBhGh - innerHeight
@@ -1468,6 +1572,13 @@ class MonsterBase extends ItemBase {
 
   get healthBarFillStyle() {
     return 'rgba(245,44,34,1)'
+  }
+
+  /**
+   * 是否正在承受控制类限制效果影响
+   */
+  get isTrapped() {
+    return this.beTransformed || this.beImprisoned || this.beFrozen || this.beConfused || this.speedRatio < 1
   }
 
   /**
@@ -1717,7 +1828,7 @@ class BulletBase extends ItemBase {
       this.target = null
     }
     else if (this.isReaching) {
-      this.hit(this.target, monsters)
+      this.hit(this.target, 1, monsters)
       this.fulfilled = true
       this.target = null
     }
@@ -1734,6 +1845,7 @@ class BulletBase extends ItemBase {
    * @param {magnification} 放大系数
    */
   hit(monster, magnification = 1) {
+    // console.log(...arguments)
     monster.health -= this.Atk * magnification * (1 - monster.armorResistance)
     this.emitter(monster)
   }

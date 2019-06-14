@@ -24,7 +24,7 @@ function run() {
       console.log(`monster count: ${mc}, health: ${mh}${mml}${mmh}`)
       game.towerCtl.towers.forEach(t => {
         t.__total_damage > 0 ?
-          console.log(`${t.name} dmg: ${Tools.chineseFormatter(t.__total_damage, 2)}`) :
+          console.log(`${t.name.padEnd(16)} dmg: ${Tools.chineseFormatter(t.__total_damage, 2)}`) :
           void (0)
       })
     }
