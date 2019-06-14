@@ -38,7 +38,7 @@ class Game {
 
   /**
    * 根据id获取DOM元素的便捷函数
-   * @returns {HTMLDivElement}
+   * @returns {Node | Node[]}
    */
   static callElement = id => {
     const key = 'by_id_' + id
