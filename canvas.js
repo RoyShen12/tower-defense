@@ -1,8 +1,8 @@
 class CanvasManager {
   constructor() {
-    /** @type {HTMLCanvasElement[]} */
+    /** @type {(HTMLCanvasElement | OffscreenCanvas)[]} */
     this.canvasElements = []
-    /** @type {Map<string, CanvasRenderingContext2D>} */
+    /** @type {Map<string, CanvasRenderingContext2D | OffscreenRenderingContext>} */
     this.canvasContextMapping = new Map()
     /** @type {Map<string, OffscreenCanvas>} */
     this.offscreenCanvasMapping = new Map()
@@ -24,12 +24,12 @@ class CanvasManager {
 
   /**
    * @param {string} id
-   * @param {CSSStyleDeclaration} style
-   * @param {number} height
-   * @param {number} width
-   * @param {boolean} offDocument 指定创建挂载在dom的标准canvas还是脱离dom的离屏canvas
-   * @param {(ele: HTMLCanvasElement) => void | null} wiredEvent
-   * @param {string | null} paintingOffScreenRenderingContextId 仅对标准canvas生效，指定渲染绑定离屏canvas
+   * @param {CSSStyleDeclaration | {}} style
+   * @param {number} [height]
+   * @param {number} [width]
+   * @param {boolean} [offDocument] 指定创建挂载在dom的标准canvas还是脱离dom的离屏canvas
+   * @param {(ele: HTMLCanvasElement) => void | null} [wiredEvent]
+   * @param {string | null} [paintingOffScreenRenderingContextId] 仅对标准canvas生效，指定渲染绑定离屏canvas
    */
   createCanvasInstance(id, style = {}, height, width, offDocument, wiredEvent = null, paintingOffScreenRenderingContextId = null) {
     style = style || {}
@@ -45,9 +45,12 @@ class CanvasManager {
       this.canvasContextMapping.set(id, ctx)
       this.offscreenCanvasMapping.set(id, canvasOff)
 
+      // @ts-ignore
       ctx.manager = this
+      // @ts-ignore
       ctx.dom = canvasOff
 
+      // @ts-ignore
       ctx.font = 'lighter 7px TimesNewRoman'
 
       return ctx
@@ -66,8 +69,9 @@ class CanvasManager {
       this.canvasContextMapping.set(id, ctx)
 
       document.body.appendChild(canvasEle)
-
+      // @ts-ignore
       ctx.manager = this
+      // @ts-ignore
       ctx.dom = canvasEle
 
       ctx.font = 'lighter 7px TimesNewRoman'
@@ -78,6 +82,8 @@ class CanvasManager {
 
       if (paintingOffScreenRenderingContextId) {
         const osc = this.offscreenCanvasMapping.get(paintingOffScreenRenderingContextId)
+
+        // @ts-ignore
         ctx._off_screen_paint = function () {
           this.clearRect(0, 0, osc.width, osc.height)
           this.drawImage(osc, 0, 0)
@@ -107,6 +113,7 @@ class CanvasManager {
     context.clearRect(outerBoxPositionTL.x, outerBoxPositionTL.y, width, height)
     if (style) fillOrStroke ? context.fillStyle = style : context.strokeStyle = style
     if (font) context.font = font
+    // @ts-ignore
     fillOrStroke ? context.fillText(text, positionTL.x, positionTL.y) : context.strokeText(text, positionTL.x, positionTL.y)
   }
 }

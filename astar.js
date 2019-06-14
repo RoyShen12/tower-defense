@@ -1,3 +1,4 @@
+// @ts-nocheck
 var Astar = function () {
 
   function pathTo(node) {

@@ -1,14 +1,7 @@
 class EventManager {
-
   /**
-   * @param {Game} gameinst 
-   */
-  constructor() {
-  }
-
-  /**
-   * @param {{ename: string, cb: (e: Event) => void}[]} eventAndCallback
-   * @param {HTMLElement} ele
+   * @param {{ename: string, cb: (e: Event & MouseEvent & KeyboardEvent) => void}[]} eventAndCallback
+   * @param {HTMLElement | Document} ele
    */
   bindEvent(eventAndCallback, ele) {
     eventAndCallback.forEach(eac => ele[eac.ename] = eac.cb)

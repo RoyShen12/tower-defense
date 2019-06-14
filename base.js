@@ -1,3 +1,7 @@
+/**
+ * @typedef { (Node | ChildNode) & { style: CSSStyleDeclaration & {} } } NodeLike
+ */
+
 class Tools {
 
   static Dom = class _Dom {
@@ -11,7 +15,7 @@ class Tools {
     static _instance = new Map()
     /**
      * @param {Node} node
-     * @param {HTMLElement} option
+     * @param {HTMLElement | {}} option
      */
     static __installOptionOnNode(node, option) {
       _.forOwn(option, (v, k) => {
@@ -26,9 +30,20 @@ class Tools {
       })
     }
     /**
+     * @param {Node | HTMLBodyElement} node
+     * @param {HTMLDivElement | {}} [option]
+     */
+    static genetateDiv(node, option) {
+      option = option || {}
+      const div = document.createElement('div')
+      this.__installOptionOnNode(div, option)
+      node.appendChild(div)
+      return div
+    }
+    /**
      * @param {Node} node
      * @param {string} src
-     * @param {HTMLImageElement} option
+     * @param {HTMLImageElement | {}} option
      */
     static generateImg(node, src, option) {
       option = option || {}
@@ -40,8 +55,8 @@ class Tools {
     }
     /**
      * @param {Node} node
-     * @param {HTMLDivElement} leftOpt
-     * @param {HTMLDivElement} rightOpt
+     * @param {HTMLDivElement | {}} [leftOpt]
+     * @param {HTMLDivElement | {}} [rightOpt]
      * @param {Node[]} leftChildren
      * @param {Node[]} rightChildren
      */
@@ -64,8 +79,8 @@ class Tools {
     }
     /**
      * @param {Node} node
-     * @param {string | null} className
-     * @param {HTMLDivElement} option
+     * @param {string | null} [className]
+     * @param {HTMLDivElement | { style: CSSStyleDeclaration | {} } | {}} option
      * @param {Node[]} children
      */
     static generateRow(node, className, option = {}, children = []) {
@@ -86,11 +101,12 @@ class Tools {
      */
     static removeAllChildren(node) {
       while (node.hasChildNodes()) {
+        // @ts-ignore
         node.removeChild(node.lastChild)
       }
     }
     /**
-     * @param {Node} node
+     * @param {HTMLElement & Node} node
      */
     static removeNodeTextAndStyle(node, className = 'row') {
       if (node.style.color) node.style.color = ''
@@ -155,6 +171,7 @@ class Tools {
           clearTimeout(timerInst)
           timerInst = -1
         }
+        // @ts-ignore
         if (this._instance.get(uniqueId) > 0) {
           clearInterval(this._instance.get(uniqueId))
           this._instance.set(uniqueId, -1)
@@ -189,10 +206,16 @@ class Tools {
     }
   }
 
+  /**
+   * @param {number} num
+   * @param {number} precise
+   * @param {string} block
+   * @returns {string}
+   */
   static chineseFormatter(num, precise = 3, block = '') {
     const thisAbs = Math.abs(num)
     if (thisAbs < 1e4) {
-      return this.roundWithFixed(num, precise)
+      return this.roundWithFixed(num, precise) + ''
     }
     else if (thisAbs < 1e8) {
       return this.roundWithFixed(num / 1e4, precise) + block + '万'
@@ -208,6 +231,10 @@ class Tools {
     }
   }
 
+  /**
+   * @param {number} num
+   * @param {number} fractionDigits
+   */
   static roundWithFixed(num, fractionDigits) {
     const t = 10 ** fractionDigits
     return Math.round(num * t) / t
@@ -225,6 +252,7 @@ class Tools {
    * @param {number|string} numberLike
    */
   static isNumberSafe(numberLike) {
+    // @ts-ignore
     return numberLike !== '' && numberLike !== ' ' && !isNaN(numberLike)
   }
 
@@ -249,11 +277,7 @@ class Tools {
    * @param {Number} y the top left y coordinate
    * @param {Number} width the width of the rectangle
    * @param {Number} height the height of the rectangle
-   * @param {Number} [radius = 5] the corner radius or an object to specify different radius for corners
-   * @param {Number} [radius.tl = 0] top left
-   * @param {Number} [radius.tr = 0] top right
-   * @param {Number} [radius.br = 0] bottom right
-   * @param {Number} [radius.bl = 0] bottom left
+   * @param {Number | {tl: number,tr:number,br:number,bl:number}} [radius = 5] the corner radius or an object to specify different radius for corners
    * @param {Boolean} [fill = false] whether to fill the rectangle
    * @param {Boolean} [stroke = true] whether to stroke the rectangle
    */
@@ -292,8 +316,8 @@ class Tools {
   static EaseFx = class _Ease {
     /** @typedef {(x: number) => number} efx */
     static c1 = 1.70158
-    static c2 = this.c1 * 1.525
-    static c3 = this.c1 + 1
+    static c2 = _Ease.c1 * 1.525
+    static c3 = _Ease.c1 + 1
     static c4 = (2 * Math.PI) / 3
     static c5 = (2 * Math.PI) / 4.5
 
@@ -361,8 +385,9 @@ class Tools {
   /**
    * 返回一个比较某个属性的比较函数，通常用于作为Array.sort()的参数，如对数组A的b属性排序：A.sort(compareProperties('b'))
    * @template T
-   * @type {(properties: string|Symbol, cFx?: (ela: T, elb: T) => number, ascend?: boolean) => (a: T, b: T) => number}
+   * @type {<T>(properties: string, cFx?: (ela: T, elb: T) => number, ascend?: boolean) => (a: T, b: T) => number}
    */
+  // @ts-ignore
   static compareProperties = (properties, cFx = (ela, elb) => ela - elb, ascend = true) => (a, b) => cFx(a[properties], b[properties]) * (ascend ? 1 : -1)
 
   static MathFx = class _Math {
@@ -554,8 +579,9 @@ class ItemBase extends CircleBase {
     super(position, radius, borderWidth, borderStyle)
 
     /**
-     * Item的图形描述符，可以是位图、位图的Promise、动画
-     * @type {ImageBitmap | Promise<ImageBitmap> | AnimationSprite}
+     * - Item的图形描述符，可以是位图、位图的Promise、动画
+     * - 如果为 null, 则必须具备 fill
+     * @type {ImageBitmap | Promise<ImageBitmap> | AnimationSprite | null}
      */
     this.image = null
 
@@ -577,7 +603,13 @@ class ItemBase extends CircleBase {
     }
   }
 
+  /**
+   * @param {CanvasRenderingContext2D} context
+   * @param {number} x
+   * @param {number} y
+   */
   renderSpriteFrame(context, x, y) {
+    // @ts-ignore
     this.image.renderOneFrame(context, new Position(x, y), super.inscribedSquareSideLength, super.inscribedSquareSideLength, 0, true, true, false)
   }
 
@@ -635,7 +667,7 @@ class ItemBase extends CircleBase {
    * - rcos(θ) = x, rsin(θ) = y, tan(θ) = y/x => θ = arctan(y/x), r = x/cos(arctan(y/x))
    * - <x, y> --> <x/cos(arctan(y/x)), arctan(y/x)>
    * @param {CanvasRenderingContext2D} context
-   * @param {Position} target
+   * @param {Position} targetPos
    */
   rotateForward(context, targetPos) {
     context.translate(this.position.x, this.position.y)
@@ -705,10 +737,11 @@ class TowerBase extends ItemBase {
    * @param {string} gn
    */
   static GemNameToGemCtor(gn) {
+    // @ts-ignore
     return this.Gems.find(g => g.name === gn).ctor
   }
 
-  static GemsToOptions = this.Gems.map((gemCtor, idx) => {
+  static GemsToOptions = TowerBase.Gems.map((gemCtor, idx) => {
     const option = document.createElement('option')
     option.setAttribute('value', gemCtor.name)
     if (idx === 0) {
@@ -718,7 +751,7 @@ class TowerBase extends ItemBase {
     return option
   })
 
-  static GemsToOptionsInnerHtml = this.Gems
+  static GemsToOptionsInnerHtml = TowerBase.Gems
     .map((gemCtor, idx) => {
       return `<option value="${gemCtor.name}"${idx === 0 ? ' selected' : ''}>${gemCtor.ctor.gemName}</option>`
     })
@@ -778,7 +811,7 @@ class TowerBase extends ItemBase {
     this.levelSlcFx = levelSlcFx
     this.levelRngFx = levelRngFx
 
-    /** @type {MonsterBase} */
+    /** @type {MonsterBase | null} */
     this.target = null
 
     this.lastShootTime = this.bornStamp
@@ -789,7 +822,7 @@ class TowerBase extends ItemBase {
     // 升级
     this.updateGemPoint = 0
 
-    /** @type {GemBase} */
+    /** @type {GemBase | null} */
     this.gem = null
     this.canInsertGem = true
     this.__hst_ps_ratio = 1
@@ -802,6 +835,24 @@ class TowerBase extends ItemBase {
     this.__min_rng_atk_ratio = 1
     /** @type {Map<string, number>} */
     this.__each_monster_damage_ratio = new Map()
+
+    /**
+     * @virtual
+     * @type {string | undefined}
+     */
+    this.description = undefined
+
+    /**
+     * @virtual
+     * @type {string | undefined}
+     */
+    this.name = undefined
+
+    /**
+     * @virtual
+     * @type {string | undefined}
+     */
+    this.bulletCtorName = undefined
 
     this.isSold = false
   }
@@ -879,6 +930,7 @@ class TowerBase extends ItemBase {
       ['弹药储备', Math.round(this.Slc)],
       ['DPS', Tools.chineseFormatter(this.DPS, 3)]
     ]
+    // @ts-ignore
     return base
   }
 
@@ -1002,6 +1054,7 @@ class TowerBase extends ItemBase {
     const rangeR = this.__min_rng_atk_ratio * (1 - R) + this.__max_rng_atk_ratio * R
 
     // console.log(bossR, particularR, trapR, rangeR)
+    // @ts-ignore
     return bossR * particularR * trapR * rangeR
   }
 
@@ -1010,7 +1063,12 @@ class TowerBase extends ItemBase {
    * @param {MonsterBase[]} monsters
    */
   produceBullet(i, monsters) {
+    // if (!this.bulletCtorName || !this.target) {
+    //   throw new TypeError('null bulletCtorName or null target'.)
+    // }
+    // @ts-ignore
     const ratio = this.calculateDamageRatio(this.target)
+    // @ts-ignore
     this.bulletCtl.Factory(this.recordDamage.bind(this), this.bulletCtorName, this.position.copy().dithering(this.radius), this.Atk * ratio, this.target, this.bulletImage)
   }
 
@@ -1033,7 +1091,7 @@ class TowerBase extends ItemBase {
   }
 
   /**
-   * @param {MonsterBase} target
+   * @param {MonsterBase[]} monsters
    */
   shoot(monsters) {
     this.gemAttackHook(monsters)
@@ -1053,6 +1111,7 @@ class TowerBase extends ItemBase {
    */
   gemHitHook(idx, msts) {
     if (this.gem) {
+      // @ts-ignore
       this.gem.hitHook(this, this.target, msts)
     }
   }
@@ -1130,6 +1189,7 @@ class TowerBase extends ItemBase {
     const ftmp = context.font
     context.font = '6px TimesNewRoman'
 
+    // @ts-ignore
     context.fillStyle = context.manager.towerLevelTextStyle
     context.fillText('lv ' + this.levelHuman, this.position.x + this.radius * .78, this.position.y - this.radius * .78)
 
@@ -1182,15 +1242,21 @@ class TowerBase extends ItemBase {
 
   /**
    * @virtual
+   * @param {CanvasRenderingContext2D} ctxRapid
+   * @param {MonsterBase[]} monsters
    */
-  rapidRender() {}
+  rapidRender(ctxRapid, monsters) {}
 
   /**
    * - position:
    * - 2 | 1
    * - --o--
    * - 3 | 4
-   * @param {CanvasRenderingContext2D} context
+   * @param {number} bx1
+   * @param {number} [bx2]
+   * @param {number} [by1]
+   * @param {number} [by2]
+   * @param {boolean} [showGemPanel]
    */
   renderStatusBoard(bx1, bx2, by1, by2, showGemPanel) {
     showGemPanel = showGemPanel && this.canInsertGem
@@ -1246,6 +1312,7 @@ class TowerBase extends ItemBase {
       blockElement.childNodes.forEach((child, index) => {
         if (index > lineCount - 1 + extraLineCount) {
           Tools.Dom.removeAllChildren(child)
+          // @ts-ignore
           Tools.Dom.removeNodeTextAndStyle(child)
         }
       })
@@ -1290,6 +1357,7 @@ class TowerBase extends ItemBase {
 
         let selected = TowerBase.Gems[0].name
 
+        // @ts-ignore
         Tools.Dom.generateRow(gemElement, null, { textContent: '选购一颗' + GemBase.gemName, style: { margin: '0 0 8px 0' } })
 
         const select = document.createElement('select')
@@ -1298,9 +1366,12 @@ class TowerBase extends ItemBase {
         select.onchange = () => {
           selected = select.value
           const ctor = TowerBase.GemNameToGemCtor(selected)
+          // @ts-ignore
           rowDesc.textContent = ctor.stasisDescription
+          // @ts-ignore
           rowimg.firstChild.src = ctor.imgSrc
           rowPrice.lastChild.textContent = Tools.formatterUs.format(ctor.price)
+          // @ts-ignore
           rowPrice.lastChild.style.color = ctor.price <= Game.callMoney()[0] ? '#67C23A' : '#F56C6C'
           if (ctor.price > Game.callMoney()[0]) {
             btn.setAttribute('disabled', 'disabled')
@@ -1315,10 +1386,13 @@ class TowerBase extends ItemBase {
 
         // const rowimg = Tools.Dom.generateRow(gemElement, null, { innerHTML: `<img src="${(eval(selected)).imgSrc}" class="lg_gem_img"></img>` })
         const rowimg = Tools.Dom.generateRow(gemElement)
+        // @ts-ignore
         Tools.Dom.generateImg(rowimg, TowerBase.GemNameToGemCtor(selected).imgSrc, { className: 'lg_gem_img' })
         const rowPrice = Tools.Dom.generateRow(gemElement, null, { style: { marginBottom: '5px' } }, TowerBase.GemNameToGemCtor(selected).priceSpan)
+        // @ts-ignore
         rowPrice.lastChild.style.color = TowerBase.GemNameToGemCtor(selected).price <= Game.callMoney()[0] ? '#67C23A' : '#F56C6C'
         const rowDesc = Tools.Dom.generateRow(gemElement, null, {
+          // @ts-ignore
           textContent: TowerBase.GemNameToGemCtor(selected).stasisDescription,
           style: {
             lineHeight: '1.2',
@@ -1340,6 +1414,7 @@ class TowerBase extends ItemBase {
             emitter(-ct.price)
             this.inlayGem(selected)
 
+            // @ts-ignore
             this.renderStatusBoard(...arguments)
           }
         }
@@ -1364,6 +1439,7 @@ class TowerBase extends ItemBase {
         btn.onclick = () => {
           this.updateGemPoint -= this.gem.levelUp(this.updateGemPoint)
 
+          // @ts-ignore
           this.renderStatusBoard(...arguments)
         }
         Tools.Dom.bindLongPressEventHelper(
@@ -1371,7 +1447,7 @@ class TowerBase extends ItemBase {
           btn,
           () => {
             if (!this.gem.isMaxLevel && this.updateGemPoint >= this.gem.levelUpPoint) {
-              btn.onclick()
+              btn.onclick(null)
               return false
             }
             else {
@@ -1399,6 +1475,7 @@ class TowerBase extends ItemBase {
 
         // Tools.Dom.generateTwoCol(Tools.Dom.generateRow(gemElement), { textContent: this.gem.gemName }, { textContent: this.gem.level + '  级 / ' + this.gem.maxLevelHuman })
 
+        // @ts-ignore
         Tools.Dom.generateTwoCol(Tools.Dom.generateRow(gemElement), { textContent: '下一级点数' }, { textContent: this.gem.isMaxLevel ? '最高等级' : Tools.formatterUs.format(this.gem.levelUpPoint), style: { color: canUpdateNext ? '#67C23A' : '#F56C6C' } })
         Tools.Dom.generateRow(gemElement, null, { textContent: this.gem.description })
       }
@@ -1458,6 +1535,7 @@ class MonsterBase extends ItemBase {
    * @param {(lvl: number) => number} levelSpdFx
    * @param {(lvl: number) => number} levelHthFx
    * @param {(lvl: number) => number} levelAmrFx
+   * @param {(lvl: number) => number} [levelShdFx]
    */
   constructor(position, radius, borderWidth, borderStyle, image, level, levelRwdFx, levelSpdFx, levelHthFx, levelAmrFx, levelShdFx) {
     super(position, radius, borderWidth, borderStyle, image)
@@ -1732,6 +1810,7 @@ class MonsterBase extends ItemBase {
 
   /** @param {CanvasRenderingContext2D} context */
   renderLevel(context) {
+    // @ts-ignore
     context.fillStyle = context.manager.towerLevelTextStyle
     context.fillText('lv ' + this.__inner_level, this.position.x + this.radius * 0.78, this.position.y - this.radius * 0.78)
 
@@ -1772,8 +1851,10 @@ class MonsterBase extends ItemBase {
       debuffs.push(imgCtl.getImage('buff_transform'))
     }
     debuffs.forEach((dbf, idx) => {
+      // if (dbf instanceof Promise) throw new TypeError('ImageBitMap is still a Pormise while rendering debuffs.')
       const x = this.position.x - this.radius + dSize * idx
       const y = this.position.y - this.radius - dSize
+      // @ts-ignore
       context.drawImage(dbf, x, y, dSize - 1, dSize - 1)
     })
   }
@@ -1782,6 +1863,7 @@ class MonsterBase extends ItemBase {
    * @param {CanvasRenderingContext2D} context
    * @param {ImageManger} imgCtl
    */
+  // @ts-ignore
   render(context, imgCtl) {
     const ftmp = context.font
     context.font = '6px TimesNewRoman'
@@ -1828,6 +1910,7 @@ class BulletBase extends ItemBase {
       this.target = null
     }
     else if (this.isReaching) {
+      // @ts-ignore
       this.hit(this.target, 1, monsters)
       this.fulfilled = true
       this.target = null
@@ -1842,7 +1925,7 @@ class BulletBase extends ItemBase {
 
   /**
    * @param {MonsterBase} monster
-   * @param {magnification} 放大系数
+   * @param {number} magnification 放大系数
    */
   hit(monster, magnification = 1) {
     // console.log(...arguments)
@@ -1857,10 +1940,13 @@ class BulletBase extends ItemBase {
     const transFormed = this.rotateForward(context, this.target.position)
 
     context.drawImage(
+      // @ts-ignore
       this.image,
       0,
       0,
+      // @ts-ignore
       this.image.width,
+      // @ts-ignore
       this.image.height,
       0 - super.inscribedSquareSideLength * 0.5,
       0 - super.inscribedSquareSideLength * 0.5,

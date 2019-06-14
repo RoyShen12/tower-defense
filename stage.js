@@ -30,7 +30,7 @@ class Wave {
   }
 
   /**
-   * @param {} placeMonsterFx
+   * @param {(arg0: any, arg1: any) => void} placeMonsterFx
    */
   run(placeMonsterFx) {
 

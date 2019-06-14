@@ -63,7 +63,7 @@ class Position {
   }
 
   /** 
-   * @param {Position} pos
+   * @param {Position | {x:number,y:number}} pos
    * @param {number} speedValue
    */
   moveTo(pos, speedValue) {
@@ -90,7 +90,7 @@ class Position {
 
   /**
    * @param {Position} boundaryTL
-   * @param {Position} boundaryRB
+   * @param {Position} boundaryBR
    */
   outOfBoundary(boundaryTL, boundaryBR, epsilon = 0) {
     return boundaryTL.x - this.x > epsilon || boundaryTL.y - this.y > epsilon || this.x - boundaryBR.x > epsilon || this.y - boundaryBR.y > epsilon
@@ -137,7 +137,7 @@ class PolarVector {
   }
 
   copy() {
-    const t = new PolarVector()
+    const t = new PolarVector(0, 0)
     t.r = this.r
     t.theta = this.theta
     return t
@@ -222,7 +222,7 @@ class Vector extends Position {
 
   /** 
    * @param {number} angle
-   * @param {Vector} center
+   * @param {{x:number,y:number}} center
    */
   rotate(angle, center = { x: 0, y: 0 }) {
     return new Vector(

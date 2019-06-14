@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 const __debug_price_arr = new Proxy({}, {
   get(t, p, r) {
     if (p === 'length') return 1000000
@@ -5,241 +7,242 @@ const __debug_price_arr = new Proxy({}, {
   }
 })
 
-class TowerManager {
+const TowerManager = new Proxy(
+  class _TowerManager {
 
-  static towerCtors = [
-    {
-      dn: 'Test_Tower',
-      c: 'TestTower',
-      od: 0,
-      n: 't_test',
-      p: [1],
-      r: () => 1000,
-      a: () => 1e16,
-      h: () => 15,
-      s: () => 1,
-      bctor: 'TestTower.TestBullet'
-    },
-    {
-      dn: '加农炮塔',
-      c: 'CannonShooter',
-      od: 1,
-      n: 'cannon0',
-      n2: 'cannon1',
-      n3: 'cannon2',
-      p: __debug_price_arr,
-      r: lvl => lvl * 2 + 120,
-      a: lvl => lvl * 2 + 2,
-      h: lvl => 0.7 + lvl * 0.004,
-      s: () => 1,
-      expr: lvl => Math.min(40 + lvl * 4, 90),
-      expatk: atk => atk * 3.8 + 120,
-      bdatk: atk => atk / 12,
-      bdatk2: atk => atk / 10,
-      bdatk3: atk => atk / 8,
-      bdatk4: atk => atk / 6,
-      bdatk5: atk => atk / 4,
-      bditv: lvl => 500,
-      bddur: lvl => 8000,
-      bctor: 'CannonBullet',
-      bctor2: 'ClusterBomb',
-      bctor3: 'ClusterBombEx'
-    },
-    {
-      dn: '弓箭塔',
-      c: 'MaskManTower',
-      od: 2,
-      n: 'archer0',
-      n2: 'archer1',
-      n3: 'archer2',
-      n4: 'archer3',
-      p: __debug_price_arr,
-      r: lvl => lvl * 4 + 180,
-      a: lvl => lvl * 2 + 2,
-      h: () => 1,
-      s: lvl => Math.floor(lvl / 20) + 2,
-      bctor: 'NormalArrow',
-      bn: 'normal_arrow',
-      bn2: 'flame_arrow'
-    },
-    {
-      dn: '冰霜塔',
-      c: 'FrostTower',
-      od: 3,
-      n: 'ice',
-      p: __debug_price_arr,
-      r: lvl => lvl * 3 + 120,
-      a: () => 0,
-      h: () => Infinity,
-      s: () => 0,
-      // speed reduction
-      sr: lvl => Math.min(Tools.MathFx.naturalLogFx(.01, .14)(lvl), 0.95)
-    },
-    {
-      dn: '毒气塔',
-      c: 'PoisonTower',
-      od: 4,
-      n: 'poison_t',
-      p: __debug_price_arr,
-      r: lvl => lvl * 2 + 100,
-      a: lvl => Math.round(lvl / 20 + 2),
-      h: lvl => 2.1 + lvl * 0.1,
-      s: () => 1,
-      patk: lvl => lvl * 3 * Math.max(lvl / 40, 1) + 80,
-      pitv: lvl => Math.max(600 - lvl * 20, 100),
-      pdur: lvl => 4000 + lvl * 500,
-      bctor: 'PoisonCan'
-    },
-    {
-      dn: '电能塔',
-      c: 'TeslaTower',
-      od: 5,
-      n: 'tesla0',
-      n2: 'tesla1',
-      n3: 'tesla2',
-      p: __debug_price_arr,
-      r: () => 100,
-      a: lvl => 18 + Math.round((lvl / 2 + 2) * (lvl / 2 + 2)),
-      h: lvl => 0.75 + lvl * 0.01,
-      s: () => 0
-    },
-    {
-      dn: '魔法塔',
-      c: 'BlackMagicTower',
-      od: 6,
-      n: 'magic0',
-      n2: 'magic1',
-      n3: 'magic2',
-      n4: 'magic3',
-      p: __debug_price_arr,
-      r: lvl => lvl * 4 + 180,
-      a: lvl => 8800 + Math.round((lvl+ 4) * (lvl+ 4)),
-      a2: lvl => 8800 + Math.round((lvl + 5) * (lvl + 5)),
-      a3: lvl => 8800 + Math.round((lvl + 6) * (lvl + 6)),
-      a4: lvl => 8800 + Math.round((lvl + 7) * (lvl + 7)),
-      h: () => 0.125,
-      s: () => 1,
-      ide: lvl => Math.min(lvl * 0.022 + 0.1, 10),
-      idr: lvl => 10000 + 1000 * lvl
-    },
-    {
-      dn: '激光塔',
-      c: 'LaserTower',
-      od: 7,
-      n: 'laser0',
-      n2: 'laser1',
-      n3: 'laser2',
-      n4: 'laser3',
-      n5: 'laser4',
-      p: __debug_price_arr,
-      r: lvl => lvl * 1 + 90,
-      a: lvl => Math.round(lvl * 3 + 1),
-      h: () => 0.8,
-      h2: () => 1,
-      s: () => 1,
-      s2: lvl => Math.floor(lvl / 30) + 1,
-      s3: lvl => Math.floor(lvl / 28) + 3,
-      lsd: lvl => 90, // laser swipe distance
-      fatk: lvl => Math.pow(lvl, 1.05) * 10 + 160,
-      fw: lvl => 40 + Math.floor(lvl / 8)
-    }
-  ]
-
-  static rankPostfixL1 = '老兵'
-  static rankPostfixL2 = '身经百战'
-  static rankPostfixL3 = '大师'
-
-  constructor() {
-
-    /** @type {TowerBase[]} */
-    this.towers = []
-
-    this.towerChangeHash = -1
-  }
-
-  /**
-   * @param {string} towerName
-   * @param {Position} position
-   * @param {string | ImageBitmap | Promise<ImageBitmap> | AnimationSprite} image
-   * @param {number} radius
-   *
-   * @returns {TowerBase}
-   */
-  Factory(towerName, position, image, bulletImage, radius, ...extraArgs) {
-
-    const nt = new (eval(towerName))(position, image, bulletImage, radius, ...extraArgs)
-    this.towers.push(nt)
-    return nt
-  }
-
-  /**
-   * @param {MonsterBase[]} monsters
-   */
-  run(monsters) {
-    this.towers.forEach(t => {
-      t.run(monsters)
-      if (t.gem) t.gem.tickHook(t, monsters)
-    })
-  }
-
-  render(ctx) {
-    this.towers.forEach(t => t.render(ctx))
-  }
-
-  rapidRender(ctxRapid, monsters) {
-    this.towers.forEach(t => t.rapidRender(ctxRapid, monsters))
-  }
-
-  makeHash() {
-    const c = _.sumBy(this.towers, 'level')
-    const l = this.towers.length
-    return c + l + c * l
-  }
-
-  /**
-   * 塔自身很少需要重绘，所以仅在必要时重绘塔图层
-   * 此函数检测塔是否存在数量或登记的变化，并通知上层框架重绘
-   * @returns {boolean} need to render
-   */
-  scanSwipe(emitCallback) {
-    this.towers = this.towers.filter(t => {
-      if (t.isSold) {
-        emitCallback(t.sellingPrice)
-        t.destory()
+    static towerCtors = [
+      // {
+      //   dn: 'Test_Tower',
+      //   c: 'TestTower',
+      //   od: 0,
+      //   n: 't_test',
+      //   p: [1],
+      //   r: () => 1000,
+      //   a: () => 1e16,
+      //   h: () => 15,
+      //   s: () => 1,
+      //   bctor: 'TestTower.TestBullet'
+      // },
+      {
+        dn: '加农炮塔',
+        c: 'CannonShooter',
+        od: 1,
+        n: 'cannon0',
+        n2: 'cannon1',
+        n3: 'cannon2',
+        p: __debug_price_arr,
+        r: lvl => lvl * 2 + 120,
+        a: lvl => lvl * 2 + 2,
+        h: lvl => 0.7 + lvl * 0.004,
+        s: () => 1,
+        expr: lvl => Math.min(40 + lvl * 4, 90),
+        expatk: atk => atk * 3.8 + 120,
+        bdatk: atk => atk / 12,
+        bdatk2: atk => atk / 10,
+        bdatk3: atk => atk / 8,
+        bdatk4: atk => atk / 6,
+        bdatk5: atk => atk / 4,
+        bditv: lvl => 500,
+        bddur: lvl => 8000,
+        bctor: 'CannonBullet',
+        bctor2: 'ClusterBomb',
+        bctor3: 'ClusterBombEx'
+      },
+      {
+        dn: '弓箭塔',
+        c: 'MaskManTower',
+        od: 2,
+        n: 'archer0',
+        n2: 'archer1',
+        n3: 'archer2',
+        n4: 'archer3',
+        p: __debug_price_arr,
+        r: lvl => lvl * 4 + 180,
+        a: lvl => lvl * 2 + 2,
+        h: () => 1,
+        s: lvl => Math.floor(lvl / 20) + 2,
+        bctor: 'NormalArrow',
+        bn: 'normal_arrow',
+        bn2: 'flame_arrow'
+      },
+      {
+        dn: '冰霜塔',
+        c: 'FrostTower',
+        od: 3,
+        n: 'ice',
+        p: __debug_price_arr,
+        r: lvl => lvl * 3 + 120,
+        a: () => 0,
+        h: () => Infinity,
+        s: () => 0,
+        // speed reduction
+        sr: lvl => Math.min(Tools.MathFx.naturalLogFx(.01, .14)(lvl), 0.95)
+      },
+      {
+        dn: '毒气塔',
+        c: 'PoisonTower',
+        od: 4,
+        n: 'poison_t',
+        p: __debug_price_arr,
+        r: lvl => lvl * 2 + 100,
+        a: lvl => Math.round(lvl / 20 + 2),
+        h: lvl => 2.1 + lvl * 0.1,
+        s: () => 1,
+        patk: lvl => lvl * 3 * Math.max(lvl / 40, 1) + 80,
+        pitv: lvl => Math.max(600 - lvl * 20, 100),
+        pdur: lvl => 4000 + lvl * 500,
+        bctor: 'PoisonCan'
+      },
+      {
+        dn: '电能塔',
+        c: 'TeslaTower',
+        od: 5,
+        n: 'tesla0',
+        n2: 'tesla1',
+        n3: 'tesla2',
+        p: __debug_price_arr,
+        r: () => 100,
+        a: lvl => 18 + Math.round((lvl / 2 + 2) * (lvl / 2 + 2)),
+        h: lvl => 0.75 + lvl * 0.01,
+        s: () => 0
+      },
+      {
+        dn: '魔法塔',
+        c: 'BlackMagicTower',
+        od: 6,
+        n: 'magic0',
+        n2: 'magic1',
+        n3: 'magic2',
+        n4: 'magic3',
+        p: __debug_price_arr,
+        r: lvl => lvl * 4 + 180,
+        a: lvl => 8800 + Math.round((lvl + 4) * (lvl + 4)),
+        a2: lvl => 8800 + Math.round((lvl + 5) * (lvl + 5)),
+        a3: lvl => 8800 + Math.round((lvl + 6) * (lvl + 6)),
+        a4: lvl => 8800 + Math.round((lvl + 7) * (lvl + 7)),
+        h: () => 0.125,
+        s: () => 1,
+        ide: lvl => Math.min(lvl * 0.022 + 0.1, 10),
+        idr: lvl => 10000 + 1000 * lvl
+      },
+      {
+        dn: '激光塔',
+        c: 'LaserTower',
+        od: 7,
+        n: 'laser0',
+        n2: 'laser1',
+        n3: 'laser2',
+        n4: 'laser3',
+        n5: 'laser4',
+        p: __debug_price_arr,
+        r: lvl => lvl * 1 + 90,
+        a: lvl => Math.round(lvl * 3 + 1),
+        h: () => 0.8,
+        h2: () => 1,
+        s: () => 1,
+        s2: lvl => Math.floor(lvl / 30) + 1,
+        s3: lvl => Math.floor(lvl / 28) + 3,
+        lsd: lvl => 90, // laser swipe distance
+        fatk: lvl => Math.pow(lvl, 1.05) * 10 + 160,
+        fw: lvl => 40 + Math.floor(lvl / 8)
       }
-      return !t.isSold
-    })
+    ]
 
-    const currentTowerChangeHash = this.makeHash()
+    static rankPostfixL1 = '老兵'
+    static rankPostfixL2 = '身经百战'
+    static rankPostfixL3 = '大师'
 
-    const needRender = currentTowerChangeHash !== this.towerChangeHash
-    // console.log('currentTowerChangeHash', currentTowerChangeHash, 'needRender', needRender)
+    constructor() {
 
-    this.towerChangeHash = currentTowerChangeHash
+      /** @type {TowerBase[]} */
+      this.towers = []
 
-    return needRender
-  }
-
-  get totalDamage() {
-    return this.towers.reduce((cv, pv) => cv + pv.__total_damage, 0)
-  }
-
-  get totalKill() {
-    return this.towers.reduce((cv, pv) => cv + pv.__kill_count, 0)
-  }
-}
-
-TowerManager = new Proxy(TowerManager, {
-  get: function (target, property, reciever) {
-    if (typeof property === 'string' && /[A-Z]/.test(property[0])) {
-      const tryFind = target.towerCtors.find(tc => tc.c === property)
-      if (tryFind) {
-        return tryFind
-      }
+      this.towerChangeHash = -1
     }
-    return Reflect.get(target, property, reciever)
+
+    /**
+     * @param {string} towerName
+     * @param {Position} position
+     * @param {string | ImageBitmap | Promise<ImageBitmap> | AnimationSprite} image
+     * @param {number} radius
+     *
+     * @returns {TowerBase}
+     */
+    Factory(towerName, position, image, bulletImage, radius, ...extraArgs) {
+
+      const nt = new (eval(towerName))(position, image, bulletImage, radius, ...extraArgs)
+      this.towers.push(nt)
+      return nt
+    }
+
+    /**
+     * @param {MonsterBase[]} monsters
+     */
+    run(monsters) {
+      this.towers.forEach(t => {
+        t.run(monsters)
+        if (t.gem) t.gem.tickHook(t, monsters)
+      })
+    }
+
+    render(ctx) {
+      this.towers.forEach(t => t.render(ctx))
+    }
+
+    rapidRender(ctxRapid, monsters) {
+      this.towers.forEach(t => t.rapidRender(ctxRapid, monsters))
+    }
+
+    makeHash() {
+      const c = _.sumBy(this.towers, 'level')
+      const l = this.towers.length
+      return c + l + c * l
+    }
+
+    /**
+     * 塔自身很少需要重绘，所以仅在必要时重绘塔图层
+     * 此函数检测塔是否存在数量或登记的变化，并通知上层框架重绘
+     * @returns {boolean} need to render
+     */
+    scanSwipe(emitCallback) {
+      this.towers = this.towers.filter(t => {
+        if (t.isSold) {
+          emitCallback(t.sellingPrice)
+          t.destory()
+        }
+        return !t.isSold
+      })
+
+      const currentTowerChangeHash = this.makeHash()
+
+      const needRender = currentTowerChangeHash !== this.towerChangeHash
+      // console.log('currentTowerChangeHash', currentTowerChangeHash, 'needRender', needRender)
+
+      this.towerChangeHash = currentTowerChangeHash
+
+      return needRender
+    }
+
+    get totalDamage() {
+      return this.towers.reduce((cv, pv) => cv + pv.__total_damage, 0)
+    }
+
+    get totalKill() {
+      return this.towers.reduce((cv, pv) => cv + pv.__kill_count, 0)
+    }
+  },
+  {
+    get: function (target, property, reciever) {
+      if (typeof property === 'string' && /[A-Z]/.test(property[0])) {
+        const tryFind = target.towerCtors.find(tc => tc.c === property)
+        if (tryFind) {
+          return tryFind
+        }
+      }
+      return Reflect.get(target, property, reciever)
+    }
   }
-})
+)
 
 class TestTower extends TowerBase {
   static TestBullet = class _TestBullet extends BulletBase {
@@ -254,6 +257,7 @@ class TestTower extends TowerBase {
       0,
       null,
       image,
+      
       TowerManager.TestTower.p,
       TowerManager.TestTower.a,
       TowerManager.TestTower.h,

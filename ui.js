@@ -51,7 +51,7 @@ class ButtonOnCanvas extends RectangleBase {
     /** @type {string} */
     this.text = text
 
-    /** @type {string} */
+    /** @type {number} */
     this.textSize = textsize
 
     this.fontName = fontName

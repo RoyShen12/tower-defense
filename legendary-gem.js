@@ -1,12 +1,23 @@
+/**
+ * @virtual
+ */
 class GemBase {
 
   static get gemName() {
     return '传奇宝石'
   }
 
+  static get price() {
+    return 0
+  }
+
+  /**
+   * @type {Node[]}
+   */
   static get priceSpan() {
     const key = `_c_span_gem_${this.name}`
     if (Tools.Dom._cache.has(key)) {
+      // @ts-ignore
       return Tools.Dom._cache.get(key)
     }
     else {
@@ -29,14 +40,17 @@ class GemBase {
   }
 
   get gemName() {
+    // @ts-ignore
     return this.constructor.gemName
   }
 
   get imgSrc() {
+    // @ts-ignore
     return this.constructor.imgSrc
   }
 
   get maxLevelHuman() {
+    // @ts-ignore
     return isFinite(this.constructor.maxLevel) ? (this.constructor.maxLevel + '  级') : '∞'
   }
 
@@ -48,6 +62,7 @@ class GemBase {
   }
 
   get isMaxLevel() {
+    // @ts-ignore
     return this.level >= this.constructor.maxLevel
   }
 
@@ -762,7 +777,7 @@ class ZeisStoneOfVengeance extends GemBase {
    * @override
    * @param {MonsterBase} monster
    */
-  hitHook({}, monster) {
+  hitHook(_thisTower, monster) {
     if (Math.random() < this.chance) {
       monster.registerImprison(ZeisStoneOfVengeance.stuporDuration / 1000 * 60)
     }

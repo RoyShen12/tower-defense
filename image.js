@@ -40,10 +40,11 @@ class AnimationSprite {
    * @param {boolean} endless 是否在帧序列完成后从头开始循环
    * @param {boolean} trusteeshipedClearing 是否由上层框架托管每帧前清理工作
    * @param {boolean} recirculation 是否递归执行自身完成一次或已上次的帧序列播放，设置为[true]则控制步进等逻辑将由上层框架接管
-   * @param {() => void} callback 动画完成后执行的回调函数
+   * @param {() => void} [callback] 动画完成后执行的回调函数
    */
   renderOneFrame(context, positionTL, width, height, delay, endless, trusteeshipedClearing, recirculation, callback) {
     // 游戏一开始就会调用此函数，此时可能图片可能仍是Promise
+    // @ts-ignore
     if (this.img instanceof Promise) return this.img.then(() => this.renderOneFrame(...arguments))
 
     if (this.isFinish) {
@@ -100,10 +101,11 @@ class AnimationSprite {
   /**
    * @param {CanvasRenderingContext2D} context
    * @param {Position} positionTL
-   * @param {boolean} trusteeshipClearing 是否由上层框架托管每帧前清理工作
+   * @param {boolean} trusteeshipedClearing 是否由上层框架托管每帧前清理工作
    */
   renderLoop(context, positionTL, width, height, trusteeshipedClearing = false) {
     // 游戏一开始就会调用此函数，此时可能图片可能仍是Promise
+    // @ts-ignore
     if (this.img instanceof Promise) return this.img.then(() => this.renderLoop(...arguments))
 
     if (this.realNextFrameIndex !== 0 || this.realNextFrameIndex !== this.totalFrame) {
@@ -241,6 +243,7 @@ class ImageManger {
       const imgEle = new Image()
       // imgEle.crossOrigin = 'anonymous'
       imgEle.src = wl.url
+      // @ts-ignore
       this.bitmapMapping.set(wl.name, new Promise(res => {
         imgEle.onload = async () => {
           res(await createImageBitmap(imgEle, 0, 0, imgEle.width, imgEle.height))
@@ -287,6 +290,7 @@ class ImageManger {
     ].forEach(v => {
       const imgEle = new Image()
       imgEle.src = v.url
+      // @ts-ignore
       this.spriteMapping.set(v.name, new AnimationSprite(new Promise(res => {
         imgEle.onload = async () => {
           res(await createImageBitmap(imgEle, 0, 0, imgEle.width, imgEle.height))
