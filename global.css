@@ -25,7 +25,7 @@ canvas {
 .bar {
   background-color: rgb(243,243,243);
   border: 1px solid rgba(33,33,33,.5);
-  font-size: 11px;
+  font-size: 12px;
   font-family: "微软雅黑";
   z-index: 9;
   position: fixed;
@@ -74,7 +74,8 @@ canvas {
   max-height: 30px;
 }
 button {
-  font-size: 11px;
+  transform: scale(0.91667);
+  font-size: 12px;
   border-radius: 4px;
   padding: 1px 8px;
   border: 1px solid rgba(33,33,33,.5);
@@ -87,6 +88,7 @@ button:disabled {
   background-color: rgba(192,196,204,.8);
 }
 .sp_btn {
+  transform: none;
   font-size: 18px;
   position: fixed;
   color: rgba(244,244,244,1);
@@ -96,6 +98,7 @@ button:disabled {
   width: 90px;
 }
 .sc_btn {
+  transform: none;
   font-size: 18px;
   position: fixed;
   color: rgba(244,244,244,1);

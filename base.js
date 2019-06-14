@@ -695,6 +695,17 @@ class ItemBase extends CircleBase {
 
 class TowerBase extends ItemBase {
 
+  static informationDesc = new Map([
+    ['等级', '鼠标单击或按[C]键来消耗金币以升级，等级影响很多属性，到达某个等级可以晋升，获得新能力'],
+    ['下一级', '下一级需要的金币数量'],
+    ['售价', '出售此塔可以返还的金币数量'],
+    ['可用点数', '升级传奇宝石等级的点数，杀敌、制造伤害、升级均可获得点数'],
+    ['伤害', '此塔的基础攻击力'],
+    ['攻击速度', '此塔的每秒攻击次数'],
+    ['射程', '此塔的索敌距离，单位是像素'],
+    ['弹药储备', '此塔每次攻击时发射的弹药数量']
+  ])
+
   /**
    * @type {{ name: string, ctor: typeof GemBase }[]}
    */
@@ -1258,13 +1269,18 @@ class TowerBase extends ItemBase {
    * @param {number} [by2]
    * @param {boolean} [showGemPanel]
    */
-  renderStatusBoard(bx1, bx2, by1, by2, showGemPanel) {
+  renderStatusBoard(bx1, bx2, by1, by2, showGemPanel, showMoreDetail) {
     showGemPanel = showGemPanel && this.canInsertGem
 
     // inner help functions
-    const renderDataType_1 = (rootNode, dataChunk, offset) => {
+    const renderDataType_1 = (rootNode, dataChunk, offset, showDesc) => {
+      // debugger
       let jump = 0
       dataChunk.forEach((data, idx) => {
+        const showD = showDesc && this.constructor.informationDesc.has(data[0])
+
+        if (showD) console.log(data[0], showD, 'index: ' + idx + offset + jump)
+
         const row = rootNode.childNodes.item(idx + offset + jump)
         Tools.Dom.removeNodeTextAndStyle(row)
         if (!row.hasChildNodes()) {
@@ -1272,9 +1288,19 @@ class TowerBase extends ItemBase {
         }
         row.firstChild.textContent = data[0]
         row.lastChild.textContent = data[1]
+
+        if (showD) {
+          const rowD = rootNode.childNodes.item(idx + offset + jump + 1)
+          Tools.Dom.removeNodeTextAndStyle(rowD)
+          Tools.Dom.removeAllChildren(rowD)
+          rowD.textContent = this.constructor.informationDesc.get(data[0])
+          rowD.style.color = '#909399'
+          jump++
+        }
+
         if (data[0] === '可用点数') {
-          renderDataType_dv(rootNode, idx + offset + 1)
-          jump = 1
+          renderDataType_dv(rootNode, idx + offset + jump + (showD ? 2 : 1))
+          jump++
         }
       })
     }
@@ -1306,13 +1332,13 @@ class TowerBase extends ItemBase {
     blockElement.style.borderBottom = showGemPanel ? '0' : ''
 
     const lineCount = this.informationSeq.length + this.descriptionChuned.length + this.exploitsSeq.length
-    const extraLineCount = 2 + 1 /* inner_division_key.length */
+    const moreDescLineCount = showMoreDetail ? this.informationSeq.filter(f => this.constructor.informationDesc.has(f[0])).length : 0
+    const extraLineCount = 2 + 1 + moreDescLineCount /* inner_division_key.length */
 
     if (blockElement.childNodes.length > lineCount + extraLineCount) {
       blockElement.childNodes.forEach((child, index) => {
         if (index > lineCount - 1 + extraLineCount) {
           Tools.Dom.removeAllChildren(child)
-          
           Tools.Dom.removeNodeTextAndStyle(child)
         }
       })
@@ -1322,14 +1348,14 @@ class TowerBase extends ItemBase {
       Tools.Dom.generateRow(blockElement)
     }
 
-    const l1 = this.informationSeq.length + 2
-    const l2 = this.informationSeq.length + this.exploitsSeq.length + 3
+    const l1 = this.informationSeq.length + 2 + moreDescLineCount
+    const l2 = l1 + this.exploitsSeq.length + 1
 
-    renderDataType_1(blockElement, this.informationSeq, 0)
+    renderDataType_1(blockElement, this.informationSeq, 0, showMoreDetail)
 
     renderDataType_dv(blockElement, l1 - 1)
 
-    renderDataType_1(blockElement, this.exploitsSeq, l1)
+    renderDataType_1(blockElement, this.exploitsSeq, l1, false)
 
     renderDataType_dv(blockElement, l2 - 1)
 

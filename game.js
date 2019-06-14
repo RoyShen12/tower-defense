@@ -145,6 +145,8 @@ class Game {
 
     this.midSplitLineX = -1
 
+    this.detailFunctionKeyDown = false
+
     Game.callMidSplitLineX = () => this.midSplitLineX
 
     Game.callMoney = () => [this.money, this.emitMoney.bind(this)]
@@ -360,7 +362,7 @@ class Game {
         this.contextCtl._get_mouse.clearRect(0, 0, innerWidth, innerHeight)
         
         selectedT.renderRange(this.contextCtl._get_mouse)
-        selectedT.renderStatusBoard(0, this.midSplitLineX, 0, innerHeight, true)
+        selectedT.renderStatusBoard(0, this.midSplitLineX, 0, innerHeight, true, this.detailFunctionKeyDown)
       }
     }
   }
@@ -436,12 +438,14 @@ class Game {
     else {
       const selectedT = this.towerCtl.towers.find(t => t.position.equal(mousePos, t.radius))
       if (selectedT) {
+        this.statusBoardOnTower = selectedT
         
         selectedT.renderRange(this.contextCtl._get_mouse)
-        selectedT.renderStatusBoard(0, this.midSplitLineX, 0, innerHeight, true)
+        selectedT.renderStatusBoard(0, this.midSplitLineX, 0, innerHeight, true, this.detailFunctionKeyDown)
       }
       else {
         Game.callHideStatusBlock()
+        this.statusBoardOnTower = null
       }
     }
   }, 34)
@@ -457,6 +461,7 @@ class Game {
       this.selectedTowerTypeToBuild = null
       return
     }
+    // console.log(e.key)
     switch (e.key) {
 
     case 'c':
@@ -465,13 +470,38 @@ class Game {
     case ' ':
       this.startAndPauseButton.onMouseclick()
       break
-    case 'ArrowUp':
+    // case 'ArrowUp':
+    //   break
+    // case 'ArrowDown':
+    //   break
+    // case 'a':
+    //   break
+    // case 'd':
+    //   break
+    case 'Control':
+      this.detailFunctionKeyDown = !this.detailFunctionKeyDown
+
+      if (this.statusBoardOnTower) {
+        this.statusBoardOnTower.renderStatusBoard(0, this.midSplitLineX, 0, innerHeight, true, this.detailFunctionKeyDown)
+      }
       break
-    case 'ArrowDown':
+    default:
       break
-    case 'a':
-      break
-    case 'd':
+    }
+  }
+
+  /**
+   * @deprecated
+   * @param {KeyboardEvent} e
+   */
+  keyUpHandler = e => {
+    switch (e.key) {
+
+    case 'Control':
+      this.detailFunctionKeyDown = false
+      if (this.statusBoardOnTower) {
+        this.statusBoardOnTower.renderStatusBoard(0, this.midSplitLineX, 0, innerHeight, true, this.detailFunctionKeyDown)
+      }
       break
     default:
       break
@@ -571,7 +601,11 @@ class Game {
       {
         ename: 'onkeydown',
         cb: this.keyDownHandler
-      }
+      },
+      // {
+      //   ename: 'onkeyup',
+      //   cb: this.keyUpHandler
+      // }
     ],
     document)
 

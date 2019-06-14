@@ -5,6 +5,9 @@
   "include": [
     "*.js"
   ],
+  "exclude": [
+    ".git"
+  ],
   "typeAcquisition": {
     "include": [
       "lodash"

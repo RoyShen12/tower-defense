@@ -976,7 +976,7 @@ class PoisonTower extends TowerBase {
       ['每跳毒素伤害', Math.round(this.Patk)],
       ['毒素伤害频率', this.Pitv / 1000 + ' 秒'],
       ['毒素持续', Tools.roundWithFixed(this.Pdur / 1000, 1) + ' 秒'],
-      ['DOTPS', Tools.roundWithFixed(this.DOTPS, 2)]
+      // ['DOTPS', Tools.roundWithFixed(this.DOTPS, 2)]
     ])
   }
 

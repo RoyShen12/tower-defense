@@ -1,6 +1,11 @@
 
 function run() {
 
+  // if (!'OffscreenCanvas' in window) {
+  //   document.body.innerHTML += '<strong>你的浏览器不支持 OffscreenCanvas API</strong><br><strong>Your Browser didn\'t support OffscreenCanvas API</strong>'
+  //   return
+  // }
+
   // window.__global_debug = 1
 
   document.oncontextmenu = function (e) { e.preventDefault() }
