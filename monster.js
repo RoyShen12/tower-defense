@@ -84,7 +84,7 @@ class Swordman extends MonsterBase {
 
   static rwd = lvl => 20 * lvl + 20
   static spd = lvl => Math.min(.3 + lvl / 60, 1.15)
-  static hth = lvl => 120 + lvl * 40
+  static hth = lvl => Math.ceil(Math.pow(1.1, lvl)) * 120 + lvl * 40
   static amr = lvl => 3 + lvl / 8
 
   constructor(position, image, level) {
@@ -164,8 +164,8 @@ class HighPriest extends MonsterBase {
   static hth = lvl => 14400 + lvl * 8000
   static amr = () => 4
 
-  static healingInterval = () => 3000
-  static healingPower = lvl => 40 * (Math.floor(lvl / 9) + 1)
+  static healingInterval = () => 5000
+  static healingPower = lvl => 40 * (Math.floor(lvl / 25) + 1)
   static healingRange = () => 30
 
   constructor(position, image, level) {

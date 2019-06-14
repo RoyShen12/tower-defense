@@ -1,3 +1,6 @@
+/**
+ * @property {number} updateGemPoint
+ */
 class Game {
 
   /**
@@ -80,6 +83,11 @@ class Game {
 
     this.__testMode = localStorage.getItem('debug_mode') === '1'
 
+    
+    this.count = this.__testMode ? 50 : 0
+
+    this.stepDivide = this.__testMode ? 4 : 8
+
     this.tick = 0
 
     // debug only
@@ -119,6 +127,16 @@ class Game {
     this.monsterCtl = new MonsterManager()
     this.bulletsCtl = new BulletManager()
 
+    // 传奇宝石 升级点数
+    this.updateGemPoint = this.__testMode ? 1e8 : 0
+
+    Object.defineProperty(Game, 'updateGemPoint', {
+      get: () => this.updateGemPoint,
+      set: v => {
+        this.updateGemPoint = v
+      },
+      enumerable: true
+    })
     
     Game.callCanvasContext = name => this.contextCtl.getContext(name)
 
@@ -226,8 +244,8 @@ class Game {
     tow.__grid_iy = wg[1]
 
     if (this.__testMode) {
-      tow.updateGemPoint += 1e8
-      for (let i = 0; i < 139; i++) {
+
+      for (let i = 0; i < 99; i++) {
         this.emitMoney(-1 * tow.levelUp(this.money))
       }
     }
@@ -447,6 +465,10 @@ class Game {
     else {
       const selectedT = this.towerCtl.towers.find(t => t.position.equal(mousePos, t.radius))
       if (selectedT) {
+        // @todo add delay
+        // setTimeout(() => {
+          
+        // })
         this.statusBoardOnTower = selectedT
         
         selectedT.renderRange(this.contextCtl._get_mouse)
@@ -566,7 +588,7 @@ class Game {
       }
     })
 
-    const testModeButton = new ButtonOnDom({
+    new ButtonOnDom({
       className: 'tm_btn',
       type: 'button',
       textContent: '以' + (this.__testMode ? '普通' : '测试') + '模式重启',
@@ -900,20 +922,11 @@ class Game {
     }
   }
 
-  count = this.__testMode ? 100 : 0
-
-  stepDivide = this.__testMode ? 2 : 10
-
   update() {
 
     // ------------------ debug ---------------------
     
     if (!this.isPausing && !window.__d_stop_ms) {
-      const monsterCtors = [
-        'Swordman',
-        'Axeman',
-        'LionMan'
-      ]
       // if (this.tick === 101) {
       //   this.placeMonster(
       //     400,
@@ -921,18 +934,18 @@ class Game {
       //     'Devil'
       //   )
       // }
-      if (this.tick % (this.__testMode ? 10 : 120) === 0) {
+      if (this.tick % (this.__testMode ? 10 : 100) === 0) {
         this.placeMonster(
           Math.floor(++this.count / this.stepDivide),
           new Position(0, (this.gridY / 2 - .5) * this.gridSize),
-          _.shuffle(monsterCtors)[0]
+          _.shuffle(['Swordman', 'Axeman', 'LionMan'])[0]
         )
       }
       if (this.tick % (this.__testMode ? 501 : 1201) === 0) {
         this.placeMonster(
-          Math.floor(++this.count / (this.stepDivide * 2) + (this.__testMode ? 100 : 0)),
+          Math.floor(++this.count / this.stepDivide + (this.__testMode ? 100 : 0)),
           new Position(0, (this.gridY / 2 - .5) * this.gridSize),
-          'Devil'
+          _.shuffle(['Devil', 'HighPriest'])[0]
         )
       }
     }

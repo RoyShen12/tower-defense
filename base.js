@@ -874,9 +874,6 @@ class TowerBase extends ItemBase {
     this.__kill_count = 0
     this.__total_damage = 0
 
-    // 升级
-    this.updateGemPoint = 0
-
     /** @type {GemBase | null} */
     this.gem = null
     this.canInsertGem = true
@@ -923,7 +920,9 @@ class TowerBase extends ItemBase {
     for (let i = 0; i < this.level + 1; i++) {
       s += this.price[i]
     }
-    return s * 0.7
+    if (this.gem) s += this.gem.constructor.price
+
+    return Math.ceil(s * 0.7)
   }
 
   /**
@@ -978,7 +977,7 @@ class TowerBase extends ItemBase {
       ['等级', this.levelHuman],
       ['下一级', this.isMaxLevel ? '最高等级' : '$ ' + Tools.formatterUs.format(Math.round(this.price[this.level + 1]))],
       ['售价', '$ ' + Tools.formatterUs.format(Math.round(this.sellingPrice))],
-      ['可用点数', Tools.formatterUs.format(this.updateGemPoint)],
+      ['可用点数', Tools.formatterUs.format(Game.updateGemPoint)],
       ['伤害', Tools.chineseFormatter(Math.round(this.Atk), 3)],
       ['攻击速度', Tools.roundWithFixed(this.HstPS, 2)],
       ['射程', Tools.formatterUs.format(Math.round(this.Rng))],
@@ -1053,11 +1052,11 @@ class TowerBase extends ItemBase {
 
     this.__total_damage += lastAbsDmg
 
-    this.updateGemPoint += TowerBase.damageToPoint(lastAbsDmg)
+    Game.updateGemPoint += TowerBase.damageToPoint(lastAbsDmg)
 
     if (isDead) {
       this.recordKill()
-      this.updateGemPoint += isBoss ? TowerBase.killBossPointEarnings : TowerBase.killNormalPointEarnings
+      Game.updateGemPoint += isBoss ? TowerBase.killBossPointEarnings : TowerBase.killNormalPointEarnings
 
       if (this.gem) {
         this.gem.killHook(this, arguments[0])
@@ -1206,7 +1205,7 @@ class TowerBase extends ItemBase {
         3
       )
 
-      this.updateGemPoint += TowerBase.levelUpPointEarnings
+      Game.updateGemPoint += TowerBase.levelUpPointEarnings
 
       return this.price[this.level]
     }
@@ -1316,6 +1315,9 @@ class TowerBase extends ItemBase {
   renderStatusBoard(bx1, bx2, by1, by2, showGemPanel, showMoreDetail) {
     showGemPanel = showGemPanel && this.canInsertGem
 
+    const red = '#F51818'
+    const green = '#94C27E'
+
     // inner help functions
     const renderDataType_1 = (rootNode, dataChunk, offset, showDesc) => {
       // debugger
@@ -1330,8 +1332,14 @@ class TowerBase extends ItemBase {
         if (!row.hasChildNodes()) {
           Tools.Dom.generateTwoCol(row)
         }
+        else {
+          Tools.Dom.removeNodeTextAndStyle(row.lastChild)
+          Tools.Dom.removeNodeTextAndStyle(row.firstChild)
+        }
         row.firstChild.textContent = data[0]
         row.lastChild.textContent = data[1]
+
+        // @todo 售价 green red
 
         if (showD) {
           const rowD = rootNode.childNodes.item(idx + offset + jump + 1)
@@ -1346,6 +1354,10 @@ class TowerBase extends ItemBase {
         if (data[0] === '可用点数') {
           renderDataType_dv(rootNode, idx + offset + jump + (showD ? 2 : 1))
           jump++
+        }
+        else if (data[0] === '下一级') {
+          if (this.isMaxLevel) row.lastChild.style.color = '#DCDFE6'
+          else row.lastChild.style.color = this.price[this.level + 1] < Game.callMoney()[0] ? green : red
         }
       })
     }
@@ -1415,9 +1427,6 @@ class TowerBase extends ItemBase {
       // this.id *
 
       const gemElement = Game.callElement('gem_block')
-
-      const red = '#F51818'
-      const green = '#94C27E'
 
       Tools.Dom.removeAllChildren(gemElement)
 
@@ -1500,7 +1509,7 @@ class TowerBase extends ItemBase {
       }
       // 展示Legendary Gem
       else {
-        const canUpdateNext = !this.gem.isMaxLevel && this.updateGemPoint >= this.gem.levelUpPoint
+        const canUpdateNext = !this.gem.isMaxLevel && Game.updateGemPoint >= this.gem.levelUpPoint
 
         Tools.Dom.generateRow(gemElement, null, { textContent: '升级你的' + GemBase.gemName })
 
@@ -1515,7 +1524,7 @@ class TowerBase extends ItemBase {
           btn.removeAttribute('disabled')
         }
         btn.onclick = () => {
-          this.updateGemPoint -= this.gem.levelUp(this.updateGemPoint)
+          Game.updateGemPoint -= this.gem.levelUp(Game.updateGemPoint)
 
           
           this.renderStatusBoard(...arguments)
@@ -1524,7 +1533,7 @@ class TowerBase extends ItemBase {
           this.id,
           btn,
           () => {
-            if (!this.gem.isMaxLevel && this.updateGemPoint >= this.gem.levelUpPoint) {
+            if (!this.gem.isMaxLevel && Game.updateGemPoint >= this.gem.levelUpPoint) {
               btn.onclick(null)
               return false
             }

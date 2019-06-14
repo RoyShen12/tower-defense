@@ -563,7 +563,7 @@ class GemOfEase extends GemBase {
   }
 
   static get price() {
-    return 225000
+    return 100000
   }
 
   static get maxLevel() {

@@ -1,12 +1,5 @@
 const __testMode = localStorage.getItem('debug_mode') === '1'
 
-const __debug_price_arr = new Proxy({}, {
-  get(t, p, r) {
-    if (p === 'length') return 1000000
-    else return (+p + 1) * 2
-  }
-})
-
 const TowerManager = new Proxy(
   class _TowerManager {
 
@@ -23,24 +16,47 @@ const TowerManager = new Proxy(
       //   s: () => 1,
       //   bctor: 'TestTower.TestBullet'
       // },
+      
+      {
+        dn: '弓箭塔',
+        c: 'MaskManTower',
+        od: 1,
+        n: 'archer0',
+        n2: 'archer1',
+        n3: 'archer2',
+        n4: 'archer3',
+        p: new Proxy({}, {
+          get(t, p, r) {
+            if (p === 'length') return 130
+            else return Math.ceil(Math.pow(1.1, +p) * 10)
+          }
+        }),
+        r: lvl => lvl * 4 + 180,
+        a: lvl => lvl * 2 + 2,
+        h: () => 1,
+        s: lvl => Math.floor(lvl / 20) + 2,
+        bctor: 'NormalArrow',
+        bn: 'normal_arrow',
+        bn2: 'flame_arrow'
+      },
       {
         dn: '加农炮塔',
         c: 'CannonShooter',
-        od: 1,
+        od: 2,
         n: 'cannon0',
         n2: 'cannon1',
         n3: 'cannon2',
-        p: __testMode ? __debug_price_arr : new Proxy({}, {
+        p: new Proxy({}, {
           get(t, p, r) {
             if (p === 'length') return 150
-            else return Math.ceil(Math.pow(2.2, +p) * 15)
+            else return Math.ceil(Math.pow(1.1, +p) * 15)
           }
         }),
         r: lvl => lvl * 2 + 120,
         a: lvl => lvl * 2 + 2,
         h: lvl => 0.7 + lvl * 0.004,
         s: () => 1,
-        expr: lvl => Math.min(40 + lvl * 4, 90),
+        expr: lvl => Math.min(20 + lvl * 2, 90),
         expatk: atk => atk * 3.8 + 120,
         bdatk: atk => atk / 12,
         bdatk2: atk => atk / 10,
@@ -54,36 +70,14 @@ const TowerManager = new Proxy(
         bctor3: 'ClusterBombEx'
       },
       {
-        dn: '弓箭塔',
-        c: 'MaskManTower',
-        od: 2,
-        n: 'archer0',
-        n2: 'archer1',
-        n3: 'archer2',
-        n4: 'archer3',
-        p: __testMode ? __debug_price_arr : new Proxy({}, {
-          get(t, p, r) {
-            if (p === 'length') return 130
-            else return Math.ceil(Math.pow(1.8, +p) * 10)
-          }
-        }),
-        r: lvl => lvl * 4 + 180,
-        a: lvl => lvl * 2 + 2,
-        h: () => 1,
-        s: lvl => Math.floor(lvl / 20) + 2,
-        bctor: 'NormalArrow',
-        bn: 'normal_arrow',
-        bn2: 'flame_arrow'
-      },
-      {
         dn: '冰霜塔',
         c: 'FrostTower',
         od: 3,
         n: 'ice',
-        p: __testMode ? __debug_price_arr : new Proxy({}, {
+        p: new Proxy({}, {
           get(t, p, r) {
             if (p === 'length') return 50
-            else return Math.ceil(Math.pow(1.45, +p) * 320)
+            else return Math.ceil(Math.pow(1.1, +p) * 320)
           }
         }),
         r: lvl => lvl * 3 + 120,
@@ -91,24 +85,24 @@ const TowerManager = new Proxy(
         h: () => Infinity,
         s: () => 0,
         // speed reduction
-        sr: lvl => Math.min(Tools.MathFx.naturalLogFx(.01, .14)(lvl), 0.95)
+        sr: lvl => Math.min(Tools.MathFx.naturalLogFx(.1, .14)(lvl), 0.95)
       },
       {
         dn: '毒气塔',
         c: 'PoisonTower',
         od: 4,
         n: 'poison_t',
-        p: __testMode ? __debug_price_arr : new Proxy({}, {
+        p: new Proxy({}, {
           get(t, p, r) {
-            if (p === 'length') return 90
-            else return Math.ceil(Math.pow(1.9, +p) * 50)
+            if (p === 'length') return 190
+            else return Math.ceil(Math.pow(1.1, +p) * 50)
           }
         }),
         r: lvl => lvl * 2 + 100,
         a: lvl => Math.round(lvl / 20 + 2),
         h: lvl => 2.1 + lvl * 0.1,
         s: () => 1,
-        patk: lvl => lvl * 3 * Math.max(lvl / 40, 1) + 80,
+        patk: lvl => lvl * 4 * Math.max(lvl / 25, 1) + 90,
         pitv: lvl => Math.max(600 - lvl * 20, 100),
         pdur: lvl => 4000 + lvl * 500,
         bctor: 'PoisonCan'
@@ -120,14 +114,14 @@ const TowerManager = new Proxy(
         n: 'tesla0',
         n2: 'tesla1',
         n3: 'tesla2',
-        p: __testMode ? __debug_price_arr : new Proxy({}, {
+        p: new Proxy({}, {
           get(t, p, r) {
             if (p === 'length') return 180
-            else return Math.ceil(Math.pow(2, +p) * 125)
+            else return Math.ceil(Math.pow(1.1, +p) * 105)
           }
         }),
         r: () => 100,
-        a: lvl => 18 + Math.round((lvl / 2 + 2) * (lvl / 2 + 2)),
+        a: lvl => 18 + Math.round((lvl / 2 + 3) * (lvl / 2 + 3)),
         h: lvl => 0.75 + lvl * 0.01,
         s: () => 0
       },
@@ -139,10 +133,10 @@ const TowerManager = new Proxy(
         n2: 'magic1',
         n3: 'magic2',
         n4: 'magic3',
-        p: __testMode ? __debug_price_arr : new Proxy({}, {
+        p: new Proxy({}, {
           get(t, p, r) {
             if (p === 'length') return 150
-            else return Math.ceil(Math.pow(2.5, +p) * 500)
+            else return Math.ceil(Math.pow(1.1, +p) * 200)
           }
         }),
         r: lvl => lvl * 4 + 180,
@@ -164,14 +158,14 @@ const TowerManager = new Proxy(
         n3: 'laser2',
         n4: 'laser3',
         n5: 'laser4',
-        p: __testMode ? __debug_price_arr : new Proxy({}, {
+        p: new Proxy({}, {
           get(t, p, r) {
             if (p === 'length') return 150
-            else return Math.ceil(Math.pow(2.88, +p) * 1000)
+            else return Math.ceil(Math.pow(1.1, +p) * 500)
           }
         }),
         r: lvl => lvl * 1 + 90,
-        a: lvl => Math.round(lvl * 3 + 1),
+        a: lvl => Math.round(lvl * 3 + 10),
         h: () => 0.8,
         h2: () => 1,
         s: () => 1,
@@ -374,7 +368,7 @@ class CannonShooter extends TowerBase {
         this.description += CannonShooter.rankUpDesc1
         this.borderStyle = 'rgba(206,43,12,.7)'
         this.extraExplosionDamage = 100
-        this.extraExplosionRange = 20
+        this.extraExplosionRange = 10
         this.extraBulletV = 2
         this.levelBrnAtkFx = TowerManager.CannonShooter.bdatk2
         break
@@ -395,7 +389,7 @@ class CannonShooter extends TowerBase {
         this.description += CannonShooter.rankUpDesc3
         this.extraExplosionDamage = 200
         this.extraRange = 150
-        this.extraExplosionRange = 30
+        this.extraExplosionRange = 20
         this.bulletCtorName = TowerManager.CannonShooter.bctor2
         this.levelBrnAtkFx = TowerManager.CannonShooter.bdatk4
         break
@@ -405,7 +399,7 @@ class CannonShooter extends TowerBase {
         this.description += CannonShooter.rankUpDesc4
         this.extraExplosionDamage = 250
         this.extraRange = 200
-        this.extraExplosionRange = 40
+        this.extraExplosionRange = 30
         this.bulletCtorName = TowerManager.CannonShooter.bctor3
         this.levelBrnAtkFx = TowerManager.CannonShooter.bdatk5
         break
