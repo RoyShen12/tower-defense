@@ -125,7 +125,7 @@ class CannonBullet extends BulletBase {
    * @param {MonsterBase} monster
    * @param {MonsterBase[]} monsters
    */
-  // @ts-ignore
+  
   hit(monster, monsters) {
     if (monster) super.hit(monster, this.ratioCalc(monster))
 
@@ -178,7 +178,7 @@ class CannonBullet extends BulletBase {
 class ClusterBomb extends CannonBullet {
 
   constructor(...args) {
-    // @ts-ignore
+    
     super(...args)
 
     this.radius += 4

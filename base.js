@@ -101,7 +101,7 @@ class Tools {
      */
     static removeAllChildren(node) {
       while (node.hasChildNodes()) {
-        // @ts-ignore
+        
         node.removeChild(node.lastChild)
       }
     }
@@ -171,7 +171,7 @@ class Tools {
           clearTimeout(timerInst)
           timerInst = -1
         }
-        // @ts-ignore
+        
         if (this._instance.get(uniqueId) > 0) {
           clearInterval(this._instance.get(uniqueId))
           this._instance.set(uniqueId, -1)
@@ -252,7 +252,7 @@ class Tools {
    * @param {number|string} numberLike
    */
   static isNumberSafe(numberLike) {
-    // @ts-ignore
+    
     return numberLike !== '' && numberLike !== ' ' && !isNaN(numberLike)
   }
 
@@ -387,7 +387,7 @@ class Tools {
    * @template T
    * @type {<T>(properties: string, cFx?: (ela: T, elb: T) => number, ascend?: boolean) => (a: T, b: T) => number}
    */
-  // @ts-ignore
+  
   static compareProperties = (properties, cFx = (ela, elb) => ela - elb, ascend = true) => (a, b) => cFx(a[properties], b[properties]) * (ascend ? 1 : -1)
 
   static MathFx = class _Math {
@@ -609,7 +609,7 @@ class ItemBase extends CircleBase {
    * @param {number} y
    */
   renderSpriteFrame(context, x, y) {
-    // @ts-ignore
+    
     this.image.renderOneFrame(context, new Position(x, y), super.inscribedSquareSideLength, super.inscribedSquareSideLength, 0, true, true, false)
   }
 
@@ -737,7 +737,7 @@ class TowerBase extends ItemBase {
    * @param {string} gn
    */
   static GemNameToGemCtor(gn) {
-    // @ts-ignore
+    
     return this.Gems.find(g => g.name === gn).ctor
   }
 
@@ -930,7 +930,7 @@ class TowerBase extends ItemBase {
       ['弹药储备', Math.round(this.Slc)],
       ['DPS', Tools.chineseFormatter(this.DPS, 3)]
     ]
-    // @ts-ignore
+    
     return base
   }
 
@@ -1054,7 +1054,7 @@ class TowerBase extends ItemBase {
     const rangeR = this.__min_rng_atk_ratio * (1 - R) + this.__max_rng_atk_ratio * R
 
     // console.log(bossR, particularR, trapR, rangeR)
-    // @ts-ignore
+    
     return bossR * particularR * trapR * rangeR
   }
 
@@ -1066,9 +1066,9 @@ class TowerBase extends ItemBase {
     // if (!this.bulletCtorName || !this.target) {
     //   throw new TypeError('null bulletCtorName or null target'.)
     // }
-    // @ts-ignore
+    
     const ratio = this.calculateDamageRatio(this.target)
-    // @ts-ignore
+    
     this.bulletCtl.Factory(this.recordDamage.bind(this), this.bulletCtorName, this.position.copy().dithering(this.radius), this.Atk * ratio, this.target, this.bulletImage)
   }
 
@@ -1111,7 +1111,7 @@ class TowerBase extends ItemBase {
    */
   gemHitHook(idx, msts) {
     if (this.gem) {
-      // @ts-ignore
+      
       this.gem.hitHook(this, this.target, msts)
     }
   }
@@ -1189,7 +1189,7 @@ class TowerBase extends ItemBase {
     const ftmp = context.font
     context.font = '6px TimesNewRoman'
 
-    // @ts-ignore
+    
     context.fillStyle = context.manager.towerLevelTextStyle
     context.fillText('lv ' + this.levelHuman, this.position.x + this.radius * .78, this.position.y - this.radius * .78)
 
@@ -1312,7 +1312,7 @@ class TowerBase extends ItemBase {
       blockElement.childNodes.forEach((child, index) => {
         if (index > lineCount - 1 + extraLineCount) {
           Tools.Dom.removeAllChildren(child)
-          // @ts-ignore
+          
           Tools.Dom.removeNodeTextAndStyle(child)
         }
       })
@@ -1357,7 +1357,7 @@ class TowerBase extends ItemBase {
 
         let selected = TowerBase.Gems[0].name
 
-        // @ts-ignore
+        
         Tools.Dom.generateRow(gemElement, null, { textContent: '选购一颗' + GemBase.gemName, style: { margin: '0 0 8px 0' } })
 
         const select = document.createElement('select')
@@ -1366,12 +1366,12 @@ class TowerBase extends ItemBase {
         select.onchange = () => {
           selected = select.value
           const ctor = TowerBase.GemNameToGemCtor(selected)
-          // @ts-ignore
+          
           rowDesc.textContent = ctor.stasisDescription
-          // @ts-ignore
+          
           rowimg.firstChild.src = ctor.imgSrc
           rowPrice.lastChild.textContent = Tools.formatterUs.format(ctor.price)
-          // @ts-ignore
+          
           rowPrice.lastChild.style.color = ctor.price <= Game.callMoney()[0] ? '#67C23A' : '#F56C6C'
           if (ctor.price > Game.callMoney()[0]) {
             btn.setAttribute('disabled', 'disabled')
@@ -1386,13 +1386,13 @@ class TowerBase extends ItemBase {
 
         // const rowimg = Tools.Dom.generateRow(gemElement, null, { innerHTML: `<img src="${(eval(selected)).imgSrc}" class="lg_gem_img"></img>` })
         const rowimg = Tools.Dom.generateRow(gemElement)
-        // @ts-ignore
+        
         Tools.Dom.generateImg(rowimg, TowerBase.GemNameToGemCtor(selected).imgSrc, { className: 'lg_gem_img' })
         const rowPrice = Tools.Dom.generateRow(gemElement, null, { style: { marginBottom: '5px' } }, TowerBase.GemNameToGemCtor(selected).priceSpan)
-        // @ts-ignore
+        
         rowPrice.lastChild.style.color = TowerBase.GemNameToGemCtor(selected).price <= Game.callMoney()[0] ? '#67C23A' : '#F56C6C'
         const rowDesc = Tools.Dom.generateRow(gemElement, null, {
-          // @ts-ignore
+          
           textContent: TowerBase.GemNameToGemCtor(selected).stasisDescription,
           style: {
             lineHeight: '1.2',
@@ -1414,7 +1414,7 @@ class TowerBase extends ItemBase {
             emitter(-ct.price)
             this.inlayGem(selected)
 
-            // @ts-ignore
+            
             this.renderStatusBoard(...arguments)
           }
         }
@@ -1439,7 +1439,7 @@ class TowerBase extends ItemBase {
         btn.onclick = () => {
           this.updateGemPoint -= this.gem.levelUp(this.updateGemPoint)
 
-          // @ts-ignore
+          
           this.renderStatusBoard(...arguments)
         }
         Tools.Dom.bindLongPressEventHelper(
@@ -1475,7 +1475,7 @@ class TowerBase extends ItemBase {
 
         // Tools.Dom.generateTwoCol(Tools.Dom.generateRow(gemElement), { textContent: this.gem.gemName }, { textContent: this.gem.level + '  级 / ' + this.gem.maxLevelHuman })
 
-        // @ts-ignore
+        
         Tools.Dom.generateTwoCol(Tools.Dom.generateRow(gemElement), { textContent: '下一级点数' }, { textContent: this.gem.isMaxLevel ? '最高等级' : Tools.formatterUs.format(this.gem.levelUpPoint), style: { color: canUpdateNext ? '#67C23A' : '#F56C6C' } })
         Tools.Dom.generateRow(gemElement, null, { textContent: this.gem.description })
       }
@@ -1810,7 +1810,7 @@ class MonsterBase extends ItemBase {
 
   /** @param {CanvasRenderingContext2D} context */
   renderLevel(context) {
-    // @ts-ignore
+    
     context.fillStyle = context.manager.towerLevelTextStyle
     context.fillText('lv ' + this.__inner_level, this.position.x + this.radius * 0.78, this.position.y - this.radius * 0.78)
 
@@ -1854,7 +1854,7 @@ class MonsterBase extends ItemBase {
       // if (dbf instanceof Promise) throw new TypeError('ImageBitMap is still a Pormise while rendering debuffs.')
       const x = this.position.x - this.radius + dSize * idx
       const y = this.position.y - this.radius - dSize
-      // @ts-ignore
+      
       context.drawImage(dbf, x, y, dSize - 1, dSize - 1)
     })
   }
@@ -1863,7 +1863,7 @@ class MonsterBase extends ItemBase {
    * @param {CanvasRenderingContext2D} context
    * @param {ImageManger} imgCtl
    */
-  // @ts-ignore
+  
   render(context, imgCtl) {
     const ftmp = context.font
     context.font = '6px TimesNewRoman'
@@ -1910,7 +1910,7 @@ class BulletBase extends ItemBase {
       this.target = null
     }
     else if (this.isReaching) {
-      // @ts-ignore
+      
       this.hit(this.target, 1, monsters)
       this.fulfilled = true
       this.target = null
@@ -1940,13 +1940,13 @@ class BulletBase extends ItemBase {
     const transFormed = this.rotateForward(context, this.target.position)
 
     context.drawImage(
-      // @ts-ignore
+      
       this.image,
       0,
       0,
-      // @ts-ignore
+      
       this.image.width,
-      // @ts-ignore
+      
       this.image.height,
       0 - super.inscribedSquareSideLength * 0.5,
       0 - super.inscribedSquareSideLength * 0.5,

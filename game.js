@@ -43,14 +43,14 @@ class Game {
   static callElement = id => {
     const key = 'by_id_' + id
     if (Tools.Dom._cache.has(key)) {
-      // @ts-ignore
+      
       return Tools.Dom._cache.get(key)
     }
     else {
       const targetEl = document.getElementById(id)
-      // @ts-ignore
+      
       Tools.Dom._cache.set(key, targetEl)
-      // @ts-ignore
+      
       return targetEl
     }
   }
@@ -59,9 +59,9 @@ class Game {
    * 隐藏状态组件的便捷函数
    */
   static callHideStatusBlock = () => {
-    // @ts-ignore
+    
     document.getElementById('status_block').style.display = 'none'
-    // @ts-ignore
+    
     document.getElementById('gem_block').style.display = 'none'
   }
 
@@ -81,7 +81,7 @@ class Game {
     this.tick = 0
 
     // debug only
-    // @ts-ignore
+    
     window.g = this
 
     this.gridX = GX
@@ -114,7 +114,7 @@ class Game {
     this.monsterCtl = new MonsterManager()
     this.bulletsCtl = new BulletManager()
 
-    // @ts-ignore
+    
     Game.callCanvasContext = name => this.contextCtl.getContext(name)
 
     /**
@@ -129,7 +129,7 @@ class Game {
 
     this.loopSpeeds = [2, 3, 5, 1]
 
-    // @ts-ignore
+    
     Game.callImageBitMap = name => this.imageCtl.getImage(name)
 
     this.lastMouseMovePosition = new Position(0, 0)
@@ -213,9 +213,9 @@ class Game {
     const tow = this.towerCtl.Factory(ctorName, new Position(wg[2], wg[3]), img, bimg, this.gridSize / 2 - 2)
     this.emitMoney(price)
     this.grids[wg[0]][wg[1]] = 0
-    // @ts-ignore
+    
     tow.__grid_ix = wg[0]
-    // @ts-ignore
+    
     tow.__grid_iy = wg[1]
 
     for (let i = 0; i < 139; i++) this.emitMoney(-1 * tow.levelUp(this.money))
@@ -230,9 +230,9 @@ class Game {
    */
   removeTower(tower) {
     tower.isSold = true
-    // @ts-ignore
+    
     this.grids[tower.__grid_ix][tower.__grid_iy] = 1
-    // @ts-ignore
+    
     this.removeOutdatedPath(tower.__grid_ix, tower.__grid_iy)
   }
 
@@ -312,20 +312,20 @@ class Game {
         console.log('此位置会阻断怪物的唯一path')
         return
       }
-      // @ts-ignore
+      
       this.selectedTowerTypeToBuild.rerender(0)
-      // @ts-ignore
+      
       if (this.money >= this.selectedTowerTypeToBuild.__init_price[0]) {
         // 完成建造
         this.placeTower(
           mousePos,
-          // @ts-ignore
+          
           this.selectedTowerTypeToBuild.__ctor_name,
-          // @ts-ignore
+          
           this.imageCtl.getImage(this.selectedTowerTypeToBuild.__inner_img_u),
-          // @ts-ignore
+          
           this.imageCtl.getImage(this.selectedTowerTypeToBuild.__inner_b_img_u),
-          // @ts-ignore
+          
           -this.selectedTowerTypeToBuild.__init_price[0]
         )
       }
@@ -345,7 +345,7 @@ class Game {
       // 选择建筑，进入修建状态
       if (selectedT) {
         this.selectedTowerTypeToBuild = selectedT
-        // @ts-ignore
+        
         this.selectedTowerTypeToBuild.rerender(2)
       }
     }
@@ -356,9 +356,9 @@ class Game {
       if (selectedT) {
         // console.log(selectedT)
         this.emitMoney(-1 * selectedT.levelUp(this.money))
-        // @ts-ignore
+        
         this.contextCtl._get_mouse.clearRect(0, 0, innerWidth, innerHeight)
-        // @ts-ignore
+        
         selectedT.renderRange(this.contextCtl._get_mouse)
         selectedT.renderStatusBoard(0, this.midSplitLineX, 0, innerHeight, true)
       }
@@ -368,33 +368,40 @@ class Game {
   /**
    * @param {Position} mousePos
    */
-  rightClickHandler = mousePos => {
-    // 取消修建状态
-    if (this.selectedTowerTypeToBuild) {
-      // @ts-ignore
-      this.selectedTowerTypeToBuild.rerender(0)
-      this.selectedTowerTypeToBuild = null
+  rightClickHandler = function () {
+    let lastRightClick = -1000
+    return mousePos => {
+      if (performance.now() - lastRightClick < 300) {
+        if (!this.selectedTowerTypeToBuild) {
+          const selectedT = this.towerCtl.towers.find(t => t.position.equal(mousePos, t.radius * 0.75))
+          if (selectedT) {
+            this.removeTower(selectedT)
+          }
+        }
+      }
+      else {
+        // 取消修建状态
+        if (this.selectedTowerTypeToBuild) {
+          
+          this.selectedTowerTypeToBuild.rerender(0)
+          this.selectedTowerTypeToBuild = null
+        }
+      }
+      lastRightClick = performance.now()
     }
-    // else {
-    //   // 出售塔
-    //   const selectedT = this.towerCtl.towers.find(t => t.position.equal(mousePos, t.radius * 0.75))
-    //   if (selectedT) {
-    //     this.removeTower(selectedT)
-    //   }
-    // }
-  }
+  }.bind(this)()
 
   /**
    * @type {((e: MouseEvent) => void) & _.Cancelable}
    */
   mouseMoveHandler = _.throttle(e => {
-    // @ts-ignore
+    
     this.contextCtl._get_mouse.clearRect(0, 0, innerWidth, innerHeight)
     const mousePos = new Position(e.offsetX, e.offsetY)
     this.lastMouseMovePosition = mousePos
 
     if (this.selectedTowerTypeToBuild) {
-      // @ts-ignore
+      
       TowerBase.prototype.renderRange.call({ position: mousePos, Rng: this.selectedTowerTypeToBuild.__rng_lv0 }, this.contextCtl._get_mouse)
       return
     }
@@ -404,16 +411,16 @@ class Game {
       const selectedT = this.towerForSelect.find(tfs => tfs.position.equal(mousePos, tfs.radius))
       // 鼠标进入建筑
       if (selectedT) {
-        // @ts-ignore
+        
         this.onMouseTower = selectedT
         TowerBase.prototype.renderStatusBoard.call(
           {
             position: mousePos,
-            // @ts-ignore
+            
             informationSeq: [[selectedT.__dn, '']],
-            // @ts-ignore
+            
             descriptionChuned: (new (eval(selectedT.__ctor_name))).descriptionChuned,
-            // @ts-ignore
+            
             exploitsSeq: [['建造快捷键', `[${selectedT.__od}]`]],
             radius: selectedT.radius
           },
@@ -429,7 +436,7 @@ class Game {
     else {
       const selectedT = this.towerCtl.towers.find(t => t.position.equal(mousePos, t.radius))
       if (selectedT) {
-        // @ts-ignore
+        
         selectedT.renderRange(this.contextCtl._get_mouse)
         selectedT.renderStatusBoard(0, this.midSplitLineX, 0, innerHeight, true)
       }
@@ -444,7 +451,7 @@ class Game {
    */
   keyDownHandler = e => {
     if (Tools.isNumberSafe(e.key)) {
-      // @ts-ignore
+      
       this.selectedTowerTypeToBuild = this.towerForSelect[e.key - 1]
       this.leftClickHandler(this.lastMouseMovePosition)
       this.selectedTowerTypeToBuild = null
@@ -481,9 +488,9 @@ class Game {
       id: 'start_pause_btn',
       className: 'sp_btn',
       type: 'button',
-      textContent: 'Start',
+      textContent: '开始',
       title: '快捷键 [空格]',
-      // @ts-ignore
+      
       style: {
         zIndex: '8',
         top: this.gridSize * 7 + 'px',
@@ -491,7 +498,7 @@ class Game {
       },
       onclick: () => {
         this.isPausing = !this.isPausing
-        this.startAndPauseButton.ele.textContent = this.isPausing ? 'Start' : 'Pause'
+        this.startAndPauseButton.ele.textContent = this.isPausing ? '开始' : '暂停'
       }
     })
 
@@ -501,8 +508,8 @@ class Game {
       id: 'speed_ctrl_btn',
       className: 'sc_btn',
       type: 'button',
-      textContent: '1 X',
-      // @ts-ignore
+      textContent: '1 倍速',
+      
       style: {
         zIndex: '8',
         top: this.gridSize * 7 + 'px',
@@ -515,7 +522,7 @@ class Game {
           next = iterator.next()
         }
         this.updateSpeedRatio = next.value
-        this.speedControlButton.ele.textContent = `${this.updateSpeedRatio} X`
+        this.speedControlButton.ele.textContent = `${this.updateSpeedRatio} 倍速`
       }
     })
   }
@@ -568,7 +575,7 @@ class Game {
     ],
     document)
 
-    // @ts-ignore
+    
     const reactDivEle = Tools.Dom.genetateDiv(document.body, {
       id: 'react',
       style: {
@@ -605,19 +612,6 @@ class Game {
             }
           }
         },
-        // {
-        //   ename: 'oncontextmenu',
-        //   cb: e => {
-        //     const mousePos = new Position(e.offsetX, e.offsetY)
-        //     // console.log(e.button, mousePos.toString())
-        //     this.rightClickHandler(mousePos)
-        //   }
-        // },
-        // {
-        //   ename: 'onmouseup',
-        //   cb: e => {
-        //   }
-        // },
         {
           ename: 'onmousemove',
           cb: this.mouseMoveHandler
@@ -625,37 +619,6 @@ class Game {
       ],
       reactDivEle
     )
-
-    // [stasis] 鼠标事件响应
-    // this.contextCtl.createCanvasInstance('react', { zIndex: '5' }, null, null, false, this.evtCtl.bindEvent.bind(null, [
-    //   {
-    //     ename: 'onmousedown',
-    //     cb: e => {
-    //       const mousePos = new Position(e.offsetX, e.offsetY)
-    //       switch(e.button) {
-    //       // left click
-    //       case 0:
-    //         this.leftClickHandler(mousePos)
-    //         break
-    //       // right click
-    //       case 2:
-    //         this.rightClickHandler(mousePos)
-    //         break
-    //       default:
-    //         break
-    //       }
-    //     }
-    //   },
-    //   // {
-    //   //   ename: 'onmouseup',
-    //   //   cb: e => {
-    //   //   }
-    //   // },
-    //   {
-    //     ename: 'onmousemove',
-    //     cb: this.mouseMoveHandler
-    //   }
-    // ]))
 
     this.renderOnce()
 
@@ -666,7 +629,7 @@ class Game {
 
   renderOnce() {
     /** @type {CanvasRenderingContext2D} */
-    // @ts-ignore
+    
     const ctx = this.contextCtl._get_bg
 
     ctx.font = '12px TimesNewRoman'
@@ -692,7 +655,9 @@ class Game {
     ctx.fillStyle = 'rgba(241,141,123,.8)'
     ctx.fillRect((this.gridX - 1) * this.gridSize, (this.gridY / 2) * this.gridSize, this.gridSize, this.gridSize)
 
-    const tsAeraRectTL = new Position(this.leftAreaWidth + 30, 20)
+    
+    this.contextCtl.refreshText('鼠标点击选取建造，连点两次鼠标右键出售已建造的塔', this.contextCtl._get_bg, new Position(this.leftAreaWidth + 30, 30), new Position(this.leftAreaWidth + 28, 10), this.rightAreaWidth, 26, 'rgba(24,24,24,1)', true, '14px TimesNewRoman')
+    const tsAeraRectTL = new Position(this.leftAreaWidth + 30, 50)
     const tsMargin = this.gridSize / 2 - 2
     const tsItemRadius = this.gridSize / 2 + 5
 
@@ -719,30 +684,30 @@ class Game {
       _ctx.fillStyle = '#333'
       _ctx.fillText('$' + ctor.p[0], centerX, centerY + R + 20) // 绘制价格
       _ctx.textAlign = 'start'
-      // @ts-ignore
+      
       itm.__dn = ctor.dn // 注入名称
-      // @ts-ignore
+      
       itm.__des = ctor.d // 注入描述
-      // @ts-ignore
+      
       itm.__od = ctor.od // 注入序号
-      // @ts-ignore
+      
       itm.__inner_img_u = ctor.n // 注入图标
-      // @ts-ignore
+      
       itm.__inner_b_img_u = ctor.bn // 注入子弹图标
-      // @ts-ignore
+      
       itm.__init_price = ctor.p // 注入价格数组
-      // @ts-ignore
+      
       itm.__ctor_name = ctor.c // 注入构造函数名
-      // @ts-ignore
+      
       itm.__rng_lv0 = ctor.r(0) // 注入初始射程
-      // @ts-ignore
+      
       itm.__tlx = centerX - tsItemRadius - 3 // 注入中心点坐标
-      // @ts-ignore
+      
       itm.__tly = centerY - tsItemRadius - 3 // 注入中心点坐标
-      // @ts-ignore
+      
       itm.rerender = width => { // 注入重绘函数
         itm.borderWidth = width
-        // @ts-ignore
+        
         _ctx.clearRect(itm.__tlx, itm.__tly, (tsItemRadius + 2) * 2, (tsItemRadius + 2) * 2)
         itm.render(_ctx)
       }
@@ -759,7 +724,7 @@ class Game {
         const ay = tsAeraRectTL.y + tsItemRadius
 
         if (!_t.n.includes('$spr::')) {
-          // @ts-ignore
+          
           this.imageCtl.getImage(_t.n).then(img => {
             const temp = new ItemBase(new Position(ax, ay), tsItemRadius, 0, 'rgba(255,67,56,1)', img)
             IOC(temp, _t, ctx, ax, ay, tsItemRadius)
@@ -777,11 +742,11 @@ class Game {
       })
     })
 
-    // @ts-ignore
+    
     this.imageCtl.getSprite('gold_spin').getClone(2).renderLoop(this.contextCtl._get_bg, new Position(innerWidth - 190, innerHeight - 25), 18, 18)
-    // @ts-ignore
+    
     this.imageCtl.getImage('heart_px').then(img => {
-      // @ts-ignore
+      
       this.contextCtl._get_bg.drawImage(img, innerWidth - 190, innerHeight - 54, 18, 18)
     })
 
@@ -799,7 +764,7 @@ class Game {
 
     this.render(flag)
 
-    // @ts-ignore
+    
     if (window.__global_debug) {
       setTimeout(() => {
         this.run()
@@ -870,7 +835,7 @@ class Game {
   update() {
 
     // ------------------ debug ---------------------
-    // @ts-ignore
+    
     if (!this.isPausing && !window.__d_stop_ms) {
       const monsterCtors = [
         'Swordman',
@@ -919,40 +884,40 @@ class Game {
 
     if (this.tick % 30 === 0) this.renderInformation()
 
-    // @ts-ignore
+    
     this.contextCtl._get_off_screen_render.clearRect(
       0,
       0,
-      // @ts-ignore
+      
       this.contextCtl._get_off_screen_render.dom.width,
-      // @ts-ignore
+      
       this.contextCtl._get_off_screen_render.dom.height
     )
 
-    // @ts-ignore
+    
     this.imageCtl.play(this.contextCtl._get_off_screen_render)
 
     /// this.contextCtl._get_tower_rapid.clearRect(0, 0, innerWidth, innerHeight)
-    // @ts-ignore
+    
     this.towerCtl.rapidRender(this.contextCtl._get_off_screen_render, this.monsterCtl.monsters)
 
     // this.contextCtl._get_main.clearRect(0, 0, innerWidth, innerHeight)
     /// this.bulletsCtl.render(this.contextCtl._get_main)
     /// this.monsterCtl.render(this.contextCtl._get_main, this.imageCtl)
-    // @ts-ignore
+    
     this.bulletsCtl.render(this.contextCtl._get_off_screen_render)
-    // @ts-ignore
+    
     this.monsterCtl.render(this.contextCtl._get_off_screen_render, this.imageCtl)
 
     if (towerNeedRender) {
-      // @ts-ignore
+      
       this.contextCtl._get_tower.clearRect(0, 0, innerWidth, innerHeight)
-      // @ts-ignore
+      
       this.towerCtl.render(this.contextCtl._get_tower)
     }
 
     // this.contextCtl._get_tower_rapid._off_screen_paint()
-    // @ts-ignore
+    
     this.contextCtl._get_main._off_screen_paint()
     // this.contextCtl._get_animation._off_screen_paint()
   }
@@ -964,14 +929,14 @@ class Game {
   renderMoney() {
     const ax = innerWidth - 160
     const ay = innerHeight - 10
-    // @ts-ignore
+    
     this.contextCtl.refreshText(this.moneyOnDispaly, this.contextCtl._get_bg, new Position(ax, ay), new Position(ax - 4, ay - 20), 160, 26, 'rgba(24,24,24,1)', true, '14px TimesNewRoman')
   }
 
   renderLife() {
     const ax = innerWidth - 160
     const ay = innerHeight - 40
-    // @ts-ignore
+    
     this.contextCtl.refreshText(this.life, this.contextCtl._get_bg, new Position(ax, ay), new Position(ax - 4, ay - 20), 160, 26, 'rgba(24,24,24,1)', true, '14px TimesNewRoman')
   }
 
@@ -983,11 +948,11 @@ class Game {
     const ay3 = ay2 - 30
     // const ay4 = ay3 - 30
 
-    // @ts-ignore
+    
     // this.contextCtl.refreshText(`CH: ${Tools.chineseFormatter(this.monsterCtl.totalCurrentHealth, 2, ' ')}`, this.contextCtl._get_bg, new Position(ax, ay1), new Position(ax - 4, ay1 - 20), 190, 26, 'rgba(24,24,24,1)', true, '14px TimesNewRoman')
-    // @ts-ignore
+    
     this.contextCtl.refreshText(`总伤害: ${Tools.chineseFormatter(this.towerCtl.totalDamage, 2, ' ')}`, this.contextCtl._get_bg, new Position(ax, ay2), new Position(ax - 4, ay2 - 20), 190, 26, 'rgba(24,24,24,1)', true, '14px TimesNewRoman')
-    // @ts-ignore
+    
     this.contextCtl.refreshText(`总击杀: ${Tools.chineseFormatter(this.towerCtl.totalKill, 2, ' ')}`, this.contextCtl._get_bg, new Position(ax, ay3), new Position(ax - 4, ay3 - 20), 190, 26, 'rgba(24,24,24,1)', true, '14px TimesNewRoman')
     // this.contextCtl.refreshText(`CH: ${Tools.chineseFormatter(this.monsterCtl.totalCurrentHealth, 2, ' ')}`, this.contextCtl._get_bg, new Position(ax, ay4), new Position(ax - 4, ay4 - 20), 190, 26, 'rgba(24,24,24,1)', true, '14px TimesNewRoman')
   }

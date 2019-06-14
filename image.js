@@ -44,7 +44,7 @@ class AnimationSprite {
    */
   renderOneFrame(context, positionTL, width, height, delay, endless, trusteeshipedClearing, recirculation, callback) {
     // 游戏一开始就会调用此函数，此时可能图片可能仍是Promise
-    // @ts-ignore
+    
     if (this.img instanceof Promise) return this.img.then(() => this.renderOneFrame(...arguments))
 
     if (this.isFinish) {
@@ -105,7 +105,7 @@ class AnimationSprite {
    */
   renderLoop(context, positionTL, width, height, trusteeshipedClearing = false) {
     // 游戏一开始就会调用此函数，此时可能图片可能仍是Promise
-    // @ts-ignore
+    
     if (this.img instanceof Promise) return this.img.then(() => this.renderLoop(...arguments))
 
     if (this.realNextFrameIndex !== 0 || this.realNextFrameIndex !== this.totalFrame) {
@@ -243,7 +243,7 @@ class ImageManger {
       const imgEle = new Image()
       // imgEle.crossOrigin = 'anonymous'
       imgEle.src = wl.url
-      // @ts-ignore
+      
       this.bitmapMapping.set(wl.name, new Promise(res => {
         imgEle.onload = async () => {
           res(await createImageBitmap(imgEle, 0, 0, imgEle.width, imgEle.height))
@@ -256,8 +256,8 @@ class ImageManger {
   loadSpriteSheets() {
     [
       // { name: 'explo_1', url: 'img/explosion 1.png', x: 8, y: 8 },
-      { name: 'explo_2', url: 'img/explosion 2.png', x: 8, y: 8 },
-      // { name: 'explo_3', url: 'img/explosion 3.png', x: 8, y: 8 },
+      // { name: 'explo_2', url: 'img/explosion 2.png', x: 8, y: 8 },
+      { name: 'explo_3', url: 'img/explosion 3.png', x: 8, y: 8 },
       // { name: 'explo_4', url: 'img/explosion 4.png', x: 8, y: 8 },
 
       // { name: 'smoke_1', url: 'img/smoke_11x1.png', x: 11, y: 1 },
@@ -290,7 +290,7 @@ class ImageManger {
     ].forEach(v => {
       const imgEle = new Image()
       imgEle.src = v.url
-      // @ts-ignore
+      
       this.spriteMapping.set(v.name, new AnimationSprite(new Promise(res => {
         imgEle.onload = async () => {
           res(await createImageBitmap(imgEle, 0, 0, imgEle.width, imgEle.height))

@@ -203,7 +203,7 @@ class HighPriest extends MonsterBase {
    * 治疗间隔
    */
   get Hitv() {
-    // @ts-ignore
+    
     const base = HighPriest.healingInterval(this.__inner_level)
     return _.random(base - 200, base + 200, false)
   }
@@ -212,7 +212,7 @@ class HighPriest extends MonsterBase {
    * 治疗量
    */
   get Hpow() {
-    // @ts-ignore
+    
     return HighPriest.healingPower(this.__inner_level)
   }
 
@@ -220,7 +220,7 @@ class HighPriest extends MonsterBase {
    * 治疗范围
    */
   get Hrng() {
-    // @ts-ignore
+    
     return HighPriest.healingRange(this.__inner_level)
   }
 
