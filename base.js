@@ -227,8 +227,11 @@ class Tools {
     else if (thisAbs < 1e16) {
       return this.roundWithFixed(num / 1e12, precise) + block + '兆'
     }
-    else/* if (thisAbs < 1e20)*/ {
+    else if (thisAbs < 1e20) {
       return this.roundWithFixed(num / 1e16, precise) + block + '京'
+    }
+    else/* if (thisAbs < 1e24)*/ {
+      return this.roundWithFixed(num / 1e20, precise) + block + '垓'
     }
   }
 
@@ -247,6 +250,13 @@ class Tools {
    */
   static randomStr(bits) {
     return new Array(bits).fill(1).map(() => ((Math.random() * 16 | 0) & 0xf).toString(16)).join('')
+  }
+
+  /**
+   * 随机正负号
+   */
+  static randomSig() {
+    return Math.random() < 0.5 ? 1 : -1
   }
 
   /**

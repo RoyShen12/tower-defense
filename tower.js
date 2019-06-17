@@ -3,6 +3,10 @@ const __testMode = localStorage.getItem('debug_mode') === '1'
 const TowerManager = new Proxy(
   class _TowerManager {
 
+    static independentCtors = [
+      '_Jet'
+    ]
+
     static towerCtors = [
       // {
       //   dn: 'Test_Tower',
@@ -183,15 +187,15 @@ const TowerManager = new Proxy(
         cn: 'star4',
         p: new Proxy({}, {
           get(t, p, r) {
-            if (p === 'length') return 100
+            if (p === 'length') return 200
             else return Math.ceil(Math.pow(1.1, +p) * 1000)
           }
         }),
-        r: () => 100,
-        a: lvl => 25 + lvl * 5,
-        h: () => 1.5,
+        r: () => 50,
+        a: lvl => 525 + lvl * 8,
+        h: () => 5.5,
         s: () => 3,
-        spd: () => 0.05,
+        spd: () => 2,
         bctor: 'CarrierTower.Jet.JetBomb'
       },
     ]
@@ -207,7 +211,7 @@ const TowerManager = new Proxy(
 
       this.towerChangeHash = -1
 
-      TowerManager.Factory = this.Factory.bind(this)
+      // TowerManager.Factory = this.Factory.bind(this)
     }
 
     /**
@@ -1826,9 +1830,12 @@ class LaserTower extends TowerBase {
 class CarrierTower extends TowerBase {
 
   static Jet = class _Jet extends TowerBase {
+
     static JetBomb = class _JetBomb extends BulletBase {
       constructor(position, atk, target) {
-        super(position, 3, 0, null, 'rgba(15,44,11,1)', atk, 5, target)
+
+        const bVelocity = 15
+        super(position, 2, 0, null, 'rgba(255,204,51,1)', atk, bVelocity, target)
       }
     }
     /**
@@ -1838,8 +1845,8 @@ class CarrierTower extends TowerBase {
       super(
         position,
         radius,
-        1,
-        'rgba(56,243,12,.5)',
+        0,
+        null,
         image,
         [],
         carrierTower.levelAtkFx,
@@ -1859,27 +1866,91 @@ class CarrierTower extends TowerBase {
       return this.carrierTower.Spd
     }
 
+    get level() {
+      return this.carrierTower.level
+    }
+
+    set level(v) {}
+
+    get exploitsSeq() {
+      return []
+    }
+
+    get informationSeq() {
+      const removing = ['等级', '下一级', '售价']
+      return super.informationSeq.filter(line => !removing.some(rm => rm === line[0]))
+    }
+
+    get hasCurrentTarget() {
+      return this.target && !this.target.isDead
+    }
+
+    get sellingPrice() {
+      return 0
+    }
+
+    gemAttackHook(...args) {
+      this.carrierTower.gemAttackHook(...args)
+    }
+
+    gemHitHook(...args) {
+      this.carrierTower.target = this.target
+      this.carrierTower.gemHitHook(...args)
+    }
+
+    calculateDamageRatio(...args) {
+      return this.carrierTower.calculateDamageRatio(...args)
+    }
+    
+    /**
+     * - 在怪物中重选目标
+     * - 在怪物中找到威胁最大的(距离终点最近的)
+     * @param {MonsterBase[]} targetList
+     */
+    reChooseTarget(targetList) {
+      this.target = _.minBy(targetList, mst => {
+        return Position.distancePow2(Game.callDestinationPosition(), mst.position)
+      })
+    }
+
     /**
      * @param {MonsterBase[]} monsters
      */
     run(monsters) {
-      if (!this.isCurrentTargetAvailable) {
+      // 当前目标失效
+      if (!this.hasCurrentTarget) {
+
         this.reChooseTarget(monsters)
-        // 和父类不同，Jet可移动自身
-        if (!this.target && monsters.length > 0) {
-          const nearest = _.minBy(monsters, mst => {
-            return Position.distancePow2(mst.position, this.position)
-          })
-          console.log(this.position, nearest)
-          this.position.moveTo(nearest.position, this.Spd)
-        }
+
+        if (this.hasCurrentTarget) this.position.moveTo(this.target.position, this.Spd)
       }
-      if (this.canShoot) {
-        
-        if (this.target) {
+      // 当前目标在范围内
+      else if (this.inRange(this.target)) {
+
+        if (this.canShoot && this.target) {
           this.shoot(monsters)
         }
+
+        this.position.moveTo(this.position.copy().dithering(Game.callGridSideSize()), this.Spd)
       }
+      // 当前目标超出范围
+      else {
+        this.position.moveTo(this.target.position, this.Spd)
+      }
+    }
+
+    render() {}
+
+    rapidRender(ctxRapid) {
+      super.render(ctxRapid)
+    }
+
+    recordDamage(...args) {
+      this.carrierTower.recordDamage(...args)
+    }
+
+    recordKill(...args) {
+      this.carrierTower.recordKill(...args)
     }
   }
 
@@ -1920,13 +1991,21 @@ class CarrierTower extends TowerBase {
     if (this.canShoot && this.jets < this.Slc) {
       Game.callTowerFactory(
         'CarrierTower.Jet',
-        this.position.dithering(this.radius),
+        this.position.copy().dithering(this.radius * 2, this.radius),
         Game.callImageBitMap(TowerManager.CarrierTower.cn),
         null,
-        3,
+        Game.callGridSideSize() / 4,
         this
       )
       this.jets++
     }
+  }
+
+  renderRange() {}
+
+  destory() {
+    super.destory()
+
+    Game.callTowerList().filter(tow => tow.carrierTower && tow.carrierTower === this).forEach(tow => tow.isSold = true)
   }
 }

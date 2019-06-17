@@ -86,6 +86,21 @@ class Game {
   static callTowerFactory = null
 
   /**
+   * @type {() => TowerBase[]}
+   */
+  static callTowerList = null
+
+  /**
+   * @type {() => Position}
+   */
+  static callOriginPosition = null
+
+  /**
+   * @type {() => Position}
+   */
+  static callDestinationPosition = null
+
+  /**
    * - 右侧选择区的依赖注入
    * - Game无法获得所有塔的信息，只能从TowerManager对象中获取
    * - 并依次构建基类ItemBase，注入信息以在建造时获取正确信息
@@ -101,30 +116,18 @@ class Game {
     _ctx.fillStyle = '#333'
     _ctx.fillText('$' + ctor.p[0], centerX, centerY + R + 20) // 绘制价格
     _ctx.textAlign = 'start'
-
     itm.__dn = ctor.dn // 注入名称
-
     itm.__des = ctor.d // 注入描述
-
     itm.__od = ctor.od // 注入序号
-
     itm.__inner_img_u = ctor.n // 注入图标
-
     itm.__inner_b_img_u = ctor.bn // 注入子弹图标
-
     itm.__init_price = ctor.p // 注入价格数组
-
     itm.__ctor_name = ctor.c // 注入构造函数名
-
     itm.__rng_lv0 = ctor.r(0) // 注入初始射程
-
     itm.__tlx = centerX - R - 3 // 注入中心点坐标
-
     itm.__tly = centerY - R - 3 // 注入中心点坐标
-
     itm.rerender = width => { // 注入重绘函数
       itm.borderWidth = width
-
       _ctx.clearRect(itm.__tlx, itm.__tly, (R + 2) * 2, (R + 2) * 2)
       itm.render(_ctx)
     }
@@ -134,20 +137,35 @@ class Game {
 
     this.__testMode = localStorage.getItem('debug_mode') === '1'
 
-    
+    /**
+     * 控制怪物升级的参数
+     */
     this.count = this.__testMode ? 50 : 0
 
+    /**
+     * 控制怪物升级的步长
+     */
     this.stepDivide = this.__testMode ? 4 : 8
 
     this.tick = 0
 
     // debug only
-    
     window.g = this
 
     this.gridX = GX
     this.gridY = GY
 
+    /**
+     * 不考虑围墙的起点的方格坐标
+     */
+    this.OriginGrid = {
+      x: 0,
+      y: GY / 2 - 1
+    }
+
+    /**
+     * 考虑围墙后的终点的方格坐标
+     */
     this.DestinationGrid = {
       x: GY / 2 + 1,
       y: GX
@@ -179,6 +197,7 @@ class Game {
     this.bulletsCtl = new BulletManager()
 
     Game.callTowerFactory = this.towerCtl.Factory.bind(this.towerCtl)
+    Game.callTowerList = () => this.towerCtl.towers
 
     // 传奇宝石 升级点数
     this.updateGemPoint = this.__testMode ? 1e14 : 0
@@ -228,6 +247,12 @@ class Game {
     Game.callMoney = () => [this.money, this.emitMoney.bind(this)]
 
     Game.callRemoveTower = t => this.removeTower(t)
+
+    this.useClassicRenderStyle = !'OffscreenCanvas' in window
+  }
+
+  get moneyOnDispaly() {
+    return Tools.formatterUs.format(this.money)
   }
 
   get gridsWithWall() {
@@ -241,13 +266,18 @@ class Game {
     return new Astar.Graph(this.gridsWithWall)
   }
 
-  /** @param {Position | {x:number,y:number}} pos */
+  /**
+   * - 像素坐标转换到方格坐标
+   * @param {Position | {x:number,y:number}} pos
+   */
   coordinateToGridIndex(pos) {
     const rubbed = [Math.round(pos.x), Math.round(pos.y)]
     return [Math.max(Math.floor(rubbed[1] / this.gridSize), 0), Math.max(Math.floor(rubbed[0] / this.gridSize), 0)]
   }
 
   /**
+   * - 像素坐标转换到方格坐标
+   * - 附带所在方格的中心点像素坐标
    * @param {Position} pos
    * @returns {[number, number, number, number]} inner grid index: ret[0], ret[1], pos-grid-center-fixed: ret[2], ret[3]
    */
@@ -302,6 +332,7 @@ class Game {
 
       const G = this.makeGraph()
       //console.log(G.grid)
+
       // wg.x和y 各加1（寻路时的围墙）
       //console.log(wg[0] + 1, wg[1] + 1)
       const path = Astar.astar.search(G, G.grid[wg[0] + 1][wg[1] + 1], G.grid[this.DestinationGrid.x][this.DestinationGrid.y]).map((p, idx) => {
@@ -352,10 +383,13 @@ class Game {
    */
   removeTower(tower) {
     tower.isSold = true
-    
-    this.grids[tower.__grid_ix][tower.__grid_iy] = 1
-    
-    this.removeOutdatedPath(tower.__grid_ix, tower.__grid_iy)
+
+    if ('__grid_ix' in tower && '__grid_iy' in tower) {
+
+      this.grids[tower.__grid_ix][tower.__grid_iy] = 1
+
+      this.removeOutdatedPath(tower.__grid_ix, tower.__grid_iy)
+    }
   }
 
   /**
@@ -496,7 +530,7 @@ class Game {
       if (performance.now() - lastRightClick < 300) {
         if (!this.selectedTowerTypeToBuild) {
           const selectedT = this.towerCtl.towers.find(t => t.position.equal(mousePos, t.radius * 0.75))
-          if (selectedT) {
+          if (selectedT && !TowerManager.independentCtors.includes(selectedT.constructor.name)) {
             this.removeTower(selectedT)
           }
         }
@@ -639,10 +673,6 @@ class Game {
   initButtons() {
     const buttonTopA = this.gridSize * 7 + 'px'
 
-    // <button id="start_pause_btn" class="sp_btn" type="button"></button>
-    // <button id="speed_ctrl_btn" class="sc_btn" type="button"></button>
-
-
     this.startAndPauseButton = new ButtonOnDom({
       id: 'start_pause_btn',
       className: 'sp_btn',
@@ -705,6 +735,20 @@ class Game {
 
     this.gridSize = Math.floor(innerHeight / this.gridY)
 
+    this.OriginPosition = new Position(
+      (this.OriginGrid.x + 0.5) * this.gridSize,
+      (this.OriginGrid.y + 0.5) * this.gridSize
+    )
+
+    this.DestinationPosition = new Position(
+      (this.DestinationGrid.x - 0.5) * this.gridSize,
+      (this.DestinationGrid.y - 0.5) * this.gridSize
+    )
+
+    Game.callOriginPosition = () => this.OriginPosition.copy()
+
+    Game.callDestinationPosition = () => this.DestinationPosition.copy()
+
     Game.callGridSideSize = () => this.gridSize
 
     this.leftAreaHeight = this.gridSize * this.gridY
@@ -723,7 +767,8 @@ class Game {
 
 
     // 离屏 canvas, 高速预渲染
-    this.contextCtl.createCanvasInstance('off_screen_render', null, innerHeight, Math.ceil(innerHeight * areaAspectRatio), true)
+    // this.contextCtl.createCanvasInstance('off_screen_render', null, innerHeight, Math.ceil(innerHeight * areaAspectRatio), true)
+    this.contextCtl.createCanvasInstance('off_screen_render', null, null, null, true)
 
     // [60 FPS] 常更新主图层
     this.contextCtl.createCanvasInstance('main', { zIndex: '2' }, null, null, false, null, 'off_screen_render')
@@ -775,7 +820,7 @@ class Game {
           ename: 'onmousedown',
           cb: e => {
             const mousePos = new Position(e.offsetX, e.offsetY)
-            // console.log(e.button, mousePos.toString())
+            // console.log('mouse click axis: ' + mousePos)
             switch (e.button) {
               // left click
               case 0:
@@ -952,21 +997,21 @@ class Game {
       // if (this.tick === 101) {
       //   this.placeMonster(
       //     400,
-      //     new Position(0, (this.gridY / 2 - .5) * this.gridSize),
+      //     this.OriginPosition.copy(),
       //     'Devil'
       //   )
       // }
       if (this.tick % (this.__testMode ? 10 : 100) === 0) {
         this.placeMonster(
           Math.floor(++this.count / this.stepDivide),
-          new Position(0, (this.gridY / 2 - .5) * this.gridSize),
+          this.OriginPosition.copy(),
           _.shuffle(['Swordman', 'Axeman', 'LionMan'])[0]
         )
       }
       if (this.tick % (this.__testMode ? 501 : 1201) === 0) {
         this.placeMonster(
           Math.floor(++this.count / this.stepDivide + (this.__testMode ? 100 : 0)),
-          new Position(0, (this.gridY / 2 - .5) * this.gridSize),
+          this.OriginPosition.copy(),
           _.shuffle(['Devil', 'HighPriest'])[0]
         )
       }
@@ -997,40 +1042,22 @@ class Game {
       this.renderLife()
     }
 
-    
-    this.contextCtl._get_off_screen_render.clearRect(
-      0,
-      0,
-      this.contextCtl._get_off_screen_render.dom.width,
-      this.contextCtl._get_off_screen_render.dom.height
-    )
-
+    if (this.useClassicRenderStyle) {
+      this.contextCtl._get_off_screen_render.clearRect(0, 0, this.contextCtl._get_off_screen_render.dom.width, this.contextCtl._get_off_screen_render.dom.height)
+    }
 
     this.monsterCtl.render(this.contextCtl._get_off_screen_render, this.imageCtl)
     this.imageCtl.play(this.contextCtl._get_off_screen_render)
 
-    /// this.contextCtl._get_tower_rapid.clearRect(0, 0, innerWidth, innerHeight)
-
     this.bulletsCtl.render(this.contextCtl._get_off_screen_render)
     this.towerCtl.rapidRender(this.contextCtl._get_off_screen_render, this.monsterCtl.monsters)
-
-    // this.contextCtl._get_main.clearRect(0, 0, innerWidth, innerHeight)
-    /// this.bulletsCtl.render(this.contextCtl._get_main)
-    /// this.monsterCtl.render(this.contextCtl._get_main, this.imageCtl)
 
     if (towerNeedRender) {
       this.contextCtl._get_tower.clearRect(0, 0, innerWidth, innerHeight)
       this.towerCtl.render(this.contextCtl._get_tower)
     }
 
-    // this.contextCtl._get_tower_rapid._off_screen_paint()
-
     this.contextCtl._get_main._off_screen_paint()
-    // this.contextCtl._get_animation._off_screen_paint()
-  }
-
-  get moneyOnDispaly() {
-    return Tools.formatterUs.format(this.money)
   }
 
   renderMoney() {

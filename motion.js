@@ -1,3 +1,7 @@
+/**
+ * @typedef {{x: number, y: number}} PositionLike
+ */
+
 class Position {
 
   static O = new Position(0, 0)
@@ -25,6 +29,7 @@ class Position {
    * @param {number} y
    */
   constructor(x, y) {
+
     /** @type {number} */
     this.x = x
     /** @type {number} */
@@ -36,12 +41,13 @@ class Position {
   }
   
   /**
-   * 抖动
-   * @param {number} amp 
+   * - 抖动
+   * @param {number} amp 最大绝对抖动量
+   * @param {number} minimalAmp 最小绝对抖动量
    */
-  dithering(amp) {
-    this.x = (Math.random() < 0.5 ? 1 : -1) * Math.random() * amp + this.x
-    this.y = (Math.random() < 0.5 ? 1 : -1) * Math.random() * amp + this.y
+  dithering(amp, minimalAmp) {
+    this.x += Tools.randomSig() * _.random(minimalAmp, amp, true)
+    this.y += Tools.randomSig() * _.random(minimalAmp, amp, true)
     return this
   }
 
@@ -63,7 +69,7 @@ class Position {
   }
 
   /** 
-   * @param {Position | {x:number,y:number}} pos
+   * @param {Position | PositionLike} pos
    * @param {number} speedValue
    */
   moveTo(pos, speedValue) {
@@ -116,11 +122,14 @@ class PolarVector {
   }
 
   /**
-   * 抖动
-   * @param {number} amp 
+   * - 极向量的抖动
+   * - 有两个纬度，[theta]抖动和[R]抖动
+   * @param {number} thetaAmp
+   * @param {number} rAmp
    */
-  dithering(amp) {
-    this.theta = (Math.random() < 0.5 ? 1 : -1) * Math.random() * amp + this.theta
+  dithering(thetaAmp, rAmp) {
+    this.theta += Tools.randomSig() * Math.random() * thetaAmp
+    this.r += Tools.randomSig() * Math.random() * rAmp
     return this
   }
 
@@ -222,7 +231,7 @@ class Vector extends Position {
 
   /** 
    * @param {number} angle
-   * @param {{x:number,y:number}} center
+   * @param {PositionLike} center
    */
   rotate(angle, center = { x: 0, y: 0 }) {
     return new Vector(
