@@ -16,48 +16,23 @@ function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _d
 
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
-/**
- * @typedef {{x: number, y: number}} PositionLike
- */
-let Position =
-/*#__PURE__*/
-function () {
+let Position = function () {
   _createClass(Position, null, [{
     key: "distancePow2",
-
-    /** 
-     * @param {Position} a
-     * @param {Position} b
-     */
     value: function distancePow2(a, b) {
-      const xm = a.x - b.x;
-      const ym = a.y - b.y;
-      return xm * xm + ym * ym;
+      return (a.x - b.x) ** 2 + (a.y - b.y) ** 2;
     }
-    /** 
-     * @param {Position} a
-     * @param {Position} b
-     */
-
   }, {
     key: "distance",
     value: function distance(a, b) {
-      return Math.sqrt(Position.distancePow2(a, b));
+      return Math.sqrt(this.distancePow2(a, b));
     }
-    /** 
-     * @param {number} x
-     * @param {number} y
-     */
-
   }]);
 
   function Position(x, y) {
     _classCallCheck(this, Position);
 
-    /** @type {number} */
     this.x = x;
-    /** @type {number} */
-
     this.y = y;
   }
 
@@ -66,12 +41,6 @@ function () {
     value: function copy() {
       return new Position(this.x, this.y);
     }
-    /**
-     * - 抖动
-     * @param {number} amp 最大绝对抖动量
-     * @param {number} minimalAmp 最小绝对抖动量
-     */
-
   }, {
     key: "dithering",
     value: function dithering(amp, minimalAmp) {
@@ -79,16 +48,11 @@ function () {
       this.y += Tools.randomSig() * _.random(minimalAmp, amp, true);
       return this;
     }
-    /** 
-     * @param {PolarVector | Vector} speedVec
-     */
-
   }, {
     key: "move",
     value: function move(speedVec) {
       if (speedVec instanceof PolarVector) {
-        const baseUint = new Vector(1, 0).rotate(speedVec.theta).multiply(speedVec.r); // console.log(baseUint)
-
+        const baseUint = new Vector(1, 0).rotate(speedVec.theta).multiply(speedVec.r);
         this.x += baseUint.x;
         this.y += baseUint.y;
       } else {
@@ -98,11 +62,6 @@ function () {
 
       return this;
     }
-    /** 
-     * @param {Position | PositionLike} pos
-     * @param {number} speedValue
-     */
-
   }, {
     key: "moveTo",
     value: function moveTo(pos, speedValue) {
@@ -118,21 +77,11 @@ function () {
 
       return this;
     }
-    /**
-     * @param {Position} other 
-     * @param {number} epsilon 
-     */
-
   }, {
     key: "equal",
     value: function equal(other, epsilon = 0) {
       return Math.abs(this.x - other.x) <= epsilon && Math.abs(this.y - other.y) <= epsilon;
     }
-    /**
-     * @param {Position} boundaryTL
-     * @param {Position} boundaryBR
-     */
-
   }, {
     key: "outOfBoundary",
     value: function outOfBoundary(boundaryTL, boundaryBR, epsilon = 0) {
@@ -150,29 +99,13 @@ function () {
 
 _defineProperty(Position, "O", new Position(0, 0));
 
-let PolarVector =
-/*#__PURE__*/
-function () {
-  /** 
-   * @param {number} length
-   * @param {number} direction
-   */
+let PolarVector = function () {
   function PolarVector(length, direction) {
     _classCallCheck(this, PolarVector);
 
-    /** @type {number} */
     this.r = length;
-    /** @type {number} */
-
     this.theta = Math.PI / -180 * direction;
   }
-  /**
-   * - 极向量的抖动
-   * - 有两个纬度，[theta]抖动和[R]抖动
-   * @param {number} thetaAmp
-   * @param {number} rAmp
-   */
-
 
   _createClass(PolarVector, [{
     key: "dithering",
@@ -213,28 +146,16 @@ function () {
   return PolarVector;
 }();
 
-let Vector =
-/*#__PURE__*/
-function (_Position) {
+let Vector = function (_Position) {
   _inherits(Vector, _Position);
 
   _createClass(Vector, null, [{
     key: "unit",
-
-    /** 
-     * @param {number} x
-     * @param {number} y
-     */
     value: function unit(x, y) {
       const u = new Vector(x, y);
       const dvd = u.length();
       return u.divide(dvd);
     }
-    /** 
-     * @param {number} x
-     * @param {number} y
-     */
-
   }]);
 
   function Vector(x, y) {
@@ -269,48 +190,27 @@ function (_Position) {
     value: function negate() {
       return new Vector(-1 * this.x, -1 * this.y);
     }
-    /** 
-     * @param {Vector} v
-     */
-
   }, {
     key: "add",
     value: function add(v) {
       return new Vector(this.x + v.x, this.y + v.y);
     }
-    /** 
-     * @param {Vector} v
-     */
-
   }, {
     key: "subtract",
     value: function subtract(v) {
       return new Vector(this.x - v.x, this.y - v.y);
     }
-    /** 
-     * @param {number} f
-     */
-
   }, {
     key: "multiply",
     value: function multiply(f) {
       return new Vector(this.x * f, this.y * f);
     }
-    /** 
-     * @param {number} f
-     */
-
   }, {
     key: "divide",
     value: function divide(f) {
       const invf = 1 / f;
       return new Vector(this.x * invf, this.y * invf);
     }
-    /** 
-     * @param {number} angle
-     * @param {PositionLike} center
-     */
-
   }, {
     key: "rotate",
     value: function rotate(angle, center = {

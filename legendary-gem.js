@@ -835,11 +835,11 @@ class EchoOfLight extends GemBase {
   }
 
   static get stasisDescription() {
-    return `对敌人造成非神圣伤害时会在 ${this.duration / 1000} 秒内造成相当于这次伤害 ${Tools.roundWithFixed(this.baseExtraTotalDamageRatio * 100, 0)}%（+${Tools.roundWithFixed(this.extraTotalDamageRatioLevelMx * 100, 0)}%/等级）的神圣伤害，这个伤害可以暴击`
+    return `对敌人造成非神圣伤害时会在 ${this.duration / 1000} 秒内造成相当于这次伤害 ${Tools.roundWithFixed(this.baseExtraTotalDamageRatio * 100, 0)}%（+${Tools.roundWithFixed(this.extraTotalDamageRatioLevelMx * 100, 0)}%/等级）的神圣伤害，这个效果可以叠加`
   }
 
   static get __base_description() {
-    return `对敌人造成非神圣伤害时会在 ${this.duration / 1000} 秒内造成相当于这次伤害 $% 的神圣伤害，这个伤害可以暴击`
+    return `对敌人造成非神圣伤害时会在 ${this.duration / 1000} 秒内造成相当于这次伤害 $% 的神圣伤害，这个效果可以叠加`
   }
 
   constructor() {

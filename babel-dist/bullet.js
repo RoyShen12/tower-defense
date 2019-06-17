@@ -20,35 +20,18 @@ function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _d
 
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
-let BulletManager =
-/*#__PURE__*/
-function () {
-  /** @type {BulletManager} */
+let BulletManager = function () {
   function BulletManager() {
     _classCallCheck(this, BulletManager);
 
     if (!BulletManager.instance) {
-      /** @type {BulletBase[]} */
       this.bullets = [];
-      /** @type {Map<string, typeof BulletBase>} */
-
       this.__bctor_cache = new Map();
       BulletManager.instance = this;
     }
 
     return BulletManager.instance;
   }
-  /**
-   * @param {(mst: MonsterBase) => void} emitter
-   * @param {string} bulletName
-   * @param {Position} position
-   * @param {number} atk
-   * @param {MonsterBase} target
-   * @param {ImageBitmap | string} image
-   * @param  {...any} extraArgs
-   * @returns {BulletBase}
-   */
-
 
   _createClass(BulletManager, [{
     key: "Factory",
@@ -93,14 +76,9 @@ function () {
 
 _defineProperty(BulletManager, "instance", null);
 
-let CannonBullet =
-/*#__PURE__*/
-function (_BulletBase) {
+let CannonBullet = function (_BulletBase) {
   _inherits(CannonBullet, _BulletBase);
 
-  /**
-   * @param {(monster: MonsterBase) => number} ratioCalc
-   */
   function CannonBullet(position, atk, target, bimg, explosionDmg, explosionRadius, burnDotDamage, burnDotInterval, burnDotDuration, extraBV, ratioCalc) {
     var _this;
 
@@ -119,11 +97,6 @@ function (_BulletBase) {
 
   _createClass(CannonBullet, [{
     key: "run",
-
-    /**
-     * 加农炮弹在丢失目标后仍会向最后记录的目标位置飞行并爆炸
-     * @override
-     */
     value: function run(monsters) {
       if (!this.target) {
         this.position.moveTo(this.aimPosition, this.speed);
@@ -141,47 +114,18 @@ function (_BulletBase) {
         this.fulfilled = true;
       }
     }
-    /**
-     * 击中敌人后会引起爆炸
-     * 并点燃敌人，造成周期伤害
-     * @param {MonsterBase} monster
-     * @param {MonsterBase[]} monsters
-     */
-
   }, {
     key: "hit",
     value: function hit(monster, monsters) {
       if (monster) _get(_getPrototypeOf(CannonBullet.prototype), "hit", this).call(this, monster, this.ratioCalc(monster));
       const target = this.target ? this.target.position : this.aimPosition;
-      const positionTL = new Position(target.x - this.explosionRadius, target.y - this.explosionRadius); // render explosion
-
-      Game.callAnimation('explo_3', positionTL, this.explosionRadius * 2, this.explosionRadius * 2, .5, 0); // make exploding dmg
-
+      const positionTL = new Position(target.x - this.explosionRadius, target.y - this.explosionRadius);
+      Game.callAnimation('explo_3', positionTL, this.explosionRadius * 2, this.explosionRadius * 2, .5, 0);
       monsters.forEach(m => {
         if (Position.distancePow2(m.position, target) < this.explosionRadius * this.explosionRadius) {
           m.health -= this.explosionDmg * (1 - m.armorResistance) * this.ratioCalc(m);
           this.emitter(m);
-          Tools.installDot(m, 'beBurned', this.burnDotDuration, this.burnDotInterval, this.burnDotDamage * this.ratioCalc(m), false, this.emitter.bind(this)); // if (!m.beBurned && !m.isDead) {
-          //   let dotCount = 0
-          //   // 目标标记灼烧
-          //   m.beBurned = true
-          //   const itv = setInterval(() => {
-          //     if (++dotCount > this.burnDotCount) {
-          //       // 效果结束、移除灼烧状态、结束计时器
-          //       m.beBurned = false
-          //       clearInterval(itv)
-          //       return
-          //     }
-          //     if (m.health > 0) {
-          //       // 跳DOT
-          //       m.health -= this.burnDotDamage * (1 - m.armorResistance) * this.ratioCalc(m)
-          //       this.emitter(m)
-          //     }
-          //     if (m.health <= 0) {
-          //       clearInterval(itv)
-          //     }
-          //   }, this.burnDotInterval)
-          // }
+          Tools.installDot(m, 'beBurned', this.burnDotDuration, this.burnDotInterval, this.burnDotDamage * this.ratioCalc(m), false, this.emitter.bind(this));
         }
       });
     }
@@ -203,9 +147,7 @@ function (_BulletBase) {
 
 _defineProperty(CannonBullet, "bulletVelocity", 4);
 
-let ClusterBomb =
-/*#__PURE__*/
-function (_CannonBullet) {
+let ClusterBomb = function (_CannonBullet) {
   _inherits(ClusterBomb, _CannonBullet);
 
   function ClusterBomb(...args) {
@@ -236,36 +178,10 @@ function (_CannonBullet) {
         childExplodePositions.filter(ep => Position.distancePow2(m.position, ep) < radius * radius).forEach(() => {
           m.health -= dmg * (1 - m.armorResistance) * this.ratioCalc(m);
           this.emitter(m);
-          Tools.installDot(m, 'beBurned', this.burnDotDuration, this.burnDotInterval, this.burnDotDamage * this.ratioCalc(m), false, this.emitter.bind(this)); // if (!m.beBurned && !m.isDead) {
-          //   let dotCount = 0
-          //   // 目标标记灼烧
-          //   m.beBurned = true
-          //   const itv = setInterval(() => {
-          //     if (++dotCount > this.burnDotCount) {
-          //       // 效果结束、移除灼烧状态、结束计时器
-          //       m.beBurned = false
-          //       clearInterval(itv)
-          //       return
-          //     }
-          //     if (m.health > 0) {
-          //       // 跳DOT
-          //       m.health -= this.burnDotDamage * (1 - m.armorResistance) * this.ratioCalc(m)
-          //       this.emitter(m)
-          //     }
-          //     if (m.health <= 0) {
-          //       clearInterval(itv)
-          //     }
-          //   }, this.burnDotInterval)
-          // }
+          Tools.installDot(m, 'beBurned', this.burnDotDuration, this.burnDotInterval, this.burnDotDamage * this.ratioCalc(m), false, this.emitter.bind(this));
         });
       });
     }
-    /**
-     * 集束炸弹命中或到达目的地后会爆炸，分裂出[n]枚小型炸弹
-     * @override
-     * @param {MonsterBase[]} monsters
-     */
-
   }, {
     key: "hit",
     value: function hit(monster, monsters) {
@@ -292,9 +208,7 @@ function (_CannonBullet) {
   return ClusterBomb;
 }(CannonBullet);
 
-let ClusterBombEx =
-/*#__PURE__*/
-function (_ClusterBomb) {
+let ClusterBombEx = function (_ClusterBomb) {
   _inherits(ClusterBombEx, _ClusterBomb);
 
   function ClusterBombEx(...args) {
@@ -335,9 +249,7 @@ function (_ClusterBomb) {
   return ClusterBombEx;
 }(ClusterBomb);
 
-let NormalArrow =
-/*#__PURE__*/
-function (_BulletBase2) {
+let NormalArrow = function (_BulletBase2) {
   _inherits(NormalArrow, _BulletBase2);
 
   function NormalArrow(position, atk, target, image, critChance, critRatio, trapChance, trapDuration, extraBV, isSecKill) {
@@ -353,10 +265,6 @@ function (_BulletBase2) {
     _this4.isSecKill = isSecKill;
     return _this4;
   }
-  /**
-   * @param {MonsterBase} monster
-   */
-
 
   _createClass(NormalArrow, [{
     key: "hit",
@@ -365,19 +273,13 @@ function (_BulletBase2) {
         monster.health -= monster.health + 1;
         this.emitter(monster);
         return;
-      } // 摇骰子，确定本次是否暴击
-
+      }
 
       const lottery = Math.random();
       const isCrit = lottery < this.critChance;
-      const critMagnification = isCrit ? this.critRatio : 1; // console.log(critMagnification + ' X')
-      // 穿甲
-
+      const critMagnification = isCrit ? this.critRatio : 1;
       monster.health -= this.Atk * critMagnification * (1 - monster.armorResistance * .7);
       this.emitter(monster);
-      /**
-       * 束缚
-       */
 
       if (this.willTrap) {
         monster.registerImprison(this.trapDuration / 1000 * 60);
@@ -390,16 +292,9 @@ function (_BulletBase2) {
 
 _defineProperty(NormalArrow, "bulletVelocity", 18);
 
-let PoisonCan =
-/*#__PURE__*/
-function (_BulletBase3) {
+let PoisonCan = function (_BulletBase3) {
   _inherits(PoisonCan, _BulletBase3);
 
-  /**
-   * @param {number} poisonAtk
-   * @param {number} poisonItv ms
-   * @param {number} poisonDur ms
-   */
   function PoisonCan(position, atk, target, image, poisonAtk, poisonItv, poisonDur, extraBV) {
     var _this5;
 
@@ -411,43 +306,13 @@ function (_BulletBase3) {
     _this5.poisonDur = poisonDur;
     return _this5;
   }
-  /**
-   * @param {MonsterBase} monster
-   */
-
 
   _createClass(PoisonCan, [{
     key: "hit",
     value: function hit(monster) {
-      _get(_getPrototypeOf(PoisonCan.prototype), "hit", this).call(this, monster); // 毒罐的dot伤害
-      // 无法对已中毒或死亡的目标施毒
+      _get(_getPrototypeOf(PoisonCan.prototype), "hit", this).call(this, monster);
 
-
-      Tools.installDot(monster, 'bePoisoned', this.poisonDur, this.poisonItv, this.poisonAtk, true, this.emitter.bind(this)); // if (monster.bePoisoned || monster.isDead) {
-      //   return
-      // }
-      // else {
-      //   let dotCount = 0
-      //   // 目标标记中毒
-      //   monster.bePoisoned = true
-      //   const itv = setInterval(() => {
-      //     if (++dotCount > this.poisonDur / this.poisonItv) {
-      //       // 效果结束、移除中毒状态、结束计时器
-      //       monster.bePoisoned = false
-      //       clearInterval(itv)
-      //       return
-      //     }
-      //     if (monster.health > 0) {
-      //       // 跳DOT
-      //       // 无视防御
-      //       monster.health -= this.poisonAtk
-      //       this.emitter(monster)
-      //     }
-      //     if (monster.health <= 0) {
-      //       clearInterval(itv)
-      //     }
-      //   }, this.poisonItv)
-      // }
+      Tools.installDot(monster, 'bePoisoned', this.poisonDur, this.poisonItv, this.poisonAtk, true, this.emitter.bind(this));
     }
   }]);
 

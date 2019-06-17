@@ -18,12 +18,7 @@ function _defineProperties(target, props) { for (var i = 0; i < props.length; i+
 
 function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
 
-/**
- * @virtual
- */
-let GemBase =
-/*#__PURE__*/
-function () {
+let GemBase = function () {
   _createClass(GemBase, null, [{
     key: "gemName",
     get: function () {
@@ -34,10 +29,6 @@ function () {
     get: function () {
       return 0;
     }
-    /**
-     * @type {Node[]}
-     */
-
   }, {
     key: "priceSpan",
     get: function () {
@@ -83,48 +74,18 @@ function () {
         return cost;
       }
     }
-    /**
-     * @virtual
-     * @param {TowerBase} thisTower
-     */
-
   }, {
     key: "initEffect",
     value: function initEffect(thisTower) {}
-    /**
-     * @virtual
-     * @param {TowerBase} thisTower
-     * @param {MonsterBase[]} monsters
-     */
-
   }, {
     key: "attackHook",
     value: function attackHook(thisTower, monsters) {}
-    /**
-     * @virtual
-     * @param {TowerBase} thisTower
-     * @param {MonsterBase} monster
-     * @param {MonsterBase[]} monsters
-     */
-
   }, {
     key: "hitHook",
     value: function hitHook(thisTower, monster, monsters) {}
-    /**
-     * @virtual
-     * @param {TowerBase} thisTower
-     * @param {MonsterBase} monster
-     */
-
   }, {
     key: "killHook",
     value: function killHook(thisTower, monster) {}
-    /**
-     * @virtual
-     * @param {TowerBase} thisTower
-     * @param {MonsterBase[]} monsters
-     */
-
   }, {
     key: "tickHook",
     value: function tickHook(thisTower, monsters) {}
@@ -143,10 +104,6 @@ function () {
     get: function () {
       return isFinite(this.constructor.maxLevel) ? this.constructor.maxLevel + '  级' : '∞';
     }
-    /**
-     * 升到下一次级需要的点数
-     */
-
   }, {
     key: "levelUpPoint",
     get: function () {
@@ -167,9 +124,7 @@ function () {
   return GemBase;
 }();
 
-let PainEnhancer =
-/*#__PURE__*/
-function (_GemBase) {
+let PainEnhancer = function (_GemBase) {
   _inherits(PainEnhancer, _GemBase);
 
   _createClass(PainEnhancer, null, [{
@@ -232,15 +187,9 @@ function (_GemBase) {
 
   _createClass(PainEnhancer, [{
     key: "hitHook",
-
-    /**
-     * @override
-     * @param {TowerBase} thisTower
-     * @param {MonsterBase} monster
-     */
     value: function hitHook(thisTower, monster) {
       if (Math.random() < this.chance) {
-        Tools.installDot(monster, 'beBloodied', this.bleedDuration, this.bleedInterval, Math.round(thisTower.Atk * this.bleedDamageRatio / this.bleedDotCount), false, thisTower.recordDamage.bind(thisTower)); // console.log('增痛宝石 installed dot')
+        Tools.installDot(monster, 'beBloodied', this.bleedDuration, this.bleedInterval, Math.round(thisTower.Atk * this.bleedDamageRatio / this.bleedDotCount), false, thisTower.recordDamage.bind(thisTower));
       }
     }
   }, {
@@ -251,7 +200,7 @@ function (_GemBase) {
   }, {
     key: "description",
     get: function () {
-      return PainEnhancer.__base_description.replace('$', (this.bleedDamageRatio * 100).toFixed(1).padStart(7)); // 2500.0
+      return PainEnhancer.__base_description.replace('$', (this.bleedDamageRatio * 100).toFixed(1).padStart(7));
     }
   }, {
     key: "levelUpPoint",
@@ -273,9 +222,7 @@ function (_GemBase) {
   return PainEnhancer;
 }(GemBase);
 
-let GogokOfSwiftness =
-/*#__PURE__*/
-function (_GemBase2) {
+let GogokOfSwiftness = function (_GemBase2) {
   _inherits(GogokOfSwiftness, _GemBase2);
 
   _createClass(GogokOfSwiftness, null, [{
@@ -326,19 +273,12 @@ function (_GemBase2) {
     _classCallCheck(this, GogokOfSwiftness);
 
     _this2 = _possibleConstructorReturn(this, _getPrototypeOf(GogokOfSwiftness).call(this));
-    /** @type {TowerBase} */
-
     _this2.tower = null;
     return _this2;
   }
 
   _createClass(GogokOfSwiftness, [{
     key: "initEffect",
-
-    /**
-     * @override
-     * @param {TowerBase} thisTower
-     */
     value: function initEffect(thisTower) {
       this.tower = thisTower;
       this.tower.__hst_ps_ratio = 1 + this.hasteAddition;
@@ -354,7 +294,7 @@ function (_GemBase2) {
   }, {
     key: "description",
     get: function () {
-      return GogokOfSwiftness.__base_description.replace('$', (this.hasteAddition * 100).toFixed(1).padStart(6)); // 715.0
+      return GogokOfSwiftness.__base_description.replace('$', (this.hasteAddition * 100).toFixed(1).padStart(6));
     }
   }, {
     key: "levelUpPoint",
@@ -371,9 +311,7 @@ function (_GemBase2) {
   return GogokOfSwiftness;
 }(GemBase);
 
-let MirinaeTeardropOfTheStarweaver =
-/*#__PURE__*/
-function (_GemBase3) {
+let MirinaeTeardropOfTheStarweaver = function (_GemBase3) {
   _inherits(MirinaeTeardropOfTheStarweaver, _GemBase3);
 
   _createClass(MirinaeTeardropOfTheStarweaver, null, [{
@@ -440,26 +378,14 @@ function (_GemBase3) {
 
   _createClass(MirinaeTeardropOfTheStarweaver, [{
     key: "chit",
-
-    /**
-     * @param {TowerBase} thisTower
-     * @param {MonsterBase} target
-     */
     value: function chit(thisTower, target) {
-      target.health -= thisTower.Atk * this.chitDamageRatio * (1 - target.armorResistance); // console.log('MirinaeTeardropOfTheStarweaver make damage ' + target.lastAbsDmg)
-
+      target.health -= thisTower.Atk * this.chitDamageRatio * (1 - target.armorResistance);
       thisTower.recordDamage(target);
       const w = 82;
       const h = 50;
       const position = new Position(target.position.x - w / 2, target.position.y - h / 2);
       Game.callAnimation('magic_2', position, w, h, 1, 2);
     }
-    /**
-     * @override
-     * @param {TowerBase} thisTower
-     * @param {MonsterBase} monster
-     */
-
   }, {
     key: "hitHook",
     value: function hitHook(thisTower, monster) {
@@ -467,17 +393,10 @@ function (_GemBase3) {
         this.chit(thisTower, monster);
       }
     }
-    /**
-     * @override
-     * @param {TowerBase} thisTower
-     * @param {MonsterBase[]} monsters
-     */
-
   }, {
     key: "tickHook",
     value: function tickHook(thisTower, monsters) {
       if (this.canHit && monsters.length > 0) {
-        // console.log('MirinaeTeardropOfTheStarweaver timer hit')
         const t = _.shuffle(monsters)[0];
 
         this.chit(thisTower, t);
@@ -502,7 +421,7 @@ function (_GemBase3) {
   }, {
     key: "description",
     get: function () {
-      return MirinaeTeardropOfTheStarweaver.__base_description.replace('$', (this.chitDamageRatio * 100).toFixed(1).padStart(8)); // 10000.0
+      return MirinaeTeardropOfTheStarweaver.__base_description.replace('$', (this.chitDamageRatio * 100).toFixed(1).padStart(8));
     }
   }, {
     key: "levelUpPoint",
@@ -519,9 +438,7 @@ function (_GemBase3) {
   return MirinaeTeardropOfTheStarweaver;
 }(GemBase);
 
-let SimplicitysStrength =
-/*#__PURE__*/
-function (_GemBase4) {
+let SimplicitysStrength = function (_GemBase4) {
   _inherits(SimplicitysStrength, _GemBase4);
 
   _createClass(SimplicitysStrength, null, [{
@@ -572,19 +489,12 @@ function (_GemBase4) {
     _classCallCheck(this, SimplicitysStrength);
 
     _this4 = _possibleConstructorReturn(this, _getPrototypeOf(SimplicitysStrength).call(this));
-    /** @type {TowerBase} */
-
     _this4.tower = null;
     return _this4;
   }
 
   _createClass(SimplicitysStrength, [{
     key: "initEffect",
-
-    /**
-     * @override
-     * @param {TowerBase} thisTower
-     */
     value: function initEffect(thisTower) {
       this.tower = thisTower;
       this.tower.__atk_ratio = 1 + this.attackAddition;
@@ -600,7 +510,7 @@ function (_GemBase4) {
   }, {
     key: "description",
     get: function () {
-      return SimplicitysStrength.__base_description.replace('$', (this.attackAddition * 100).toFixed(1).padStart(6)); // 125.0
+      return SimplicitysStrength.__base_description.replace('$', (this.attackAddition * 100).toFixed(1).padStart(6));
     }
   }, {
     key: "levelUpPoint",
@@ -617,9 +527,7 @@ function (_GemBase4) {
   return SimplicitysStrength;
 }(GemBase);
 
-let BaneOfTheStricken =
-/*#__PURE__*/
-function (_GemBase5) {
+let BaneOfTheStricken = function (_GemBase5) {
   _inherits(BaneOfTheStricken, _GemBase5);
 
   _createClass(BaneOfTheStricken, null, [{
@@ -675,30 +583,17 @@ function (_GemBase5) {
     _classCallCheck(this, BaneOfTheStricken);
 
     _this5 = _possibleConstructorReturn(this, _getPrototypeOf(BaneOfTheStricken).call(this));
-    /** @type {TowerBase} */
-
     _this5.tower = null;
     return _this5;
   }
 
   _createClass(BaneOfTheStricken, [{
     key: "hitHook",
-
-    /**
-     * @override
-     * @param {TowerBase} thisTower
-     * @param {MonsterBase} monster
-     */
     value: function hitHook(thisTower, monster) {
       const oldV = thisTower.__each_monster_damage_ratio.get(monster.id) || 1;
 
       thisTower.__each_monster_damage_ratio.set(monster.id, oldV + this.damageMakingRatioPerHit);
     }
-    /**
-     * @override
-     * @param {TowerBase} thisTower
-     */
-
   }, {
     key: "initEffect",
     value: function initEffect(thisTower) {
@@ -726,7 +621,7 @@ function (_GemBase5) {
   }, {
     key: "description",
     get: function () {
-      return BaneOfTheStricken.__base_description.replace('$', (this.damageMakingRatioPerHit * 100).toFixed(2).padStart(5)); // 2.80
+      return BaneOfTheStricken.__base_description.replace('$', (this.damageMakingRatioPerHit * 100).toFixed(2).padStart(5));
     }
   }, {
     key: "levelUpPoint",
@@ -738,9 +633,7 @@ function (_GemBase5) {
   return BaneOfTheStricken;
 }(GemBase);
 
-let GemOfEase =
-/*#__PURE__*/
-function (_GemBase6) {
+let GemOfEase = function (_GemBase6) {
   _inherits(GemOfEase, _GemBase6);
 
   _createClass(GemOfEase, null, [{
@@ -791,19 +684,12 @@ function (_GemBase6) {
     _classCallCheck(this, GemOfEase);
 
     _this6 = _possibleConstructorReturn(this, _getPrototypeOf(GemOfEase).call(this));
-    /** @type {TowerBase} */
-
     _this6.tower = null;
     return _this6;
   }
 
   _createClass(GemOfEase, [{
     key: "initEffect",
-
-    /**
-     * @override
-     * @param {TowerBase} thisTower
-     */
     value: function initEffect(thisTower) {
       this.tower = thisTower;
       this.tower.__kill_extra_gold = this.goldAddition;
@@ -819,7 +705,7 @@ function (_GemBase6) {
   }, {
     key: "description",
     get: function () {
-      return GemOfEase.__base_description.replace('$', this.goldAddition.toFixed(0).padStart(6)); // 10500
+      return GemOfEase.__base_description.replace('$', this.goldAddition.toFixed(0).padStart(6));
     }
   }, {
     key: "levelUpPoint",
@@ -836,9 +722,7 @@ function (_GemBase6) {
   return GemOfEase;
 }(GemBase);
 
-let BaneOfTheTrapped =
-/*#__PURE__*/
-function (_GemBase7) {
+let BaneOfTheTrapped = function (_GemBase7) {
   _inherits(BaneOfTheTrapped, _GemBase7);
 
   _createClass(BaneOfTheTrapped, null, [{
@@ -884,19 +768,12 @@ function (_GemBase7) {
     _classCallCheck(this, BaneOfTheTrapped);
 
     _this7 = _possibleConstructorReturn(this, _getPrototypeOf(BaneOfTheTrapped).call(this));
-    /** @type {TowerBase} */
-
     _this7.tower = null;
     return _this7;
   }
 
   _createClass(BaneOfTheTrapped, [{
     key: "initEffect",
-
-    /**
-     * @override
-     * @param {TowerBase} thisTower
-     */
     value: function initEffect(thisTower) {
       this.tower = thisTower;
       this.tower.__on_trapped_atk_ratio = 1 + this.damageMakingRatioOnTrapped;
@@ -912,7 +789,7 @@ function (_GemBase7) {
   }, {
     key: "description",
     get: function () {
-      return BaneOfTheTrapped.__base_description.replace('$', (this.damageMakingRatioOnTrapped * 100).toFixed(1).padStart(5)); // 75.0
+      return BaneOfTheTrapped.__base_description.replace('$', (this.damageMakingRatioOnTrapped * 100).toFixed(1).padStart(5));
     }
   }, {
     key: "levelUpPoint",
@@ -929,9 +806,7 @@ function (_GemBase7) {
   return BaneOfTheTrapped;
 }(GemBase);
 
-let ZeisStoneOfVengeance =
-/*#__PURE__*/
-function (_GemBase8) {
+let ZeisStoneOfVengeance = function (_GemBase8) {
   _inherits(ZeisStoneOfVengeance, _GemBase8);
 
   _createClass(ZeisStoneOfVengeance, null, [{
@@ -1002,29 +877,17 @@ function (_GemBase8) {
     _classCallCheck(this, ZeisStoneOfVengeance);
 
     _this8 = _possibleConstructorReturn(this, _getPrototypeOf(ZeisStoneOfVengeance).call(this));
-    /** @type {TowerBase} */
-
     _this8.tower = null;
     return _this8;
   }
 
   _createClass(ZeisStoneOfVengeance, [{
     key: "hitHook",
-
-    /**
-     * @override
-     * @param {MonsterBase} monster
-     */
     value: function hitHook(_thisTower, monster) {
       if (Math.random() < this.chance) {
         monster.registerImprison(ZeisStoneOfVengeance.stuporDuration / 1000 * 60);
       }
     }
-    /**
-     * @override
-     * @param {TowerBase} thisTower
-     */
-
   }, {
     key: "initEffect",
     value: function initEffect(thisTower) {
@@ -1071,9 +934,7 @@ function (_GemBase8) {
   return ZeisStoneOfVengeance;
 }(GemBase);
 
-let EchoOfLight =
-/*#__PURE__*/
-function (_GemBase9) {
+let EchoOfLight = function (_GemBase9) {
   _inherits(EchoOfLight, _GemBase9);
 
   _createClass(EchoOfLight, null, [{
@@ -1114,12 +975,12 @@ function (_GemBase9) {
   }, {
     key: "stasisDescription",
     get: function () {
-      return `对敌人造成非神圣伤害时会在 ${this.duration / 1000} 秒内造成相当于这次伤害 ${Tools.roundWithFixed(this.baseExtraTotalDamageRatio * 100, 0)}%（+${Tools.roundWithFixed(this.extraTotalDamageRatioLevelMx * 100, 0)}%/等级）的神圣伤害，这个伤害可以暴击`;
+      return `对敌人造成非神圣伤害时会在 ${this.duration / 1000} 秒内造成相当于这次伤害 ${Tools.roundWithFixed(this.baseExtraTotalDamageRatio * 100, 0)}%（+${Tools.roundWithFixed(this.extraTotalDamageRatioLevelMx * 100, 0)}%/等级）的神圣伤害，这个效果可以叠加`;
     }
   }, {
     key: "__base_description",
     get: function () {
-      return `对敌人造成非神圣伤害时会在 ${this.duration / 1000} 秒内造成相当于这次伤害 $% 的神圣伤害，这个伤害可以暴击`;
+      return `对敌人造成非神圣伤害时会在 ${this.duration / 1000} 秒内造成相当于这次伤害 $% 的神圣伤害，这个效果可以叠加`;
     }
   }]);
 
@@ -1131,12 +992,6 @@ function (_GemBase9) {
 
   _createClass(EchoOfLight, [{
     key: "hitHook",
-
-    /**
-     * @override
-     * @param {TowerBase} thisTower
-     * @param {MonsterBase} monster
-     */
     value: function hitHook(thisTower, monster) {
       let critR = 1;
 
@@ -1164,7 +1019,7 @@ function (_GemBase9) {
   }, {
     key: "description",
     get: function () {
-      return EchoOfLight.__base_description.replace('$', (this.extraTotalDamageRatio * 100).toFixed(0).padStart(6)); // 1000
+      return EchoOfLight.__base_description.replace('$', (this.extraTotalDamageRatio * 100).toFixed(0).padStart(6));
     }
   }, {
     key: "levelUpPoint",

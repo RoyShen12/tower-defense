@@ -11,9 +11,7 @@ class Position {
    * @param {Position} b
    */
   static distancePow2(a, b) {
-    const xm = a.x - b.x
-    const ym = a.y - b.y
-    return xm * xm + ym * ym
+    return (a.x - b.x) ** 2 + (a.y - b.y) ** 2
   }
 
   /** 
@@ -21,7 +19,7 @@ class Position {
    * @param {Position} b
    */
   static distance(a, b) {
-    return Math.sqrt(Position.distancePow2(a, b))
+    return Math.sqrt(this.distancePow2(a, b))
   }
 
   /** 

@@ -24,25 +24,13 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
 
 const __testMode = localStorage.getItem('debug_mode') === '1';
 
-const TowerManager = new Proxy((_temp = _class =
-/*#__PURE__*/
-function () {
+const TowerManager = new Proxy((_temp = _class = function () {
   function _TowerManager() {
     _classCallCheck(this, _TowerManager);
 
-    /** @type {TowerBase[]} */
     this.towers = [];
-    this.towerChangeHash = -1; // TowerManager.Factory = this.Factory.bind(this)
+    this.towerChangeHash = -1;
   }
-  /**
-   * @param {string} towerName
-   * @param {Position} position
-   * @param {string | ImageBitmap | Promise<ImageBitmap> | AnimationSprite} image
-   * @param {number} radius
-   *
-   * @returns {TowerBase}
-   */
-
 
   _createClass(_TowerManager, [{
     key: "Factory",
@@ -51,10 +39,6 @@ function () {
       this.towers.push(nt);
       return nt;
     }
-    /**
-     * @param {MonsterBase[]} monsters
-     */
-
   }, {
     key: "run",
     value: function run(monsters) {
@@ -81,12 +65,6 @@ function () {
       const l = this.towers.length;
       return c + l + c * l;
     }
-    /**
-     * 塔自身很少需要重绘，所以仅在必要时重绘塔图层
-     * 此函数检测塔是否存在数量或登记的变化，并通知上层框架重绘
-     * @returns {boolean} need to render
-     */
-
   }, {
     key: "scanSwipe",
     value: function scanSwipe(emitCallback) {
@@ -99,8 +77,7 @@ function () {
         return !t.isSold;
       });
       const currentTowerChangeHash = this.makeHash();
-      const needRender = currentTowerChangeHash !== this.towerChangeHash; // console.log('currentTowerChangeHash', currentTowerChangeHash, 'needRender', needRender)
-
+      const needRender = currentTowerChangeHash !== this.towerChangeHash;
       this.towerChangeHash = currentTowerChangeHash;
       return needRender;
     }
@@ -117,19 +94,7 @@ function () {
   }]);
 
   return _TowerManager;
-}(), _defineProperty(_class, "independentCtors", ['_Jet']), _defineProperty(_class, "towerCtors", [// {
-//   dn: 'Test_Tower',
-//   c: 'TestTower',
-//   od: 0,
-//   n: 't_test',
-//   p: [1],
-//   r: () => 1000,
-//   a: () => 1e16,
-//   h: () => 15,
-//   s: () => 1,
-//   bctor: 'TestTower.TestBullet'
-// },
-{
+}(), _defineProperty(_class, "independentCtors", ['_Jet']), _defineProperty(_class, "towerCtors", [{
   dn: '弓箭塔',
   c: 'MaskManTower',
   od: 1,
@@ -194,7 +159,6 @@ function () {
   a: () => 0,
   h: () => Infinity,
   s: () => 0,
-  // speed reduction
   sr: lvl => Math.min(Tools.MathFx.naturalLogFx(.1, .14)(lvl), 0.95)
 }, {
   dn: '毒气塔',
@@ -278,7 +242,6 @@ function () {
   s2: lvl => Math.floor(lvl / 30) + 1,
   s3: lvl => Math.floor(lvl / 28) + 3,
   lsd: lvl => 90,
-  // laser swipe distance
   fatk: lvl => Math.pow(lvl, 1.05) * 10 + 160,
   fw: lvl => 40 + Math.floor(lvl / 8)
 }, {
@@ -286,19 +249,22 @@ function () {
   c: 'CarrierTower',
   od: 8,
   n: 'carrier0',
-  cn: 'star4',
+  n1: 'carrier1',
+  n2: 'carrier2',
+  cn: 'plane_1',
   p: new Proxy({}, {
     get(t, p, r) {
       if (p === 'length') return 200;else return Math.ceil(Math.pow(1.1, +p) * 1000);
     }
 
   }),
-  r: () => 50,
-  a: lvl => 525 + lvl * 8,
-  h: () => 5.5,
-  s: () => 3,
-  spd: () => 2,
-  bctor: 'CarrierTower.Jet.JetBomb'
+  r: () => 150,
+  a: lvl => 25 + lvl * 8,
+  h: lvl => 1.8 + lvl * 0.01,
+  s: () => 2,
+  child: lvl => 1 + Math.floor(lvl / 20),
+  spd: () => 5,
+  bctor: 'CarrierTower.Jet.JetBullet'
 }]), _defineProperty(_class, "rankPostfixL1", '老兵'), _defineProperty(_class, "rankPostfixL2", '身经百战'), _defineProperty(_class, "rankPostfixL3", '大师'), _temp), {
   get: function (target, property, reciever) {
     if (typeof property === 'string' && /[A-Z]/.test(property[0])) {
@@ -313,9 +279,7 @@ function () {
   }
 });
 
-let TestTower =
-/*#__PURE__*/
-function (_TowerBase) {
+let TestTower = function (_TowerBase) {
   _inherits(TestTower, _TowerBase);
 
   function TestTower(position, image, bimage, radius) {
@@ -334,9 +298,7 @@ function (_TowerBase) {
   return TestTower;
 }(TowerBase);
 
-_defineProperty(TestTower, "TestBullet",
-/*#__PURE__*/
-function (_BulletBase) {
+_defineProperty(TestTower, "TestBullet", function (_BulletBase) {
   _inherits(_TestBullet, _BulletBase);
 
   function _TestBullet(position, atk, target) {
@@ -348,14 +310,9 @@ function (_BulletBase) {
   return _TestBullet;
 }(BulletBase));
 
-let CannonShooter =
-/*#__PURE__*/
-function (_TowerBase2) {
+let CannonShooter = function (_TowerBase2) {
   _inherits(CannonShooter, _TowerBase2);
 
-  // static informationDesc = new Map(Array.from(TowerBase.informationDesc).concat([
-  //   ['爆炸半径', '炮弹发生爆炸的伤害范围，单位是像素'],
-  // ]))
   function CannonShooter(position, image, bimg, radius) {
     var _this2;
 
@@ -371,15 +328,7 @@ function (_TowerBase2) {
     _this2.name = TowerManager.CannonShooter.dn;
     _this2.extraExplosionDamage = 0;
     _this2.extraExplosionRange = 0;
-    /**
-     * 爆炸伤害倍率
-     */
-
     _this2.extraExplosionDamageRatio = 1;
-    /**
-     * 爆炸范围倍率
-     */
-
     _this2.extraExplosionRangeRatio = 1;
     _this2.extraRange = 0;
     _this2.extraBulletV = 0;
@@ -494,16 +443,8 @@ function (_TowerBase2) {
 
       return ret;
     }
-    /**
-     * 爆炸范围
-     */
-
   }, {
     key: "produceBullet",
-
-    /**
-     * @override
-     */
     value: function produceBullet() {
       this.bulletCtl.Factory(this.recordDamage.bind(this), this.bulletCtorName, this.position.copy().dithering(this.radius), this.Atk, this.target, this.bulletImage, this.EpdAtk, this.EpdRng, this.BrnAtk, this.BrnItv, this.BrnDur, this.extraBulletV, this.calculateDamageRatio.bind(this));
     }
@@ -512,37 +453,21 @@ function (_TowerBase2) {
     get: function () {
       return (this.levelEpdRngFx(this.level) + this.extraExplosionRange) * this.extraExplosionRangeRatio;
     }
-    /**
-     * 爆炸伤害
-     */
-
   }, {
     key: "EpdAtk",
     get: function () {
       return (this.levelEpdAtkFx(this.Atk) + this.extraExplosionDamage) * this.extraExplosionDamageRatio;
     }
-    /**
-     * 灼烧伤害
-     */
-
   }, {
     key: "BrnAtk",
     get: function () {
       return this.levelBrnAtkFx(this.Atk);
     }
-    /**
-     * 灼烧间隔 ms
-     */
-
   }, {
     key: "BrnItv",
     get: function () {
       return this.levelBrnItvFx(this.level);
     }
-    /**
-     * 灼烧持续 ms
-     */
-
   }, {
     key: "BrnDur",
     get: function () {
@@ -571,9 +496,7 @@ _defineProperty(CannonShooter, "rankUpDesc3", '\n+ 命中后向四周抛出小�
 
 _defineProperty(CannonShooter, "rankUpDesc4", '\n+ 小型炸弹将分裂两次');
 
-let MaskManTower =
-/*#__PURE__*/
-function (_TowerBase3) {
+let MaskManTower = function (_TowerBase3) {
   _inherits(MaskManTower, _TowerBase3);
 
   function MaskManTower(position, image, bimage, radius) {
@@ -584,8 +507,6 @@ function (_TowerBase3) {
     _this3 = _possibleConstructorReturn(this, _getPrototypeOf(MaskManTower).call(this, position, radius, 1, 'rgba(26,143,12,.3)', image, TowerManager.MaskManTower.p, TowerManager.MaskManTower.a, TowerManager.MaskManTower.h, TowerManager.MaskManTower.s, TowerManager.MaskManTower.r));
     _this3.bulletCtorName = TowerManager.MaskManTower.bctor;
     _this3.bulletImage = bimage;
-    /** @type {MonsterBase[]} */
-
     _this3.multipleTarget = [];
     _this3.name = TowerManager.MaskManTower.dn;
     _this3.extraRange = 0;
@@ -634,8 +555,7 @@ function (_TowerBase3) {
             this.borderStyle = 'rgba(26,203,12,.7)';
             this.enhanceCrit(0.15, 6);
             this.extraPower = 20;
-            this.extraBulletV = 4; // this.bulletImage = Game.callImageBitMap(TowerManager.MaskManTower.bn2)
-
+            this.extraBulletV = 4;
             break;
 
           case 15:
@@ -646,10 +566,8 @@ function (_TowerBase3) {
             this.borderStyle = 'rgba(26,255,12,.9)';
             this.enhanceCrit(0.1, 5);
             this.extraRange = 180;
-            this.trapChance = 5; // 5%
-
-            this.trapDuration = 3000; // 3 second
-
+            this.trapChance = 5;
+            this.trapDuration = 3000;
             this.extraBulletV = 8;
             Object.defineProperty(this, 'extraHaste', {
               enumerable: true,
@@ -658,13 +576,7 @@ function (_TowerBase3) {
                 return 0.5 + (this.level - 15) * 0.004;
               }
 
-            }); // Object.defineProperty(this, 'extraArrow', {
-            //   enumerable: true,
-            //   get() {
-            //     return Math.round(10 + this.level / 4)
-            //   }
-            // })
-
+            });
             this.extraArrow = 16;
             break;
 
@@ -733,18 +645,9 @@ function (_TowerBase3) {
     }
   }, {
     key: "isThisTargetAvailable",
-
-    /**
-     * @param {MonsterBase} target
-     */
     value: function isThisTargetAvailable(target) {
       if (!target || target.isDead) return false;else return this.inRange(target);
     }
-    /**
-     * @override
-     * @param {MonsterBase[]} targetList
-     */
-
   }, {
     key: "reChooseTarget",
     value: function reChooseTarget(targetList, index) {
@@ -757,10 +660,6 @@ function (_TowerBase3) {
 
       this.multipleTarget[index] = null;
     }
-    /**
-     * @override
-     */
-
   }, {
     key: "produceBullet",
     value: function produceBullet(idx) {
@@ -769,13 +668,6 @@ function (_TowerBase3) {
         this.bulletCtl.Factory(this.recordDamage.bind(this), this.bulletCtorName, this.position.copy().dithering(this.radius), this.Atk * ratio, this.multipleTarget[idx], this.bulletImage, this.critChance, this.critDamageRatio, this.trapChance, this.trapDuration, this.extraBulletV);
       }
     }
-    /**
-     * @override
-     * 箭塔特有的运行方式
-     * 箭塔每次向复数目标分别射出箭矢
-     * @param {MonsterBase[]} monsters
-     */
-
   }, {
     key: "run",
     value: function run(monsters) {
@@ -837,9 +729,7 @@ _defineProperty(MaskManTower, "rankUpDesc2", '\n+ 暴击能力得到大幅加强
 
 _defineProperty(MaskManTower, "rankUpDesc3", '\n+ 命中的箭矢将有几率束缚敌人');
 
-let FrostTower =
-/*#__PURE__*/
-function (_TowerBase4) {
+let FrostTower = function (_TowerBase4) {
   _inherits(FrostTower, _TowerBase4);
 
   function FrostTower(position, image, bimg, radius) {
@@ -849,18 +739,11 @@ function (_TowerBase4) {
 
     _this4 = _possibleConstructorReturn(this, _getPrototypeOf(FrostTower).call(this, position, radius, 1, 'rgba(161,198,225,.6)', image, TowerManager.FrostTower.p, TowerManager.FrostTower.a, TowerManager.FrostTower.h, TowerManager.FrostTower.s, TowerManager.FrostTower.r));
     _this4.canInsertGem = false;
-    /** @type {(lvl: number) => number} */
-
     _this4.levelSprFx = TowerManager.FrostTower.sr;
     _this4.name = TowerManager.FrostTower.dn;
     _this4.inner_desc_init = '在自身周围形成一个圆形的减速场\n- 无法攻击\n- 无法镶嵌传奇宝石';
     _this4.description = _this4.inner_desc_init;
-    /**
-     * @type {MonsterBase[]}
-     */
-
     _this4.trackingList = [];
-    /** @type {(ms: MonsterBase[]) => void} */
 
     _this4.extraEffect = () => {};
 
@@ -968,11 +851,6 @@ function (_TowerBase4) {
 
       return ret;
     }
-    /**
-     * @override
-     * @param {MonsterBase[]} monsters
-     */
-
   }, {
     key: "run",
     value: function run(monsters) {
@@ -982,7 +860,6 @@ function (_TowerBase4) {
         if (i) {
           if (mst.speedRatio === 1 || 1 - this.SPR < mst.speedRatio) mst.speedRatio = 1 - this.SPR;
         } else {
-          // console.log('out of forst range')
           mst.speedRatio !== 1 ? mst.speedRatio = 1 : void 0;
         }
 
@@ -1014,10 +891,6 @@ function (_TowerBase4) {
     get: function () {
       return this.freezeDuration / 1000 * 60;
     }
-    /**
-     * 减速强度
-     */
-
   }, {
     key: "SPR",
     get: function () {
@@ -1040,9 +913,7 @@ _defineProperty(FrostTower, "rankUpDesc2", '\n+ 冻结时能制造伤害并削�
 
 _defineProperty(FrostTower, "rankUpDesc3", '\n+ 冻结能力加强');
 
-let PoisonTower =
-/*#__PURE__*/
-function (_TowerBase5) {
+let PoisonTower = function (_TowerBase5) {
   _inherits(PoisonTower, _TowerBase5);
 
   function PoisonTower(position, image, bimg, radius) {
@@ -1061,22 +932,11 @@ function (_TowerBase5) {
     _this5.description = _this5.inner_desc_init;
     return _this5;
   }
-  /**
-   * 中毒DOT间隔时间
-   */
-
 
   _createClass(PoisonTower, [{
     key: "reChooseTarget",
-
-    /**
-     * @override
-     * 毒罐塔特有的索敌方式
-     * @param {MonsterBase[]} targetList
-     */
     value: function reChooseTarget(targetList) {
-      const unPoisoned = targetList.filter(m => !m.bePoisoned); // 先在未中毒，且为被任何本类型塔弹药锁定的敌人中快速搜索
-
+      const unPoisoned = targetList.filter(m => !m.bePoisoned);
       const unTargeted = unPoisoned.filter(m => {
         return this.bulletCtl.bullets.every(b => b.constructor.name === this.bulletCtorName && b.target !== m);
       });
@@ -1086,17 +946,14 @@ function (_TowerBase5) {
           this.target = t;
           return;
         }
-      } // 在未中毒的敌人中搜索
-
+      }
 
       for (const t of unPoisoned) {
         if (this.inRange(t)) {
           this.target = t;
           return;
         }
-      } // 如果未找到在射程内的未中毒的敌人
-      // 则回退到全部敌人中随机寻找一个在射程内的敌人
-
+      }
 
       for (const t of _.shuffle(targetList)) {
         if (this.inRange(t)) {
@@ -1107,14 +964,9 @@ function (_TowerBase5) {
 
       this.target = null;
     }
-    /**
-     * @override
-     */
-
   }, {
     key: "produceBullet",
     value: function produceBullet() {
-      // console.log(this.target.id)
       const ratio = this.calculateDamageRatio(this.target);
       this.bulletCtl.Factory(this.recordDamage.bind(this), this.bulletCtorName, this.position.copy().dithering(this.radius), this.Atk * ratio, this.target, this.bulletImage, this.Patk * ratio, this.Pitv, this.Pdur, this.extraBulletV);
     }
@@ -1123,19 +975,11 @@ function (_TowerBase5) {
     get: function () {
       return this.levelPitvFx(this.level);
     }
-    /**
-     * 中毒DOT持续时间
-     */
-
   }, {
     key: "Pdur",
     get: function () {
       return this.levelPdurFx(this.level);
     }
-    /**
-     * 中毒DOT伤害
-     */
-
   }, {
     key: "Patk",
     get: function () {
@@ -1151,11 +995,6 @@ function (_TowerBase5) {
     get: function () {
       return _get(_getPrototypeOf(PoisonTower.prototype), "informationSeq", this).concat([['每跳毒素伤害', Math.round(this.Patk)], ['毒素伤害频率', this.Pitv / 1000 + ' 秒'], ['毒素持续', Tools.roundWithFixed(this.Pdur / 1000, 1) + ' 秒']]);
     }
-    /**
-     * @override
-     * 毒罐塔会积极地切换目标，以尽可能让所有范围内敌人中毒
-     */
-
   }, {
     key: "isCurrentTargetAvailable",
     get: function () {
@@ -1166,18 +1005,11 @@ function (_TowerBase5) {
   return PoisonTower;
 }(TowerBase);
 
-let TeslaTower =
-/*#__PURE__*/
-function (_TowerBase6) {
+let TeslaTower = function (_TowerBase6) {
   _inherits(TeslaTower, _TowerBase6);
 
   _createClass(TeslaTower, null, [{
     key: "renderLighteningCop",
-
-    /**
-     * 闪电绘制函数
-     * @param {CanvasRenderingContext2D} ctx
-     */
     value: function renderLighteningCop(ctx, x1, y1, x2, y2, displace) {
       if (displace < TeslaTower.curveDetail) {
         ctx.moveTo(x1, y1);
@@ -1194,19 +1026,11 @@ function (_TowerBase6) {
         }
       }
     }
-    /**
-     * 闪电绘制帧数
-     */
-
   }, {
     key: "shockRenderFrames",
     get: function () {
       return 3;
     }
-    /**
-     * 闪电绘制的最小分折长度
-     */
-
   }, {
     key: "curveDetail",
     get: function () {
@@ -1224,28 +1048,13 @@ function (_TowerBase6) {
     _this6.name = TowerManager.TeslaTower.dn;
     _this6.extraRange = 0;
     _this6.extraHaste = 0;
-    /** @type {(mst: MonsterBase) => void} */
 
     _this6.extraEffect = () => {};
-    /** 带电效果的持续时间 */
-
 
     _this6.shockDuration = 5000;
-    /** 塔每次攻击使目标带电的几率 */
-
     _this6.shockChargingChance = .2;
-    /** 漏电伤害对塔攻击的比值 */
-
     _this6.shockChargingPowerRatio = .25;
-    /** 每个tick带电的怪物向周围漏电得几率 */
-
     _this6.shockLeakingChance = .02;
-    /**
-     * 带电的怪物向周围漏电的动画队列
-     * 由放电的怪物主动注册
-     * @type {{time: number, args: number[]}[]}
-     */
-
     _this6.monsterShockingRenderingQueue = [];
     _this6.inner_desc_init = '向周围小范围释放电击造成中等伤害\n+ 有几率使目标带电';
     _this6.description = _this6.inner_desc_init;
@@ -1278,8 +1087,7 @@ function (_TowerBase6) {
             this.image = Game.callImageBitMap(TowerManager.TeslaTower.n3);
             this.description += TeslaTower.rankUpDesc2;
             this.borderStyle = 'rgba(162,161,34,.8)';
-            this.extraRange = 80; // this.extraEffect = mst => mst.position.moveTo(this.position, mst.speedValue * .25 * 60 / this.HstPS)
-
+            this.extraRange = 80;
             this.shockChargingChance = .4;
             this.shockDuration = 12000;
             this.shockChargingPowerRatio = 1.5;
@@ -1290,33 +1098,22 @@ function (_TowerBase6) {
 
       return ret;
     }
-    /**
-     * 电击
-     * @param {MonsterBase} monster
-     */
-
   }, {
     key: "shock",
     value: function shock(monster) {
       monster.health -= this.Atk * (1 - monster.armorResistance) * this.calculateDamageRatio(monster);
       this.recordDamage(monster);
-      if (this.canCharge) monster.registerShock(this.shockDurationTick, this.Atk * this.shockChargingPowerRatio, this, this.shockLeakingChance); // this.extraEffect(monster)
+      if (this.canCharge) monster.registerShock(this.shockDurationTick, this.Atk * this.shockChargingPowerRatio, this, this.shockLeakingChance);
     }
-    /**
-     * @override
-     * @param {MonsterBase[]} monsters
-     */
-
   }, {
     key: "run",
     value: function run(monsters) {
       if (this.canShoot) {
-        // 电击塔不调用父类shoot，故主动挂载gem钩子
         this.gemAttackHook(monsters);
         this.renderPermit = TeslaTower.shockRenderFrames;
         monsters.forEach(mst => {
           if (this.inRange(mst)) {
-            this.shock(mst); // 电击塔不调用父类shoot，故主动挂载gem钩子
+            this.shock(mst);
 
             if (this.gem) {
               this.gem.hitHook(this, mst, monsters);
@@ -1326,11 +1123,6 @@ function (_TowerBase6) {
         this.recordShootTime();
       }
     }
-    /**
-     * - circle-formula: (x - a)^2 + (y - b)^2 = r^2
-     * - y = (r^2 - (x - a)^2)^0.5 + b || b - (r^2 - (x - a)^2)^0.5
-     */
-
   }, {
     key: "calculateRandomCirclePoint",
     value: function calculateRandomCirclePoint() {
@@ -1341,8 +1133,6 @@ function (_TowerBase6) {
         y: Math.random() > .5 ? this.position.y - Math.pow(this.Rng * this.Rng - Math.pow(x - this.position.x, 2), 0.5) : Math.pow(this.Rng * this.Rng - Math.pow(x - this.position.x, 2), 0.5) + this.position.y
       };
     }
-    /** @param {CanvasRenderingContext2D} ctx */
-
   }, {
     key: "renderLightening",
     value: function renderLightening(ctx) {
@@ -1352,12 +1142,6 @@ function (_TowerBase6) {
       } = this.calculateRandomCirclePoint();
       TeslaTower.renderLighteningCop(ctx, this.position.x, this.position.y, x, y, this.Rng / 2);
     }
-    /**
-     * @override
-     * @param {CanvasRenderingContext2D} ctx
-     * @param {MonsterBase[]} monsters
-     */
-
   }, {
     key: "rapidRender",
     value: function rapidRender(ctx, monsters) {
@@ -1430,9 +1214,7 @@ _defineProperty(TeslaTower, "rankUpDesc1", '\n+ 攻击频率得到加强');
 
 _defineProperty(TeslaTower, "rankUpDesc2", '\n+ 射程得到加强');
 
-let BlackMagicTower =
-/*#__PURE__*/
-function (_TowerBase7) {
+let BlackMagicTower = function (_TowerBase7) {
   _inherits(BlackMagicTower, _TowerBase7);
 
   function BlackMagicTower(position, image, bimg, radius) {
@@ -1441,21 +1223,13 @@ function (_TowerBase7) {
     _classCallCheck(this, BlackMagicTower);
 
     _this7 = _possibleConstructorReturn(this, _getPrototypeOf(BlackMagicTower).call(this, position, radius, 1, 'rgba(223,14,245,.2)', image, TowerManager.BlackMagicTower.p, TowerManager.BlackMagicTower.a, TowerManager.BlackMagicTower.h, TowerManager.BlackMagicTower.s, TowerManager.BlackMagicTower.r));
-    /** @type {(lvl: number) => number} */
-
     _this7.levelIdeFx = TowerManager.BlackMagicTower.ide;
-    /** @type {(lvl: number) => number} */
-
     _this7.levelIdrFx = TowerManager.BlackMagicTower.idr;
     _this7.imprecationPower = 0;
     _this7.imprecationHaste = 1;
     _this7.name = TowerManager.BlackMagicTower.dn;
     _this7.extraPower = 0;
     _this7.voidSummonChance = 3;
-    /**
-     * 相当于目标当前生命值的额外伤害比例
-     */
-
     _this7.POTCHD = 0;
     _this7.inner_desc_init = '释放强力魔法，总会瞄准最强的敌人\n- 准备时间非常长\n+ 附加诅咒效果，使目标受到的伤害提高\n+ 无视防御\n+ 每次击杀将增加 10 攻击力并提高 1% 攻击速度（最多提高 150%）';
     _this7.description = _this7.inner_desc_init;
@@ -1504,36 +1278,25 @@ function (_TowerBase7) {
 
       return ret;
     }
-    /**
-     * @override
-     * @param {MonsterBase[]} targetList
-     */
-
   }, {
     key: "reChooseTarget",
     value: function reChooseTarget(targetList) {
       this.target = _.maxBy(targetList.filter(t => this.inRange(t)), '__inner_current_health');
     }
-    /**
-     * @override
-     */
-
   }, {
     key: "produceBullet",
     value: function produceBullet() {
       const w = 82;
       const h = 50;
       const position = new Position(this.target.position.x - w / 2, this.target.position.y - h / 2);
-      Game.callAnimation('magic_2', position, w, h, 1, 2); // console.log(`基础伤害 ${this.Atk} 额外伤害 ${this.target.__inner_current_health * this.POTCHD}`)
-
+      Game.callAnimation('magic_2', position, w, h, 1, 2);
       this.target.health -= this.Atk * this.calculateDamageRatio(this.target) + this.target.__inner_current_health * this.POTCHD;
-      this.recordDamage(this.target); // 杀死了目标
+      this.recordDamage(this.target);
 
       if (this.target.isDead) {
         this.imprecationPower += 10;
         if (this.imprecationHaste * 100 - 100 < 150) this.imprecationHaste += 0.01;
-      } // 诅咒目标
-      else if (!this.target.beImprecated) {
+      } else if (!this.target.beImprecated) {
           this.target.beImprecated = true;
           this.target.imprecatedRatio = this.Ide;
           setTimeout(() => {
@@ -1559,19 +1322,11 @@ function (_TowerBase7) {
     get: function () {
       return _get(_getPrototypeOf(BlackMagicTower.prototype), "Atk", this) + this.imprecationPower + this.extraPower;
     }
-    /**
-     * 诅咒的易伤效果
-     */
-
   }, {
     key: "Ide",
     get: function () {
       return this.levelIdeFx(this.level) + 1;
     }
-    /**
-     * 诅咒持续时间
-     */
-
   }, {
     key: "Idr",
     get: function () {
@@ -1595,27 +1350,15 @@ _defineProperty(BlackMagicTower, "rankUpDesc3", '\n+ 伤害得到大幅加强，
 
 _defineProperty(BlackMagicTower, "deniedGems", ['GogokOfSwiftness']);
 
-_defineProperty(BlackMagicTower, "GemsToOptionsInnerHtml", TowerBase.Gems.map((gemCtor, idx) => {
-  return `<option value="${gemCtor.name}"${idx === 0 ? ' selected' : ''}${BlackMagicTower.deniedGems.includes(gemCtor.name) ? ' disabled' : ''}>${gemCtor.ctor.gemName}${BlackMagicTower.deniedGems.includes(gemCtor.name) ? ' - 不能装备到此塔' : ''}</option>`;
-}).join(''));
-
-let LaserTower =
-/*#__PURE__*/
-function (_TowerBase8) {
+let LaserTower = function (_TowerBase8) {
   _inherits(LaserTower, _TowerBase8);
 
-  /**
-   * 内部类 激光射线枪
-   * 剥离出具体激光的渲染逻辑，外层无需关心
-   */
   function LaserTower(position, image, bimg, radius) {
     var _this8;
 
     _classCallCheck(this, LaserTower);
 
     _this8 = _possibleConstructorReturn(this, _getPrototypeOf(LaserTower).call(this, position, radius, 1, 'rgba(17,54,245,.2)', image, TowerManager.LaserTower.p, TowerManager.LaserTower.a, TowerManager.LaserTower.h, TowerManager.LaserTower.s, TowerManager.LaserTower.r));
-    /** @type {LaserTower.Laser[]} */
-
     _this8.lasers = [];
     _this8.levelFlameAtkFx = TowerManager.LaserTower.fatk;
     _this8.levelFlameWidthFx = TowerManager.LaserTower.fw;
@@ -1626,12 +1369,7 @@ function (_TowerBase8) {
     _this8.extraLaserTransmitter = 0;
     _this8.extraFlameWidth = 0;
     _this8.extraRange = 0;
-    _this8.lineStyles = [['rgba(244,188,174,.4)', 'rgba(204,21,12,.7)'], // laser
-    ['rgba(244,188,174,.4)', 'rgba(254,21,12,.7)'], // he laser
-    ['rgba(204,204,255,.4)', 'rgba(0,51,253,.7)'], // heat inf
-    ['rgba(204,204,255,.4)', 'rgba(0,51,253,.7)'], // multi heat inf
-    ['rgba(255,153,0,.4)', 'rgba(153,0,51,.7)'] // colossus
-    ];
+    _this8.lineStyles = [['rgba(244,188,174,.4)', 'rgba(204,21,12,.7)'], ['rgba(244,188,174,.4)', 'rgba(254,21,12,.7)'], ['rgba(204,204,255,.4)', 'rgba(0,51,253,.7)'], ['rgba(204,204,255,.4)', 'rgba(0,51,253,.7)'], ['rgba(255,153,0,.4)', 'rgba(153,0,51,.7)']];
     _this8.inner_desc_init = '发射激光，横扫大面积的目标，造成范围的火焰伤害';
     _this8.description = _this8.inner_desc_init;
     return _this8;
@@ -1691,20 +1429,13 @@ function (_TowerBase8) {
 
       return ret;
     }
-    /**
-     * 发射激光，击中第一个敌人，扫动一定距离，造成燃烧伤害
-     * @override
-     * @param {MonsterBase[]} monsters
-     */
-
   }, {
     key: "produceBullet",
     value: function produceBullet(i, monsters) {
-      //console.time('LaserTower make damage')
       const v = new Position(this.target.position.x, this.target.position.y);
       const r = this.Fwd / 2 + Game.callGridSideSize() / 3 - 2;
       const mvrc = .7;
-      const arcTime = Math.ceil((this.Lsd / r - 2) / mvrc + 1) + 1; // 采样击中点的各个方向，并取每个方向延伸的模糊点，比较何处敌人最密集
+      const arcTime = Math.ceil((this.Lsd / r - 2) / mvrc + 1) + 1;
 
       const swipeVector = _.maxBy(_.range(0, 360, 30).map(d => new PolarVector(this.Lsd, d)), sv => monsters.filter(mst => v.copy().move(sv.normalize().multiply(mvrc * (arcTime - 1) * r)).equal(mst.position, 1.2 * r)).length).dithering(1 / 30 * Math.PI);
 
@@ -1712,12 +1443,9 @@ function (_TowerBase8) {
       const flameArea = new Path2D();
 
       for (let i = 0; i < arcTime; i++) {
-        const t = v.copy().move(swipeVector.normalize().multiply(mvrc * i * r)); // console.log(v + ', ' + t)
-
+        const t = v.copy().move(swipeVector.normalize().multiply(mvrc * i * r));
         flameArea.arc(t.x, t.y, r, 0, Math.PI * 2);
-      } // Game.callCanvasContext('bg').strokeStyle = 'rgba(33,33,33,.3)'
-      // Game.callCanvasContext('bg').stroke(flameArea)
-
+      }
 
       this.target.health -= this.Atk * (1 - this.target.armorResistance) * this.calculateDamageRatio(this.target);
       this.recordDamage(this.target);
@@ -1728,13 +1456,8 @@ function (_TowerBase8) {
           mst.health -= this.Fatk * (1 - mst.armorResistance) * this.calculateDamageRatio(mst);
           this.recordDamage(this.target);
         }
-      }); //console.timeEnd('LaserTower make damage')
+      });
     }
-    /**
-     * @override
-     * @param {CanvasRenderingContext2D} ctx
-     */
-
   }, {
     key: "rapidRender",
     value: function rapidRender(ctx) {
@@ -1753,37 +1476,21 @@ function (_TowerBase8) {
     get: function () {
       return _get(_getPrototypeOf(LaserTower.prototype), "Slc", this) + this.extraLaserTransmitter;
     }
-    /**
-     * Laser Swipe Distance
-     */
-
   }, {
     key: "Lsd",
     get: function () {
       return this.levelLaserSwipeDistanceFx(this.level);
     }
-    /**
-     * Flame Attack Power
-     */
-
   }, {
     key: "Fatk",
     get: function () {
       return this.levelFlameAtkFx(this.level) + this.extraFlameDamage;
     }
-    /**
-     * Flame Width
-     */
-
   }, {
     key: "Fwd",
     get: function () {
       return this.levelFlameWidthFx(this.level) + this.extraFlameWidth;
     }
-    /**
-     * 激光渲染宽度
-     */
-
   }, {
     key: "LlW",
     get: function () {
@@ -1804,17 +1511,7 @@ function (_TowerBase8) {
   return LaserTower;
 }(TowerBase);
 
-_defineProperty(LaserTower, "Laser", (_temp2 = _class2 =
-/*#__PURE__*/
-function () {
-  /**
-   * @param {Position} startPos
-   * @param {Position} endPos
-   * @param {number} lineWidth
-   * @param {number} duration
-   * @param {PolarVector} swipeVector
-   * @param {(x: number) => number} easingFunc
-   */
+_defineProperty(LaserTower, "Laser", (_temp2 = _class2 = function () {
   function ColossusLaser(startPos, endPos, lineWidth, duration, swipeVector, easingFunc, ls1, ls2) {
     _classCallCheck(this, ColossusLaser);
 
@@ -1827,18 +1524,10 @@ function () {
     this.lineStylesInner = ls2;
     const updateTime = 1000 / 60;
     const updateCount = duration / updateTime;
-    /**
-     * 步长
-     */
-
     this.perUpdateDistance = 1 / updateCount;
     this.currentStep = 0;
     const maxAnimationCount = Math.floor(this.swipeVector.r / (Math.max(ColossusLaser.animationW, ColossusLaser.animationH) + 1));
     this.animationStepInterval = maxAnimationCount >= updateCount ? 1 : Math.ceil(updateTime / maxAnimationCount);
-    /**
-     * 步进 0-1
-     */
-
     this.stepPosition = 0;
     this.easingFx = easingFunc || Tools.EaseFx.linear;
     this.fulfilled = false;
@@ -1846,10 +1535,6 @@ function () {
 
   _createClass(ColossusLaser, [{
     key: "renderStep",
-
-    /**
-     * @param {CanvasRenderingContext2D} ctx
-     */
     value: function renderStep(ctx) {
       if (this.fulfilled) return;
       const stepEndPos = this.step;
@@ -1862,10 +1547,7 @@ function () {
       pt.moveTo(this.sx, this.sy);
       pt.lineTo(stepEndPos.x, stepEndPos.y);
       pt.closePath();
-      const t = ctx.lineWidth; // ctx.strokeStyle = 'rgba(44,88,234,.2)'
-      // ctx.lineWidth = this.lineWidth + 2
-      // ctx.stroke(pt)
-
+      const t = ctx.lineWidth;
       ctx.strokeStyle = this.lineStylesOuter;
       ctx.lineWidth = this.lineWidth + 2;
       ctx.stroke(pt);
@@ -1904,9 +1586,7 @@ _defineProperty(LaserTower, "rankUpDesc3", '\n+ 发射多束射线');
 
 _defineProperty(LaserTower, "rankUpDesc4", '\n+ 所有属性得到增强');
 
-let CarrierTower =
-/*#__PURE__*/
-function (_TowerBase9) {
+let CarrierTower = function (_TowerBase9) {
   _inherits(CarrierTower, _TowerBase9);
 
   function CarrierTower(position, image, bimg, radius) {
@@ -1916,14 +1596,11 @@ function (_TowerBase9) {
 
     _this9 = _possibleConstructorReturn(this, _getPrototypeOf(CarrierTower).call(this, position, radius, 1, 'rgba(56,243,12,.5)', image, TowerManager.CarrierTower.p, TowerManager.CarrierTower.a, TowerManager.CarrierTower.h, TowerManager.CarrierTower.s, TowerManager.CarrierTower.r));
     _this9.jets = 0;
-    /**
-     * @type {(lvl: number) => number}
-     */
-
     _this9.levelSpdFx = TowerManager.CarrierTower.spd;
+    _this9.levelKcFx = TowerManager.CarrierTower.child;
     _this9.bulletCtorName = TowerManager.CarrierTower.bctor;
     _this9.name = TowerManager.CarrierTower.dn;
-    _this9.inner_desc_init = '航母';
+    _this9.inner_desc_init = '自身无法攻击，拥有多架载机\n+ 载机继承自身属性\n+ 可以对任意位置进行机动打击';
     _this9.description = _this9.inner_desc_init;
     return _this9;
   }
@@ -1931,7 +1608,7 @@ function (_TowerBase9) {
   _createClass(CarrierTower, [{
     key: "run",
     value: function run() {
-      if (this.canShoot && this.jets < this.Slc) {
+      if (this.canShoot && this.jets < this.KidCount) {
         Game.callTowerFactory('CarrierTower.Jet', this.position.copy().dithering(this.radius * 2, this.radius), Game.callImageBitMap(TowerManager.CarrierTower.cn), null, Game.callGridSideSize() / 4, this);
         this.jets++;
       }
@@ -1947,6 +1624,16 @@ function (_TowerBase9) {
       Game.callTowerList().filter(tow => tow.carrierTower && tow.carrierTower === this).forEach(tow => tow.isSold = true);
     }
   }, {
+    key: "informationSeq",
+    get: function () {
+      return _get(_getPrototypeOf(CarrierTower.prototype), "informationSeq", this).concat([['载机量', this.KidCount]]);
+    }
+  }, {
+    key: "KidCount",
+    get: function () {
+      return this.levelKcFx(this.level);
+    }
+  }, {
     key: "Spd",
     get: function () {
       return this.levelSpdFx(this.level);
@@ -1956,20 +1643,18 @@ function (_TowerBase9) {
   return CarrierTower;
 }(TowerBase);
 
-_defineProperty(CarrierTower, "Jet", (_temp3 = _class3 =
-/*#__PURE__*/
-function (_TowerBase10) {
+_defineProperty(CarrierTower, "deniedGems", ['ZeisStoneOfVengeance']);
+
+_defineProperty(CarrierTower, "Jet", (_temp3 = _class3 = function (_TowerBase10) {
   _inherits(_Jet, _TowerBase10);
 
-  /**
-   * @param {CarrierTower} carrierTower
-   */
   function _Jet(position, image, bimg, radius, carrierTower) {
     var _this10;
 
     _classCallCheck(this, _Jet);
 
     _this10 = _possibleConstructorReturn(this, _getPrototypeOf(_Jet).call(this, position, radius, 0, null, image, [], carrierTower.levelAtkFx, carrierTower.levelHstFx, carrierTower.levelSlcFx, carrierTower.levelRngFx));
+    _this10.name = '航母载机';
     _this10.bulletCtorName = carrierTower.bulletCtorName;
     _this10.carrierTower = carrierTower;
     _this10.canInsertGem = false;
@@ -1990,14 +1675,10 @@ function (_TowerBase10) {
   }, {
     key: "calculateDamageRatio",
     value: function calculateDamageRatio(...args) {
-      return this.carrierTower.calculateDamageRatio(...args);
+      const ratio = this.carrierTower.calculateDamageRatio(...args);
+      console.log(ratio.toFixed(3).padEnd(12) + ' X');
+      return ratio;
     }
-    /**
-     * - 在怪物中重选目标
-     * - 在怪物中找到威胁最大的(距离终点最近的)
-     * @param {MonsterBase[]} targetList
-     */
-
   }, {
     key: "reChooseTarget",
     value: function reChooseTarget(targetList) {
@@ -2005,32 +1686,32 @@ function (_TowerBase10) {
         return Position.distancePow2(Game.callDestinationPosition(), mst.position);
       });
     }
-    /**
-     * @param {MonsterBase[]} monsters
-     */
-
   }, {
     key: "run",
     value: function run(monsters) {
-      // 当前目标失效
       if (!this.hasCurrentTarget) {
         this.reChooseTarget(monsters);
         if (this.hasCurrentTarget) this.position.moveTo(this.target.position, this.Spd);
-      } // 当前目标在范围内
-      else if (this.inRange(this.target)) {
+      } else if (this.inRange(this.target)) {
           if (this.canShoot && this.target) {
             this.shoot(monsters);
           }
-
-          this.position.moveTo(this.position.copy().dithering(Game.callGridSideSize()), this.Spd);
-        } // 当前目标超出范围
-        else {
+        } else {
             this.position.moveTo(this.target.position, this.Spd);
           }
     }
   }, {
     key: "render",
     value: function render() {}
+  }, {
+    key: "renderImage",
+    value: function renderImage(ctx) {
+      if (this.target) {
+        BulletBase.prototype.renderImage.call(this, ctx);
+      } else {
+        _get(_getPrototypeOf(_Jet.prototype), "renderImage", this).call(this, ctx);
+      }
+    }
   }, {
     key: "rapidRender",
     value: function rapidRender(ctxRapid) {
@@ -2045,6 +1726,26 @@ function (_TowerBase10) {
     key: "recordKill",
     value: function recordKill(...args) {
       this.carrierTower.recordKill(...args);
+    }
+  }, {
+    key: "Atk",
+    get: function () {
+      return this.carrierTower.Atk;
+    }
+  }, {
+    key: "Slc",
+    get: function () {
+      return this.carrierTower.Slc;
+    }
+  }, {
+    key: "Rng",
+    get: function () {
+      return this.carrierTower.Rng;
+    }
+  }, {
+    key: "HstPS",
+    get: function () {
+      return this.carrierTower.HstPS;
     }
   }, {
     key: "Spd",
@@ -2081,17 +1782,15 @@ function (_TowerBase10) {
   }]);
 
   return _Jet;
-}(TowerBase), _defineProperty(_class3, "JetBomb",
-/*#__PURE__*/
-function (_BulletBase2) {
-  _inherits(_JetBomb, _BulletBase2);
+}(TowerBase), _defineProperty(_class3, "JetBullet", function (_BulletBase2) {
+  _inherits(_JetBullet, _BulletBase2);
 
-  function _JetBomb(position, atk, target) {
-    _classCallCheck(this, _JetBomb);
+  function _JetBullet(position, atk, target) {
+    _classCallCheck(this, _JetBullet);
 
     const bVelocity = 15;
-    return _possibleConstructorReturn(this, _getPrototypeOf(_JetBomb).call(this, position, 2, 0, null, 'rgba(255,204,51,1)', atk, bVelocity, target));
+    return _possibleConstructorReturn(this, _getPrototypeOf(_JetBullet).call(this, position, 1, 0, null, 'rgba(55,14,11,1)', atk, bVelocity, target));
   }
 
-  return _JetBomb;
+  return _JetBullet;
 }(BulletBase)), _temp3));

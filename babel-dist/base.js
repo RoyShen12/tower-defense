@@ -22,12 +22,7 @@ function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _d
 
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
-/**
- * @typedef { (Node | ChildNode) & { style: CSSStyleDeclaration & {} } } NodeLike
- */
-let Tools =
-/*#__PURE__*/
-function () {
+let Tools = function () {
   function Tools() {
     _classCallCheck(this, Tools);
   }
@@ -47,13 +42,6 @@ function () {
         return useBillion ? Tools.formatterUs.format(Math.sign(num) * this.roundWithFixed(thisAbs / 1000000000, precise)) + ' b' : this.roundWithFixed(num / 1000000, precise) + ' m';
       }
     }
-    /**
-     * @param {number} num
-     * @param {number} precise
-     * @param {string} block
-     * @returns {string}
-     */
-
   }, {
     key: "chineseFormatter",
     value: function chineseFormatter(num, precise = 3, block = '') {
@@ -69,56 +57,31 @@ function () {
         return this.roundWithFixed(num / 1e12, precise) + block + '兆';
       } else if (thisAbs < 1e20) {
         return this.roundWithFixed(num / 1e16, precise) + block + '京';
-      } else
-        /* if (thisAbs < 1e24)*/
-        {
+      } else {
           return this.roundWithFixed(num / 1e20, precise) + block + '垓';
         }
     }
-    /**
-     * @param {number} num
-     * @param {number} fractionDigits
-     */
-
   }, {
     key: "roundWithFixed",
     value: function roundWithFixed(num, fractionDigits) {
       const t = 10 ** fractionDigits;
       return Math.round(num * t) / t;
     }
-    /**
-     * 生成指定位数随机字符串
-     * @param {number} bits
-     */
-
   }, {
     key: "randomStr",
     value: function randomStr(bits) {
       return new Array(bits).fill(1).map(() => ((Math.random() * 16 | 0) & 0xf).toString(16)).join('');
     }
-    /**
-     * 随机正负号
-     */
-
   }, {
     key: "randomSig",
     value: function randomSig() {
       return Math.random() < 0.5 ? 1 : -1;
     }
-    /**
-     * @param {number|string} numberLike
-     */
-
   }, {
     key: "isNumberSafe",
     value: function isNumberSafe(numberLike) {
       return numberLike !== '' && numberLike !== ' ' && !isNaN(numberLike);
     }
-    /**
-     * 绘制扇形
-     * @param {CanvasRenderingContext2D} ctx
-     */
-
   }, {
     key: "renderSector",
     value: function renderSector(ctx, x, y, r, angle1, angle2, anticlock) {
@@ -130,18 +93,6 @@ function () {
       ctx.restore();
       return ctx;
     }
-    /**
-     * 绘制带圆角的矩形
-     * @param {CanvasRenderingContext2D} ctx
-     * @param {Number} x the top left x coordinate
-     * @param {Number} y the top left y coordinate
-     * @param {Number} width the width of the rectangle
-     * @param {Number} height the height of the rectangle
-     * @param {Number | {tl: number,tr:number,br:number,bl:number}} [radius = 5] the corner radius or an object to specify different radius for corners
-     * @param {Boolean} [fill = false] whether to fill the rectangle
-     * @param {Boolean} [stroke = true] whether to stroke the rectangle
-     */
-
   }, {
     key: "renderRoundRect",
     value: function renderRoundRect(ctx, x, y, width, height, radius, fill = false, stroke = true) {
@@ -187,20 +138,8 @@ function () {
         ctx.stroke();
       }
     }
-    /**
-     * @reference https://github.com/gdsmith/jquery.easing/blob/master/jquery.easing.js
-     */
-
   }, {
     key: "installDot",
-
-    /**
-     * @param {MonsterBase} target
-     * @param {string} dotDebuffName
-     * @param {number} duration
-     * @param {number} interval
-     * @param {(mst: MonsterBase) => void} damageEmitter
-     */
     value: function installDot(target, dotDebuffName, duration, interval, singleAttack, isIgnoreArmor, damageEmitter) {
       if (typeof target[dotDebuffName] !== 'boolean') {
         console.log(target);
@@ -210,37 +149,24 @@ function () {
       if (target[dotDebuffName] || target.isDead) {
         return;
       } else {
-        let dotCount = 0; // 目标标记debuff
-
+        let dotCount = 0;
         target[dotDebuffName] = true;
         const itv = setInterval(() => {
           if (++dotCount > duration / interval) {
-            // 效果结束、移除状态、结束计时器
             target[dotDebuffName] = false;
             clearInterval(itv);
             return;
           }
 
           if (target.health > 0) {
-            // 跳DOT
-            target.health -= singleAttack * (isIgnoreArmor ? 1 : 1 - target.armorResistance); // console.log('dot fired, damage ' + target.lastAbsDmg)
-
+            target.health -= singleAttack * (isIgnoreArmor ? 1 : 1 - target.armorResistance);
             damageEmitter(target);
           } else {
-            // 目标死亡，结束计时器
             clearInterval(itv);
           }
         }, interval);
       }
     }
-    /**
-     * @param {MonsterBase} target
-     * @param {string} dotDebuffName
-     * @param {number} duration
-     * @param {number} interval
-     * @param {(mst: MonsterBase) => void} damageEmitter
-     */
-
   }, {
     key: "installDotDuplicated",
     value: function installDotDuplicated(target, dotDebuffName, duration, interval, singleAttack, isIgnoreArmor, damageEmitter) {
@@ -254,11 +180,9 @@ function () {
       } else {
         const thisId = this.randomStr(8);
         let dotCount = 0;
-        target[dotDebuffName].push(thisId); // console.log(singleAttack, Math.ceil(duration / interval))
-
+        target[dotDebuffName].push(thisId);
         const itv = setInterval(() => {
           if (++dotCount > duration / interval) {
-            // 效果结束、结束计时器
             target[dotDebuffName] = target[dotDebuffName].filter(d => d !== thisId);
             clearInterval(itv);
             return;
@@ -277,33 +201,14 @@ function () {
 
   return Tools;
 }();
-/**
- * 所有[物体]的基类
- */
 
-
-_defineProperty(Tools, "Dom", (_temp = _class =
-/*#__PURE__*/
-function () {
+_defineProperty(Tools, "Dom", (_temp = _class = function () {
   function _Dom() {
     _classCallCheck(this, _Dom);
   }
 
   _createClass(_Dom, null, [{
     key: "__installOptionOnNode",
-
-    /**
-     * @type {Map<string, Node | Node[]>}
-     */
-
-    /**
-     * @type {Map<string, number>}
-     */
-
-    /**
-     * @param {Node} node
-     * @param {HTMLElement | {}} option
-     */
     value: function __installOptionOnNode(node, option) {
       _.forOwn(option, (v, k) => {
         if (typeof v === 'string' || typeof v === 'number' || typeof v === 'boolean' || typeof v === 'function') {
@@ -315,11 +220,6 @@ function () {
         }
       });
     }
-    /**
-     * @param {Node | HTMLBodyElement} node
-     * @param {HTMLDivElement | {}} [option]
-     */
-
   }, {
     key: "genetateDiv",
     value: function genetateDiv(node, option) {
@@ -331,12 +231,6 @@ function () {
       node.appendChild(div);
       return div;
     }
-    /**
-     * @param {Node} node
-     * @param {string} src
-     * @param {HTMLImageElement | {}} option
-     */
-
   }, {
     key: "generateImg",
     value: function generateImg(node, src, option) {
@@ -349,20 +243,11 @@ function () {
       node.appendChild(img);
       return img;
     }
-    /**
-     * @param {Node} node
-     * @param {HTMLDivElement | {}} [leftOpt]
-     * @param {HTMLDivElement | {}} [rightOpt]
-     * @param {Node[]} leftChildren
-     * @param {Node[]} rightChildren
-     */
-
   }, {
     key: "generateTwoCol",
     value: function generateTwoCol(node, leftOpt, rightOpt, leftChildren = [], rightChildren = []) {
       leftOpt = leftOpt || {};
-      rightOpt = rightOpt || {}; // console.log(leftOpt, rightOpt)
-
+      rightOpt = rightOpt || {};
       const colL = document.createElement('div');
       colL.className = 'col';
 
@@ -379,13 +264,6 @@ function () {
       node.appendChild(colR);
       return [colL, colR];
     }
-    /**
-     * @param {Node} node
-     * @param {string | null} [className]
-     * @param {HTMLDivElement | { style: CSSStyleDeclaration | {} } | {}} option
-     * @param {Node[]} children
-     */
-
   }, {
     key: "generateRow",
     value: function generateRow(node, className, option = {}, children = []) {
@@ -404,10 +282,6 @@ function () {
       node.appendChild(row);
       return row;
     }
-    /**
-     * @param {Node} node
-     */
-
   }, {
     key: "removeAllChildren",
     value: function removeAllChildren(node) {
@@ -415,10 +289,6 @@ function () {
         node.removeChild(node.lastChild);
       }
     }
-    /**
-     * @param {HTMLElement & Node} node
-     */
-
   }, {
     key: "removeNodeTextAndStyle",
     value: function removeNodeTextAndStyle(node, className = 'row') {
@@ -427,16 +297,6 @@ function () {
       if (node.textContent) node.textContent = '';
       if (node.className != className) node.className = className;
     }
-    /**
-     * @param {string} uniqueId
-     * @param {HTMLButtonElement} node
-     * @param {() => boolean} onPressFx - callable
-     * @param {number} onPressFxCallDelay - ms
-     * @param {number} onPressFxCallInterval - ms
-     * @param {number} accDelay - ms
-     * @param {number} accInterval - ms
-     */
-
   }, {
     key: "bindLongPressEventHelper",
     value: function bindLongPressEventHelper(uniqueId, node, onPressFx, onPressFxCallDelay, onPressFxCallInterval, accDelay, accInterval) {
@@ -451,7 +311,6 @@ function () {
         timerInst = setTimeout(() => {
           const startLevel1 = performance.now();
           const intervalInst = setInterval(() => {
-            // console.log('loop.')
             const cancel = onPressFx();
 
             if (cancel) {
@@ -519,16 +378,10 @@ _defineProperty(Tools, "MathFx", (_temp3 = _class3 = function _Math() {
 let Base = function Base() {
   _classCallCheck(this, Base);
 
-  this.id = Tools.randomStr(8);
+  this.id = Math.round(Math.random() * Number.MAX_SAFE_INTEGER);
 };
-/**
- * 所有[可用左上和右下两个点描述物体]的基类
- */
 
-
-let RectangleBase =
-/*#__PURE__*/
-function (_Base) {
+let RectangleBase = function (_Base) {
   _inherits(RectangleBase, _Base);
 
   function RectangleBase(positionTL, positionBR, bw, bs, bf, br) {
@@ -537,38 +390,16 @@ function (_Base) {
     _classCallCheck(this, RectangleBase);
 
     _this = _possibleConstructorReturn(this, _getPrototypeOf(RectangleBase).call(this));
-    /**
-     * @type {Position}
-     */
-
     _this.cornerTL = positionTL;
-    /**
-     * @type {Position}
-     */
-
     _this.cornerBR = positionBR;
     _this.width = _this.cornerBR.x - _this.cornerTL.x;
     _this.height = _this.cornerBR.y - _this.cornerTL.y;
-    /** @type {number} */
-
     _this.borderWidth = bw;
-    /** @type {string} */
-
     _this.borderStyle = bs;
-    /** @type {string} */
-
     _this.fillStyle = bf;
-    /**
-     * @type {number | {tl: number, tr: number, br: number, bl: number }}
-     */
-
     _this.borderRadius = br;
     return _this;
   }
-  /**
-   * @param {CanvasRenderingContext2D} context
-   */
-
 
   _createClass(RectangleBase, [{
     key: "renderBorder",
@@ -576,10 +407,6 @@ function (_Base) {
       context.strokeStyle = this.borderStyle;
       Tools.renderRoundRect(context, this.cornerTL.x, this.cornerTL.y, this.width, this.height, this.borderRadius, false, true);
     }
-    /**
-     * @param {CanvasRenderingContext2D} context
-     */
-
   }, {
     key: "renderInside",
     value: function renderInside(context) {
@@ -590,14 +417,8 @@ function (_Base) {
 
   return RectangleBase;
 }(Base);
-/**
- * 所有[可用中心点和半径描述物体]的基类
- */
 
-
-let CircleBase =
-/*#__PURE__*/
-function (_Base2) {
+let CircleBase = function (_Base2) {
   _inherits(CircleBase, _Base2);
 
   function CircleBase(p, r, bw, bs) {
@@ -606,33 +427,15 @@ function (_Base2) {
     _classCallCheck(this, CircleBase);
 
     _this2 = _possibleConstructorReturn(this, _getPrototypeOf(CircleBase).call(this));
-    /**
-     * 物体的位置，不应在任何时候替换实例的 {this.position}
-     * 如果需要改变位置，使用mutable方法
-     * @type {Position}
-     */
-
     _this2.position = p;
-    /** @type {number} */
-
     _this2.radius = r;
-    /** @type {number} */
-
     _this2.borderWidth = bw;
-    /** @type {string} */
-
     _this2.borderStyle = bs;
     return _this2;
   }
-  /**
-   * Circle的内切正方形边长
-   */
-
 
   _createClass(CircleBase, [{
     key: "renderBorder",
-
-    /** @param {CanvasRenderingContext2D} context */
     value: function renderBorder(context) {
       if (this.borderWidth > 0) {
         context.strokeStyle = this.borderStyle;
@@ -652,42 +455,19 @@ function (_Base2) {
 
   return CircleBase;
 }(Base);
-/**
- * 所有[物体]的基类
- */
 
-
-let ItemBase =
-/*#__PURE__*/
-function (_CircleBase) {
+let ItemBase = function (_CircleBase) {
   _inherits(ItemBase, _CircleBase);
 
-  /**
-   * @param {Position} position
-   * @param {number} radius
-   * @param {number} borderWidth
-   * @param {string} borderStyle
-   * @param {string | ImageBitmap | Promise<ImageBitmap> | AnimationSprite} image
-   */
   function ItemBase(position, radius, borderWidth, borderStyle, image) {
     var _this3;
 
     _classCallCheck(this, ItemBase);
 
     _this3 = _possibleConstructorReturn(this, _getPrototypeOf(ItemBase).call(this, position, radius, borderWidth, borderStyle));
-    /**
-     * - Item的图形描述符，可以是位图、位图的Promise、动画
-     * - 如果为 null, 则必须具备 fill
-     * @type {ImageBitmap | Promise<ImageBitmap> | AnimationSprite | null}
-     */
-
     _this3.image = null;
 
     if (typeof image === 'string') {
-      /**
-       * Item的填充描述符
-       * @type {string}
-       */
       _this3.fill = image;
     } else if (image instanceof ImageBitmap) {
       _this3.image = image;
@@ -697,36 +477,28 @@ function (_CircleBase) {
       image.then(r => _this3.image = r);
     }
 
+    _this3.intervalTimers = [];
+    _this3.timeoutTimers = [];
     return _this3;
   }
-  /**
-   * @param {CanvasRenderingContext2D} context
-   * @param {number} x
-   * @param {number} y
-   */
-
 
   _createClass(ItemBase, [{
     key: "renderSpriteFrame",
     value: function renderSpriteFrame(context, x, y) {
-      this.image.renderOneFrame(context, new Position(x, y), _get(_getPrototypeOf(ItemBase.prototype), "inscribedSquareSideLength", this), _get(_getPrototypeOf(ItemBase.prototype), "inscribedSquareSideLength", this), 0, true, true, false);
+      this.image.renderOneFrame(context, new Position(x, y), this.inscribedSquareSideLength, this.inscribedSquareSideLength, 0, true, true, false);
     }
-    /** @param {CanvasRenderingContext2D} context */
-
   }, {
     key: "renderImage",
     value: function renderImage(context) {
-      const x = this.position.x - _get(_getPrototypeOf(ItemBase.prototype), "inscribedSquareSideLength", this) * 0.5;
-      const y = this.position.y - _get(_getPrototypeOf(ItemBase.prototype), "inscribedSquareSideLength", this) * 0.5;
+      const x = this.position.x - this.inscribedSquareSideLength * 0.5;
+      const y = this.position.y - this.inscribedSquareSideLength * 0.5;
 
       if (this.image instanceof ImageBitmap) {
-        context.drawImage(this.image, 0, 0, this.image.width, this.image.height, x, y, _get(_getPrototypeOf(ItemBase.prototype), "inscribedSquareSideLength", this), _get(_getPrototypeOf(ItemBase.prototype), "inscribedSquareSideLength", this));
+        context.drawImage(this.image, 0, 0, this.image.width, this.image.height, x, y, this.inscribedSquareSideLength, this.inscribedSquareSideLength);
       } else if (this.image instanceof AnimationSprite) {
         this.renderSpriteFrame(context, x, y);
       }
     }
-    /** @param {CanvasRenderingContext2D} context */
-
   }, {
     key: "renderFilled",
     value: function renderFilled(context) {
@@ -736,8 +508,6 @@ function (_CircleBase) {
       context.closePath();
       context.fill();
     }
-    /** @param {CanvasRenderingContext2D} context */
-
   }, {
     key: "render",
     value: function render(context) {
@@ -749,19 +519,6 @@ function (_CircleBase) {
         this.renderFilled(context);
       }
     }
-    /**
-     * - 此方法使物体的图形旋转并返回一个恢复句柄
-     * - 推导过程
-     * - <r, θ> --> <1, 0>.rotate(θ).multipy(r)
-     * - <x, y>.r(θ) = <xcos(θ) - ysin(θ), xsin(θ) + ycos(θ)>
-     * - <r, θ> --> <rcos(θ), rsin(θ)>
-     * - <x, y> --> <rcos(θ), rsin(θ)>
-     * - rcos(θ) = x, rsin(θ) = y, tan(θ) = y/x => θ = arctan(y/x), r = x/cos(arctan(y/x))
-     * - <x, y> --> <x/cos(arctan(y/x)), arctan(y/x)>
-     * @param {CanvasRenderingContext2D} context
-     * @param {Position} targetPos
-     */
-
   }, {
     key: "rotateForward",
     value: function rotateForward(context, targetPos) {
@@ -776,81 +533,51 @@ function (_CircleBase) {
 
       };
     }
-    /**
-     * - 此方法提供给所有子类选择重载
-     * - 在物体被清理前做回收工作
-     */
-
   }, {
     key: "destory",
     value: function destory() {
       if (this.image instanceof AnimationSprite) {
         this.image.terminateLoop();
       }
+
+      this.intervalTimers.forEach(t => clearInterval(t));
+      this.timeoutTimers.forEach(t => clearTimeout(t));
     }
   }]);
 
   return ItemBase;
 }(CircleBase);
 
-let TowerBase =
-/*#__PURE__*/
-function (_ItemBase) {
+let TowerBase = function (_ItemBase) {
   _inherits(TowerBase, _ItemBase);
 
   _createClass(TowerBase, null, [{
     key: "GemNameToGemCtor",
-
-    /**
-     * @type {{ name: string, ctor: typeof GemBase }[]}
-     */
-
-    /**
-     * @param {string} gn
-     */
     value: function GemNameToGemCtor(gn) {
       return this.Gems.find(g => g.name === gn).ctor;
     }
   }, {
     key: "damageToPoint",
-
-    /**
-     * 制造伤害获得的点数
-     * @param {number} damage
-     */
     value: function damageToPoint(damage) {
       return Math.round(damage / 1000);
     }
-    /**
-     * @param {number[]} price 索引: 等级, 值: 此等级的价格
-     * @param {(lvl: number) => number} levelAtkFx
-     * @param {(lvl: number) => number} levelHstFx
-     * @param {(lvl: number) => number} levelSlcFx
-     * @param {(lvl: number) => number} levelRngFx
-     * */
-
+  }, {
+    key: "GemsToOptionsInnerHtml",
+    get: function () {
+      return this.Gems.map((gemCtor, idx) => {
+        return `<option value="${gemCtor.name}"${idx === 0 ? ' selected' : ''}${this.deniedGems.includes(gemCtor.name) ? ' disabled' : ''}>${gemCtor.ctor.gemName}${this.deniedGems.includes(gemCtor.name) ? ' - 不能装备到此塔' : ''}</option>`;
+      }).join('');
+    }
   }, {
     key: "levelUpPointEarnings",
-
-    /**
-     * 升级后获得的点数
-     */
     get: function () {
       return 10;
     }
-    /**
-     * 击杀普通怪物获得的点数
-     */
-
   }, {
     key: "killNormalPointEarnings",
     get: function () {
       return 1;
     }
-    /**
-     * 击杀BOSS获得的点数
-     */
-
   }, {
     key: "killBossPointEarnings",
     get: function () {
@@ -864,8 +591,7 @@ function (_ItemBase) {
     _classCallCheck(this, TowerBase);
 
     _this4 = _possibleConstructorReturn(this, _getPrototypeOf(TowerBase).call(this, position, radius, borderWidth, borderStyle, image));
-    _this4.bornStamp = performance.now(); // BulletManager 采用单例模式，所有塔共享
-
+    _this4.bornStamp = performance.now();
     _this4.bulletCtl = new BulletManager();
     _this4.level = 0;
     _this4.price = price;
@@ -874,14 +600,10 @@ function (_ItemBase) {
     _this4.levelHstFx = levelHstFx;
     _this4.levelSlcFx = levelSlcFx;
     _this4.levelRngFx = levelRngFx;
-    /** @type {MonsterBase | null} */
-
     _this4.target = null;
     _this4.lastShootTime = _this4.bornStamp;
     _this4.__kill_count = 0;
     _this4.__total_damage = 0;
-    /** @type {GemBase | null} */
-
     _this4.gem = null;
     _this4.canInsertGem = true;
     _this4.__hst_ps_ratio = 1;
@@ -891,59 +613,31 @@ function (_ItemBase) {
     _this4.__on_trapped_atk_ratio = 1;
     _this4.__max_rng_atk_ratio = 1;
     _this4.__min_rng_atk_ratio = 1;
-    /** @type {Map<string, number>} */
-
     _this4.__each_monster_damage_ratio = new Map();
-    /**
-     * @virtual
-     * @type {string | undefined}
-     */
+
+    _this4.intervalTimers.push(setInterval(() => {
+      const msts = Game.callMonsterList();
+      Array.from(_this4.__each_monster_damage_ratio).filter(([k]) => msts.every(mst => mst.id !== k)).forEach(([k]) => _this4.__each_monster_damage_ratio.delete(k));
+    }, 60000));
 
     _this4.description = undefined;
-    /**
-     * @virtual
-     * @type {string | undefined}
-     */
-
     _this4.name = undefined;
-    /**
-     * @virtual
-     * @type {string | undefined}
-     */
-
     _this4.bulletCtorName = undefined;
     _this4.isSold = false;
     return _this4;
   }
-  /** @type {string[]} */
-
 
   _createClass(TowerBase, [{
     key: "reviceRange",
-
-    /**
-     * 对设计稿的距离值进行修正，得到正确的相对距离
-     * @param {number} r 基于设计稿的距离值 px
-     */
     value: function reviceRange(r) {
       return r * Game.callGridSideSize() / 39;
     }
-    /**
-     * - 插入 Legendary Gem
-     * @param {string} gemCtorName
-     */
-
   }, {
     key: "inlayGem",
     value: function inlayGem(gemCtorName) {
       this.gem = new (TowerBase.GemNameToGemCtor(gemCtorName))();
       this.gem.initEffect(this);
     }
-    /**
-     * @final
-     * @param {MonsterBase} param0
-     */
-
   }, {
     key: "recordDamage",
     value: function recordDamage({
@@ -963,35 +657,18 @@ function (_ItemBase) {
         }
       }
     }
-    /**
-     * @private
-     * @do_not_call_outside_or_override
-     */
-
   }, {
     key: "recordKill",
     value: function recordKill() {
       this.__kill_count++;
       Game.callMoney()[1](this.__kill_extra_gold);
     }
-    /**
-     * - do not override this mothod for any reason
-     * @final
-     * @param {MonsterBase} target
-     */
-
   }, {
     key: "inRange",
     value: function inRange(target) {
       const t = this.Rng + target.radius;
       return Position.distancePow2(target.position, this.position) < t * t;
     }
-    /**
-     * - 在怪物中重选目标
-     * - 在乱序的怪物中找到首个在攻击范围内的
-     * @param {MonsterBase[]} targetList
-     */
-
   }, {
     key: "reChooseTarget",
     value: function reChooseTarget(targetList) {
@@ -1004,33 +681,19 @@ function (_ItemBase) {
 
       this.target = null;
     }
-    /**
-     * @final
-     * @param {MonsterBase} mst
-     */
-
   }, {
     key: "calculateDamageRatio",
     value: function calculateDamageRatio(mst) {
       const bossR = mst.isBoss ? this.__on_boss_atk_ratio : 1;
-      const particularR = this.__each_monster_damage_ratio.has(mst.id) ? this.__each_monster_damage_ratio.get(mst.id) : 1;
+      const particularR = this.__each_monster_damage_ratio.get(mst.id) || 1;
       const trapR = mst.isTrapped ? this.__on_trapped_atk_ratio : 1;
       const R = Position.distance(this.position, mst.position) / this.Rng;
-      const rangeR = this.__min_rng_atk_ratio * (1 - R) + this.__max_rng_atk_ratio * R; // console.log(bossR, particularR, trapR, rangeR)
-
+      const rangeR = this.__min_rng_atk_ratio * (1 - R) + this.__max_rng_atk_ratio * R;
       return bossR * particularR * trapR * rangeR;
     }
-    /**
-     * @param {number} i
-     * @param {MonsterBase[]} monsters
-     */
-
   }, {
     key: "produceBullet",
     value: function produceBullet(i, monsters) {
-      // if (!this.bulletCtorName || !this.target) {
-      //   throw new TypeError('null bulletCtorName or null target'.)
-      // }
       const ratio = this.calculateDamageRatio(this.target);
       this.bulletCtl.Factory(this.recordDamage.bind(this), this.bulletCtorName, this.position.copy().dithering(this.radius), this.Atk * ratio, this.target, this.bulletImage);
     }
@@ -1039,10 +702,6 @@ function (_ItemBase) {
     value: function recordShootTime() {
       this.lastShootTime = performance.now();
     }
-    /**
-     * @param {MonsterBase[]} monsters
-     */
-
   }, {
     key: "run",
     value: function run(monsters) {
@@ -1056,10 +715,6 @@ function (_ItemBase) {
         }
       }
     }
-    /**
-     * @param {MonsterBase[]} monsters
-     */
-
   }, {
     key: "shoot",
     value: function shoot(monsters) {
@@ -1072,11 +727,6 @@ function (_ItemBase) {
 
       this.recordShootTime();
     }
-    /**
-     * 每次发射时触发
-     * @param {MonsterBase[]} msts
-     */
-
   }, {
     key: "gemHitHook",
     value: function gemHitHook(idx, msts) {
@@ -1084,11 +734,6 @@ function (_ItemBase) {
         this.gem.hitHook(this, this.target, msts);
       }
     }
-    /**
-     * 每次准备攻击时触发
-     * @param {MonsterBase[]} msts
-     */
-
   }, {
     key: "gemAttackHook",
     value: function gemAttackHook(msts) {
@@ -1096,12 +741,6 @@ function (_ItemBase) {
         this.gem.attackHook(this, msts);
       }
     }
-    /**
-     * - 升级逻辑
-     * - 子类重写时必须调用基类的levelUp
-     * @param {number} currentMoney
-     */
-
   }, {
     key: "levelUp",
     value: function levelUp(currentMoney) {
@@ -1111,8 +750,7 @@ function (_ItemBase) {
         return 0;
       } else {
         this.level += 1;
-        const w = this.inscribedSquareSideLength * 1.5; // 144 / 241
-
+        const w = this.inscribedSquareSideLength * 1.5;
         Game.callAnimation('level_up', new Position(this.position.x - this.radius, this.position.y - this.radius * 2), w, w / 144 * 241, 3);
         Game.updateGemPoint += TowerBase.levelUpPointEarnings;
         return this.price[this.level];
@@ -1122,12 +760,9 @@ function (_ItemBase) {
     key: "rankUp",
     value: function rankUp() {
       this.rank += 1;
-      const w = this.inscribedSquareSideLength * 1.5; // 79 / 85
-
+      const w = this.inscribedSquareSideLength * 1.5;
       Game.callAnimation('rank_up', new Position(this.position.x - this.radius, this.position.y - this.radius * 2), w, w / 79 * 85, 3, 0, 25);
     }
-    /** @param {CanvasRenderingContext2D} context */
-
   }, {
     key: "renderRange",
     value: function renderRange(context, style = 'rgba(177,188,45,.05)') {
@@ -1137,8 +772,6 @@ function (_ItemBase) {
       context.closePath();
       context.fill();
     }
-    /** @param {CanvasRenderingContext2D} context */
-
   }, {
     key: "renderLevel",
     value: function renderLevel(context) {
@@ -1148,8 +781,6 @@ function (_ItemBase) {
       context.fillText('lv ' + this.levelHuman, this.position.x + this.radius * .78, this.position.y - this.radius * .78);
       context.font = ftmp;
     }
-    /** @param {CanvasRenderingContext2D} context */
-
   }, {
     key: "renderRankStars",
     value: function renderRankStars(context) {
@@ -1168,8 +799,6 @@ function (_ItemBase) {
         }
       }
     }
-    /** @param {CanvasRenderingContext2D} context */
-
   }, {
     key: "renderPreparationBar",
     value: function renderPreparationBar(context) {
@@ -1177,8 +806,6 @@ function (_ItemBase) {
       context.fillStyle = 'rgba(25,25,25,.3)';
       Tools.renderSector(context, this.position.x, this.position.y, this.radius, 0, Math.PI * 2 * (1 - (performance.now() - this.lastShootTime) / this.Hst), false).fill();
     }
-    /** @param {CanvasRenderingContext2D} context */
-
   }, {
     key: "render",
     value: function render(context) {
@@ -1187,40 +814,20 @@ function (_ItemBase) {
       this.renderLevel(context);
       this.renderRankStars(context);
     }
-    /**
-     * @virtual
-     * @param {CanvasRenderingContext2D} ctxRapid
-     * @param {MonsterBase[]} monsters
-     */
-
   }, {
     key: "rapidRender",
     value: function rapidRender(ctxRapid, monsters) {}
-    /**
-     * - position:
-     * - 2 | 1
-     * - --o--
-     * - 3 | 4
-     * @param {number} bx1
-     * @param {number} [bx2]
-     * @param {number} [by1]
-     * @param {number} [by2]
-     * @param {boolean} [showGemPanel]
-     */
-
   }, {
     key: "renderStatusBoard",
     value: function renderStatusBoard(bx1, bx2, by1, by2, showGemPanel, showMoreDetail, specifedWidth) {
       showGemPanel = showGemPanel && this.canInsertGem;
       const red = '#F51818';
-      const green = '#94C27E'; // inner help functions
+      const green = '#94C27E';
 
       const renderDataType_1 = (rootNode, dataChunk, offset, showDesc) => {
-        // debugger
         let jump = 0;
         dataChunk.forEach((data, idx) => {
-          const showD = showDesc && this.constructor.informationDesc.has(data[0]); // if (showD) console.log(data[0], showD, 'index: ' + idx + offset + jump)
-
+          const showD = showDesc && this.constructor.informationDesc.has(data[0]);
           const row = rootNode.childNodes.item(idx + offset + jump);
           Tools.Dom.removeNodeTextAndStyle(row);
 
@@ -1232,7 +839,7 @@ function (_ItemBase) {
           }
 
           row.firstChild.textContent = data[0];
-          row.lastChild.textContent = data[1]; // @todo 售价 green red
+          row.lastChild.textContent = data[1];
 
           if (showD) {
             const rowD = rootNode.childNodes.item(idx + offset + jump + 1);
@@ -1268,8 +875,7 @@ function (_ItemBase) {
         const div = rootNode.childNodes.item(offset);
         Tools.Dom.removeAllChildren(div);
         Tools.Dom.removeNodeTextAndStyle(div, 'division');
-      }; /// render start
-
+      };
 
       specifedWidth = specifedWidth || 140;
       const blockElement = Game.callElement('status_block');
@@ -1281,7 +887,6 @@ function (_ItemBase) {
       const lineCount = this.informationSeq.length + this.descriptionChuned.length + this.exploitsSeq.length;
       const moreDescLineCount = showMoreDetail ? this.informationSeq.filter(f => this.constructor.informationDesc.has(f[0])).length : 0;
       const extraLineCount = 2 + 1 + moreDescLineCount;
-      /* inner_division_key.length */
 
       if (blockElement.childNodes.length > lineCount + extraLineCount) {
         blockElement.childNodes.forEach((child, index) => {
@@ -1302,19 +907,13 @@ function (_ItemBase) {
       renderDataType_dv(blockElement, l1 - 1);
       renderDataType_1(blockElement, this.exploitsSeq, l1, false);
       renderDataType_dv(blockElement, l2 - 1);
-      renderDataType_2(blockElement, this.descriptionChuned, l2); /// render end
-      // 需要显示Legendary Gem面板
+      renderDataType_2(blockElement, this.descriptionChuned, l2);
 
       if (showGemPanel) {
-        // 依赖的变量
-        // this.gem *
-        // this.id *
         const gemElement = Game.callElement('gem_block');
         Tools.Dom.removeAllChildren(gemElement);
         gemElement.style.display = 'block';
-        gemElement.style.width = specifedWidth + 'px'; // gemElement.style.top = positionTLY + bHeight + 'px'
-        // gemElement.style.left = positionTLX + 'px'
-        // 选择Legendary Gem
+        gemElement.style.width = specifedWidth + 'px';
 
         if (!this.gem) {
           let selected = TowerBase.Gems[0].name;
@@ -1352,16 +951,14 @@ function (_ItemBase) {
             } else {
               btn.removeAttribute('disabled');
             }
-          }; // TowerBase.GemsToOptions.forEach(opt => select.appendChild(opt))
-
+          };
 
           select.innerHTML = this.constructor.GemsToOptionsInnerHtml;
           Tools.Dom.generateRow(gemElement, 'row_nh', {
             style: {
               margin: '0 0 8px 0'
             }
-          }, [select]); // const rowimg = Tools.Dom.generateRow(gemElement, null, { innerHTML: `<img src="${(eval(selected)).imgSrc}" class="lg_gem_img"></img>` })
-
+          }, [select]);
           const rowimg = Tools.Dom.generateRow(gemElement);
           Tools.Dom.generateImg(rowimg, TowerBase.GemNameToGemCtor(selected).imgSrc, {
             className: 'lg_gem_img'
@@ -1396,14 +993,10 @@ function (_ItemBase) {
               this.inlayGem(selected);
               this.renderStatusBoard(...arguments);
             }
-          }; // if (this.constructor.deniedGems && this.constructor.deniedGems.includes(selected)) {
-          //   Tools.Dom.generateRow(gemElement, null, { textContent: this.name + ' 不能装备这个宝石' })
-          // }
-
+          };
 
           Tools.Dom.generateRow(gemElement, null, null, [btn]);
-        } // 展示Legendary Gem
-        else {
+        } else {
             const canUpdateNext = !this.gem.isMaxLevel && Game.updateGemPoint >= this.gem.levelUpPoint;
             Tools.Dom.generateRow(gemElement, null, {
               textContent: '升级你的' + GemBase.gemName
@@ -1442,15 +1035,13 @@ function (_ItemBase) {
               style: {
                 marginBottom: '5px'
               }
-            }), null, null, [], [btn]); // img | button line
-
+            }), null, null, [], [btn]);
             Tools.Dom.generateImg(imgCol, this.gem.imgSrc, {
               className: 'lg_gem_img'
             });
             Tools.Dom.generateRow(gemElement, null, {
               textContent: this.gem.level + '  级 / ' + this.gem.maxLevelHuman
-            }); // Tools.Dom.generateTwoCol(Tools.Dom.generateRow(gemElement), { textContent: this.gem.gemName }, { textContent: this.gem.level + '  级 / ' + this.gem.maxLevelHuman })
-
+            });
             Tools.Dom.generateTwoCol(Tools.Dom.generateRow(gemElement), {
               textContent: '下一级点数'
             }, {
@@ -1463,8 +1054,7 @@ function (_ItemBase) {
               textContent: this.gem.description
             });
           }
-      } // 计算 高度 => 偏移量
-
+      }
 
       const gemElement = Game.callElement('gem_block');
       const bHeight = blockElement.offsetHeight;
@@ -1493,16 +1083,10 @@ function (_ItemBase) {
 
       if (position < 3 && positionTLY < 0) {
         positionTLY = 5;
-      } else if (
-      /*position < 3 && */
-      pyBhGh > innerHeight) {
+      } else if (pyBhGh > innerHeight) {
         const overflowH = pyBhGh - innerHeight;
         positionTLY -= overflowH + 30;
-      } // else if (position > 2 && pyBhGh > innerHeight) {
-      //   const overflowH = pyBhGh - innerHeight
-      //   positionTLY -= overflowH + 5
-      // }
-
+      }
 
       blockElement.style.top = positionTLY + 'px';
       blockElement.style.left = positionTLX + 'px';
@@ -1530,85 +1114,47 @@ function (_ItemBase) {
       if (this.gem) s += this.gem.constructor.price;
       return Math.ceil(s * 0.7);
     }
-    /**
-     * 攻击力
-     */
-
   }, {
     key: "Atk",
     get: function () {
       return this.levelAtkFx(this.level) * this.__atk_ratio;
     }
-    /**
-     * 攻击间隔 (ms)
-     */
-
   }, {
     key: "Hst",
     get: function () {
       return 1000 / this.HstPS;
     }
-    /**
-     * 每秒攻击次数
-     */
-
   }, {
     key: "HstPS",
     get: function () {
       return this.levelHstFx(this.level) * this.__hst_ps_ratio;
     }
-    /**
-     * 每次攻击的发射量
-     */
-
   }, {
     key: "Slc",
     get: function () {
       return this.levelSlcFx(this.level);
     }
-    /**
-     * 射程
-     */
-
   }, {
     key: "Rng",
     get: function () {
       return this.reviceRange(this.levelRngFx(this.level)) + this.radius;
     }
-    /**
-     * 计算的理论每秒输出
-     */
-
   }, {
     key: "DPS",
     get: function () {
       return this.Atk * this.Slc * this.HstPS;
     }
-    /**
-     * @type {[string, string][]}
-     * 展示信息
-     */
-
   }, {
     key: "informationSeq",
     get: function () {
-      const base = [[this.name, ''], ['等级', this.levelHuman], ['下一级', this.isMaxLevel ? '最高等级' : '$ ' + Tools.formatterUs.format(Math.round(this.price[this.level + 1]))], ['售价', '$ ' + Tools.formatterUs.format(Math.round(this.sellingPrice))], // ['可用点数', Tools.formatterUs.format(Game.updateGemPoint)],
-      ['伤害', Tools.chineseFormatter(Math.round(this.Atk), 3)], ['攻击速度', Tools.roundWithFixed(this.HstPS, 2)], ['射程', Tools.formatterUs.format(Math.round(this.Rng))], ['弹药储备', Math.round(this.Slc)], ['DPS', Tools.chineseFormatter(this.DPS, 3)]];
+      const base = [[this.name, ''], ['等级', this.levelHuman], ['下一级', this.isMaxLevel ? '最高等级' : '$ ' + Tools.formatterUs.format(Math.round(this.price[this.level + 1]))], ['售价', '$ ' + Tools.formatterUs.format(Math.round(this.sellingPrice))], ['伤害', Tools.chineseFormatter(Math.round(this.Atk), 3)], ['攻击速度', Tools.roundWithFixed(this.HstPS, 2)], ['射程', Tools.formatterUs.format(Math.round(this.Rng))], ['弹药储备', Math.round(this.Slc)], ['DPS', Tools.chineseFormatter(this.DPS, 3)]];
       return base;
     }
-    /**
-     * 实际每秒输出
-     */
-
   }, {
     key: "ADPS",
     get: function () {
       return this.__total_damage / (performance.now() - this.bornStamp) * 1000;
     }
-    /**
-     * 已格式化的实际每秒输出
-     */
-
   }, {
     key: "ADPSH",
     get: function () {
@@ -1619,21 +1165,11 @@ function (_ItemBase) {
     get: function () {
       return [['击杀', this.__kill_count], ['输出', Tools.chineseFormatter(this.__total_damage, 3)], ['每秒输出', this.ADPSH]];
     }
-    /**
-     * - 判断[this.target]是否仍然非空
-     * - 判断当前的敌人是否仍然在范围内
-     * - 判断当前的敌人是否仍然存活
-     */
-
   }, {
     key: "isCurrentTargetAvailable",
     get: function () {
       if (!this.target || this.target.isDead) return false;else return this.inRange(this.target);
     }
-    /**
-     * - 计算上次射击至今的时间，判断是否可以射击
-     */
-
   }, {
     key: "canShoot",
     get: function () {
@@ -1654,8 +1190,7 @@ function (_ItemBase) {
   return TowerBase;
 }(ItemBase);
 
-_defineProperty(TowerBase, "informationDesc", new Map([['等级', '鼠标单击图标或按[C]键来消耗金币升级，等级影响很多属性，到达某个等级可以晋升'], ['下一级', '升级到下一级需要的金币数量'], ['售价', '出售此塔可以返还的金币数量'], // ['可用点数', '升级传奇宝石等级的点数，杀敌、制造伤害、升级均可获得点数'],
-['伤害', '此塔的基础攻击力'], ['攻击速度', '此塔的每秒攻击次数'], ['射程', '此塔的索敌距离，单位是像素'], ['弹药储备', '此塔每次攻击时发射的弹药数量'], ['DPS', '估计的每秒伤害']]));
+_defineProperty(TowerBase, "informationDesc", new Map([['等级', '鼠标单击图标或按[C]键来消耗金币升级，等级影响很多属性，到达某个等级可以晋升'], ['下一级', '升级到下一级需要的金币数量'], ['售价', '出售此塔可以返还的金币数量'], ['伤害', '此塔的基础攻击力'], ['攻击速度', '此塔的每秒攻击次数'], ['射程', '此塔的索敌距离，单位是像素'], ['弹药储备', '此塔每次攻击时发射的弹药数量'], ['DPS', '估计的每秒伤害']]));
 
 _defineProperty(TowerBase, "Gems", [{
   ctor: PainEnhancer,
@@ -1686,6 +1221,8 @@ _defineProperty(TowerBase, "Gems", [{
   name: 'EchoOfLight'
 }]);
 
+_defineProperty(TowerBase, "deniedGems", []);
+
 _defineProperty(TowerBase, "GemsToOptions", TowerBase.Gems.map((gemCtor, idx) => {
   const option = document.createElement('option');
   option.setAttribute('value', gemCtor.name);
@@ -1698,23 +1235,9 @@ _defineProperty(TowerBase, "GemsToOptions", TowerBase.Gems.map((gemCtor, idx) =>
   return option;
 }));
 
-_defineProperty(TowerBase, "GemsToOptionsInnerHtml", TowerBase.Gems.map((gemCtor, idx) => {
-  return `<option value="${gemCtor.name}"${idx === 0 ? ' selected' : ''}>${gemCtor.ctor.gemName}</option>`;
-}).join(''));
-
-let MonsterBase =
-/*#__PURE__*/
-function (_ItemBase2) {
+let MonsterBase = function (_ItemBase2) {
   _inherits(MonsterBase, _ItemBase2);
 
-  /**
-   * @param {number} level
-   * @param {(lvl: number) => number} levelRwdFx
-   * @param {(lvl: number) => number} levelSpdFx
-   * @param {(lvl: number) => number} levelHthFx
-   * @param {(lvl: number) => number} levelAmrFx
-   * @param {(lvl: number) => number} [levelShdFx]
-   */
   function MonsterBase(position, radius, borderWidth, borderStyle, image, level, levelRwdFx, levelSpdFx, levelHthFx, levelAmrFx, levelShdFx) {
     var _this5;
 
@@ -1731,42 +1254,25 @@ function (_ItemBase2) {
     _this5.speedRatio = 1;
     _this5.reward = Math.round(levelRwdFx(level));
     _this5.damage = 1;
-    _this5.healthChangeHintQueue = []; // DOT
-
-    _this5.bePoisoned = false; // 中毒 outside process
-
-    _this5.beBloodied = false; // 流血 outside process
-
-    _this5.beBurned = false; // 灼烧 outside process
-
-    _this5.beOnLightEcho = []; // 圣光 outside process
-    // DEBUFF
-    // 负面效果的计算，移除由承受单位进行计算
-    // 单位若受到前后两个束缚效果，前一个结束后会移除单位的束缚效果，导致后一个效果提前结束
-
-    _this5.beShocked = false; // 电麻 微小机率向最靠近的单位放电
-
+    _this5.healthChangeHintQueue = [];
+    _this5.bePoisoned = false;
+    _this5.beBloodied = false;
+    _this5.beBurned = false;
+    _this5.beOnLightEcho = [];
+    _this5.beShocked = false;
     _this5.shockDurationTick = 0;
     _this5.shockChargeAmount = 0;
-    /** @type {TeslaTower} */
-
     _this5.shockSource = null;
     _this5.shockLeakChance = 0;
-    _this5.beTransformed = false; // 变形
-
+    _this5.beTransformed = false;
     _this5.transformDurationTick = 0;
-    _this5.beImprisoned = false; // 禁锢(速度=0)
-
+    _this5.beImprisoned = false;
     _this5.imprisonDurationTick = 0;
-    _this5.beFrozen = false; // 冻结(速度=0)
-
+    _this5.beFrozen = false;
     _this5.freezeDurationTick = 0;
-    _this5.beConfused = false; // 混乱(速度=P<速度*0.5,random(0,360)>)
-
-    _this5.beImprecated = false; // 诅咒
-
-    _this5.imprecatedRatio = 1; // 诅咒的易伤系数
-
+    _this5.beConfused = false;
+    _this5.beImprecated = false;
+    _this5.imprecatedRatio = 1;
     _this5.lastAbsDmg = 0;
     _this5.isBoss = false;
     _this5.isDead = false;
@@ -1779,14 +1285,6 @@ function (_ItemBase2) {
 
   _createClass(MonsterBase, [{
     key: "makeEffect",
-
-    /**
-     * - 制造特殊效果。此函数每Tick调用一次
-     * - 需要时override
-     * @virtual
-     * @param {TowerBase[]} towers
-     * @param {MonsterBase[]} monsters
-     */
     value: function makeEffect(towers, monsters) {}
   }, {
     key: "runDebuffs",
@@ -1841,23 +1339,16 @@ function (_ItemBase2) {
       if (durationTick > this.freezeDurationTick) {
         this.freezeDurationTick = Math.round(durationTick);
       }
-    } // registerConfuse(durationTick) {
-    // }
-
-    /**
-     * @param {MonsterBase[]} monsters
-     */
-
+    }
   }, {
     key: "runShock",
     value: function runShock(monsters) {
       if (Math.random() < 1 - this.shockLeakChance) return;
-      if (monsters.length < 2) return; // 距离最近的友方单位
+      if (monsters.length < 2) return;
 
       const aim = _.minBy(monsters, mst => {
         if (mst === this) return Infinity;
-        const dist = Position.distancePow2(mst.position, this.position); // if (dist > this.radius * this.radius * 25) return Infinity
-
+        const dist = Position.distancePow2(mst.position, this.position);
         return dist;
       });
 
@@ -1870,33 +1361,21 @@ function (_ItemBase2) {
         args: [this.position.x, this.position.y, aim.position.x, aim.position.y, Position.distance(aim.position, this.position) / 2]
       });
     }
-    /**
-     * @param {{x:number,y:number}[]} path
-     * @param {(changing: number) => void} lifeTokenEmitter
-     */
-
   }, {
     key: "run",
     value: function run(path, lifeTokenEmitter, towers, monsters) {
       this.runDebuffs();
       if (this.beShocked) this.runShock(monsters);
-      if (this.beImprisoned || this.beFrozen) return; // 被禁锢、跳过
+      if (this.beImprisoned || this.beFrozen) return;
 
       if (path.length === 0) {
-        // 完成任务，造成伤害，杀死自己
         lifeTokenEmitter(-this.damage);
         this.isDead = true;
       } else {
-        // console.log('move to', path[0].x, path[0].y)
-        // console.log('path.length', path.length)
         this.position.moveTo(path[0], this.speedValue);
         this.makeEffect(towers, monsters);
       }
     }
-    /**
-     * @param {CanvasRenderingContext2D} context
-     */
-
   }, {
     key: "renderHealthChange",
     value: function renderHealthChange(context) {
@@ -1904,10 +1383,6 @@ function (_ItemBase2) {
         context.fillText('- ' + this.healthChangeHintQueue.shift(), this.position.x + this.radius + 2, this.position.y + this.inscribedSquareSideLength / 1.5);
       }
     }
-    /**
-     * @param {CanvasRenderingContext2D} context
-     */
-
   }, {
     key: "renderHealthBar",
     value: function renderHealthBar(context) {
@@ -1918,20 +1393,12 @@ function (_ItemBase2) {
       context.fillStyle = this.healthBarFillStyle;
       context.fillRect(this.position.x - this.radius - xaxisOffset, this.position.y + this.inscribedSquareSideLength / 1.5, this.healthBarWidth * this.health / this.maxHealth, this.healthBarHeight);
     }
-    /** @param {CanvasRenderingContext2D} context */
-
   }, {
     key: "renderLevel",
     value: function renderLevel(context) {
       context.fillStyle = context.manager.towerLevelTextStyle;
-      context.fillText('lv ' + this.__inner_level, this.position.x + this.radius * 0.78, this.position.y - this.radius * 0.78); // --- debug ---
-      // context.fillText(this.position + '', this.position.x + this.radius * 0.78, this.position.y - this.radius * 1.18)
+      context.fillText('lv ' + this.__inner_level, this.position.x + this.radius * 0.78, this.position.y - this.radius * 0.78);
     }
-    /**
-     * @param {CanvasRenderingContext2D} context
-     * @param {ImageManger} imgCtl
-     */
-
   }, {
     key: "renderDebuffs",
     value: function renderDebuffs(context, imgCtl) {
@@ -1975,7 +1442,6 @@ function (_ItemBase2) {
       }
 
       debuffs.forEach((dbf, idx) => {
-        // if (dbf instanceof Promise) throw new TypeError('ImageBitMap is still a Pormise while rendering debuffs.')
         const x = this.position.x - this.radius + dSize * idx;
         const y = this.position.y - this.radius - dSize;
         context.drawImage(dbf, x, y, dSize - 1, dSize - 1);
@@ -1986,11 +1452,6 @@ function (_ItemBase2) {
     value: function renderStatusBoard() {
       TowerBase.prototype.renderStatusBoard.call(this, ...arguments, 180);
     }
-    /**
-     * @param {CanvasRenderingContext2D} context
-     * @param {ImageManger} imgCtl
-     */
-
   }, {
     key: "render",
     value: function render(context, imgCtl) {
@@ -1999,8 +1460,7 @@ function (_ItemBase2) {
 
       _get(_getPrototypeOf(MonsterBase.prototype), "render", this).call(this, context);
 
-      this.renderHealthBar(context); // this.renderHealthChange(context)
-
+      this.renderHealthBar(context);
       this.renderLevel(context);
       this.renderDebuffs(context, imgCtl);
       context.font = ftmp;
@@ -2017,25 +1477,19 @@ function (_ItemBase2) {
       if (this.beConfused) return this.__base_speed * -0.5;
       return this.__base_speed * this.speedRatio;
     }
-    /** @type {number} */
-
   }, {
     key: "health",
     get: function () {
       return this.__inner_current_health;
-    }
-    /** @type {number} */
-    ,
+    },
     set: function (newHth) {
       const delta = newHth - this.__inner_current_health;
       if (delta === 0) return;
 
       if (delta < 0) {
         const actualDmg = -Math.round(delta * (this.beImprecated ? this.imprecatedRatio : 1));
-        this.lastAbsDmg = Math.min(actualDmg, this.__inner_current_health); // console.log(`ih ${this.__inner_current_health}, actual ${actualDmg}, absolute ${this.lastAbsDmg}`)
-        // this.healthChangeHintQueue.push(this.lastAbsDmg)
-
-        this.__inner_current_health -= this.lastAbsDmg; // console.log(`ih ${this.__inner_current_health}`)
+        this.lastAbsDmg = Math.min(actualDmg, this.__inner_current_health);
+        this.__inner_current_health -= this.lastAbsDmg;
 
         if (this.__inner_current_health <= 0) {
           this.isDead = true;
@@ -2069,27 +1523,17 @@ function (_ItemBase2) {
     get: function () {
       return 'rgba(245,44,34,1)';
     }
-    /**
-     * 是否正在承受控制类限制效果影响
-     */
-
   }, {
     key: "isTrapped",
     get: function () {
       return this.beTransformed || this.beImprisoned || this.beFrozen || this.beConfused || this.speedRatio < 1;
     }
-    /** @type {string[]} */
-
   }, {
     key: "descriptionChuned",
     get: function () {
       if (!this.description) return [];
       return this.description.split('\n');
     }
-    /**
-     * @type {[string, string][]}
-     */
-
   }, {
     key: "informationSeq",
     get: function () {
@@ -2103,12 +1547,9 @@ function (_ItemBase2) {
 
 _defineProperty(MonsterBase, "informationDesc", new Map());
 
-let BulletBase =
-/*#__PURE__*/
-function (_ItemBase3) {
+let BulletBase = function (_ItemBase3) {
   _inherits(BulletBase, _ItemBase3);
 
-  /** @param {MonsterBase} target */
   function BulletBase(position, radius, borderWidth, borderStyle, image, atk, speed, target) {
     var _this6;
 
@@ -2125,9 +1566,6 @@ function (_ItemBase3) {
   _createClass(BulletBase, [{
     key: "setDamageEmitter",
     value: function setDamageEmitter(emitter) {
-      /**
-       * @type {(mst: MonsterBase) => void}
-       */
       this.emitter = emitter;
     }
   }, {
@@ -2149,27 +1587,17 @@ function (_ItemBase3) {
         this.target = null;
       }
     }
-    /**
-     * @param {MonsterBase} monster
-     * @param {number} magnification 放大系数
-     */
-
   }, {
     key: "hit",
     value: function hit(monster, magnification = 1) {
-      // console.log(...arguments)
       monster.health -= this.Atk * magnification * (1 - monster.armorResistance);
       this.emitter(monster);
     }
-    /**
-     * @param {CanvasRenderingContext2D} context
-     */
-
   }, {
     key: "renderImage",
     value: function renderImage(context) {
       const transFormed = this.rotateForward(context, this.target.position);
-      context.drawImage(this.image, 0, 0, this.image.width, this.image.height, 0 - _get(_getPrototypeOf(BulletBase.prototype), "inscribedSquareSideLength", this) * 0.5, 0 - _get(_getPrototypeOf(BulletBase.prototype), "inscribedSquareSideLength", this) * 0.5, _get(_getPrototypeOf(BulletBase.prototype), "inscribedSquareSideLength", this), _get(_getPrototypeOf(BulletBase.prototype), "inscribedSquareSideLength", this));
+      context.drawImage(this.image, 0, 0, this.image.width, this.image.height, this.inscribedSquareSideLength * -0.5, this.inscribedSquareSideLength * -0.5, this.inscribedSquareSideLength, this.inscribedSquareSideLength);
       transFormed.restore();
     }
   }, {

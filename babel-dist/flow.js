@@ -1,5 +1,4 @@
 function run() {
-  // window.__global_debug = 1
   document.oncontextmenu = function (e) {
     e.preventDefault();
   };

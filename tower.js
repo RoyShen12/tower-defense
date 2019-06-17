@@ -184,19 +184,22 @@ const TowerManager = new Proxy(
         c: 'CarrierTower',
         od: 8,
         n: 'carrier0',
-        cn: 'star4',
+        n1: 'carrier1',
+        n2: 'carrier2',
+        cn: 'plane_1',
         p: new Proxy({}, {
           get(t, p, r) {
             if (p === 'length') return 200
             else return Math.ceil(Math.pow(1.1, +p) * 1000)
           }
         }),
-        r: () => 50,
-        a: lvl => 525 + lvl * 8,
-        h: () => 5.5,
-        s: () => 3,
-        spd: () => 2,
-        bctor: 'CarrierTower.Jet.JetBomb'
+        r: () => 150,
+        a: lvl => 25 + lvl * 8,
+        h: lvl => 1.8 + lvl * 0.01,
+        s: () => 2,
+        child: lvl => 1 + Math.floor(lvl / 20),
+        spd: () => 5,
+        bctor: 'CarrierTower.Jet.JetBullet'
       },
     ]
 
@@ -1342,11 +1345,11 @@ class BlackMagicTower extends TowerBase {
     'GogokOfSwiftness'
   ]
 
-  static GemsToOptionsInnerHtml = TowerBase.Gems
-    .map((gemCtor, idx) => {
-      return `<option value="${gemCtor.name}"${idx === 0 ? ' selected' : ''}${this.deniedGems.includes(gemCtor.name) ? ' disabled' : ''}>${gemCtor.ctor.gemName}${this.deniedGems.includes(gemCtor.name) ? ' - 不能装备到此塔' : ''}</option>`
-    })
-    .join('')
+  // static GemsToOptionsInnerHtml = TowerBase.Gems
+  //   .map((gemCtor, idx) => {
+  //     return `<option value="${gemCtor.name}"${idx === 0 ? ' selected' : ''}${this.deniedGems.includes(gemCtor.name) ? ' disabled' : ''}>${gemCtor.ctor.gemName}${this.deniedGems.includes(gemCtor.name) ? ' - 不能装备到此塔' : ''}</option>`
+  //   })
+  //   .join('')
 
   constructor(position, image, bimg, radius) {
     super(
@@ -1829,13 +1832,18 @@ class LaserTower extends TowerBase {
 
 class CarrierTower extends TowerBase {
 
+  static deniedGems = [
+    'ZeisStoneOfVengeance'
+  ]
+
   static Jet = class _Jet extends TowerBase {
 
-    static JetBomb = class _JetBomb extends BulletBase {
-      constructor(position, atk, target) {
+    static JetBullet = class _JetBullet extends BulletBase {
 
+      constructor(position, atk, target) {
         const bVelocity = 15
-        super(position, 2, 0, null, 'rgba(255,204,51,1)', atk, bVelocity, target)
+
+        super(position, 1, 0, null, 'rgba(55,14,11,1)', atk, bVelocity, target)
       }
     }
     /**
@@ -1855,11 +1863,29 @@ class CarrierTower extends TowerBase {
         carrierTower.levelRngFx
       )
 
+      this.name = '航母载机'
+
       this.bulletCtorName = carrierTower.bulletCtorName
 
       this.carrierTower = carrierTower
 
       this.canInsertGem = false
+    }
+
+    get Atk() {
+      return this.carrierTower.Atk
+    }
+
+    get Slc() {
+      return this.carrierTower.Slc
+    }
+
+    get Rng() {
+      return this.carrierTower.Rng
+    }
+
+    get HstPS() {
+      return this.carrierTower.HstPS
     }
 
     get Spd() {
@@ -1899,7 +1925,9 @@ class CarrierTower extends TowerBase {
     }
 
     calculateDamageRatio(...args) {
-      return this.carrierTower.calculateDamageRatio(...args)
+      const ratio = this.carrierTower.calculateDamageRatio(...args)
+      console.log(ratio.toFixed(3).padEnd(12) + ' X')
+      return ratio
     }
     
     /**
@@ -1931,7 +1959,7 @@ class CarrierTower extends TowerBase {
           this.shoot(monsters)
         }
 
-        this.position.moveTo(this.position.copy().dithering(Game.callGridSideSize()), this.Spd)
+        // this.position.moveTo(this.position.copy().dithering(Game.callGridSideSize()), this.Spd)
       }
       // 当前目标超出范围
       else {
@@ -1940,6 +1968,18 @@ class CarrierTower extends TowerBase {
     }
 
     render() {}
+
+    /**
+     * @param {CanvasRenderingContext2D} ctx
+     */
+    renderImage(ctx) {
+      if (this.target) {
+        BulletBase.prototype.renderImage.call(this, ctx)
+      }
+      else {
+        super.renderImage(ctx)
+      }
+    }
 
     rapidRender(ctxRapid) {
       super.render(ctxRapid)
@@ -1974,13 +2014,27 @@ class CarrierTower extends TowerBase {
      * @type {(lvl: number) => number}
      */
     this.levelSpdFx = TowerManager.CarrierTower.spd
+    /**
+     * @type {(lvl: number) => number}
+     */
+    this.levelKcFx = TowerManager.CarrierTower.child
 
     this.bulletCtorName = TowerManager.CarrierTower.bctor
 
     this.name = TowerManager.CarrierTower.dn
 
-    this.inner_desc_init = '航母'
+    this.inner_desc_init = '自身无法攻击，拥有多架载机\n+ 载机继承自身属性\n+ 可以对任意位置进行机动打击'
     this.description = this.inner_desc_init
+  }
+
+  get informationSeq() {
+    return super.informationSeq.concat([
+      ['载机量', this.KidCount]
+    ])
+  }
+
+  get KidCount() {
+    return this.levelKcFx(this.level)
   }
 
   get Spd() {
@@ -1988,7 +2042,7 @@ class CarrierTower extends TowerBase {
   }
 
   run() {
-    if (this.canShoot && this.jets < this.Slc) {
+    if (this.canShoot && this.jets < this.KidCount) {
       Game.callTowerFactory(
         'CarrierTower.Jet',
         this.position.copy().dithering(this.radius * 2, this.radius),

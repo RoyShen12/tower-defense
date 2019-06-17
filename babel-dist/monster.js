@@ -20,27 +20,13 @@ function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _d
 
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
-let MonsterManager =
-/*#__PURE__*/
-function () {
+let MonsterManager = function () {
   function MonsterManager() {
     _classCallCheck(this, MonsterManager);
 
-    /** @type {MonsterBase[]} */
     this.monsters = [];
-    /** @type {Map<string, typeof MonsterBase>} */
-
     this.__mctor_cache = new Map();
   }
-  /**
-   * @param {string} monsterName
-   * @param {Position} position
-   * @param {string | ImageBitmap | Promise<ImageBitmap> | AnimationSprite} image
-   * @param {number} level
-   *
-   * @returns {MonsterBase}
-   */
-
 
   _createClass(MonsterManager, [{
     key: "Factory",
@@ -59,13 +45,6 @@ function () {
       this.monsters.push(nm);
       return nm;
     }
-    /**
-     * @param {(pos: Position) => ({x:number,y:number}[])} pathGetter
-     * @param {(changing: number) => void} lifeToken
-     * @param {TowerBase[]} towers
-     * @param {MonsterBase[]} monsters
-     */
-
   }, {
     key: "run",
     value: function run(pathGetter, lifeToken, towers, monsters) {
@@ -113,9 +92,7 @@ _defineProperty(MonsterManager, "monsterCtors", {
   Devil: 'Devil'
 });
 
-let Swordman =
-/*#__PURE__*/
-function (_MonsterBase) {
+let Swordman = function (_MonsterBase) {
   _inherits(Swordman, _MonsterBase);
 
   function Swordman(position, image, level) {
@@ -144,9 +121,7 @@ _defineProperty(Swordman, "hth", lvl => 120 + lvl * 40);
 
 _defineProperty(Swordman, "amr", lvl => 3 + lvl / 8);
 
-let Axeman =
-/*#__PURE__*/
-function (_MonsterBase2) {
+let Axeman = function (_MonsterBase2) {
   _inherits(Axeman, _MonsterBase2);
 
   function Axeman(position, image, level) {
@@ -175,9 +150,7 @@ _defineProperty(Axeman, "hth", lvl => 300 + lvl * 100);
 
 _defineProperty(Axeman, "amr", lvl => 15 + lvl / 3);
 
-let LionMan =
-/*#__PURE__*/
-function (_MonsterBase3) {
+let LionMan = function (_MonsterBase3) {
   _inherits(LionMan, _MonsterBase3);
 
   function LionMan(position, image, level) {
@@ -206,9 +179,7 @@ _defineProperty(LionMan, "hth", lvl => 580 + lvl * 122);
 
 _defineProperty(LionMan, "amr", lvl => 22 + lvl);
 
-let HighPriest =
-/*#__PURE__*/
-function (_MonsterBase4) {
+let HighPriest = function (_MonsterBase4) {
   _inherits(HighPriest, _MonsterBase4);
 
   function HighPriest(position, image, level) {
@@ -227,25 +198,14 @@ function (_MonsterBase4) {
 
   _createClass(HighPriest, [{
     key: "inHealingRange",
-
-    /** @param {MonsterBase} target */
     value: function inHealingRange(target) {
       return Position.distancePow2(target.position, this.position) < this.Hrng * this.Hrng;
     }
-    /** @param {MonsterBase} target */
-
   }, {
     key: "healing",
     value: function healing(target) {
       target.health += this.Hpow;
     }
-    /**
-     * 周期性治愈周围怪物单位
-     * @override
-     * @param {TowerBase[]} towers
-     * @param {MonsterBase[]} monsters
-     */
-
   }, {
     key: "makeEffect",
     value: function makeEffect(towers, monsters) {
@@ -260,10 +220,6 @@ function (_MonsterBase4) {
         this.lastHealTime = performance.now();
       }
     }
-    /**
-     * @param {CanvasRenderingContext2D} context
-     */
-
   }, {
     key: "renderHealthBar",
     value: function renderHealthBar(context) {
@@ -291,29 +247,17 @@ function (_MonsterBase4) {
     get: function () {
       return performance.now() - this.lastHealTime > this.Hitv;
     }
-    /**
-     * 治疗间隔
-     */
-
   }, {
     key: "Hitv",
     get: function () {
       const base = HighPriest.healingInterval(this.__inner_level);
       return _.random(base - 200, base + 200, false);
     }
-    /**
-     * 治疗量
-     */
-
   }, {
     key: "Hpow",
     get: function () {
       return HighPriest.healingPower(this.__inner_level);
     }
-    /**
-     * 治疗范围
-     */
-
   }, {
     key: "Hrng",
     get: function () {
@@ -342,9 +286,7 @@ _defineProperty(HighPriest, "healingPower", lvl => 40 * (Math.floor(lvl / 25) + 
 
 _defineProperty(HighPriest, "healingRange", () => 30);
 
-let Devil =
-/*#__PURE__*/
-function (_MonsterBase5) {
+let Devil = function (_MonsterBase5) {
   _inherits(Devil, _MonsterBase5);
 
   function Devil(position, image, level) {
@@ -362,10 +304,6 @@ function (_MonsterBase5) {
 
   _createClass(Devil, [{
     key: "renderHealthBar",
-
-    /**
-     * @param {CanvasRenderingContext2D} context
-     */
     value: function renderHealthBar(context) {
       _get(_getPrototypeOf(Devil.prototype), "renderHealthBar", this).call(this, context);
 

@@ -91,6 +91,11 @@ class Game {
   static callTowerList = null
 
   /**
+   * @type {() => MonsterBase[]}
+   */
+  static callMonsterList = null
+
+  /**
    * @type {() => Position}
    */
   static callOriginPosition = null
@@ -164,7 +169,8 @@ class Game {
     }
 
     /**
-     * 考虑围墙后的终点的方格坐标
+     * - 考虑围墙后的终点的方格坐标
+     * - x,y和canvas的x,y是颠倒的
      */
     this.DestinationGrid = {
       x: GY / 2 + 1,
@@ -198,6 +204,7 @@ class Game {
 
     Game.callTowerFactory = this.towerCtl.Factory.bind(this.towerCtl)
     Game.callTowerList = () => this.towerCtl.towers
+    Game.callMonsterList = () => this.monsterCtl.monsters
 
     // 传奇宝石 升级点数
     this.updateGemPoint = this.__testMode ? 1e14 : 0
@@ -248,7 +255,7 @@ class Game {
 
     Game.callRemoveTower = t => this.removeTower(t)
 
-    this.useClassicRenderStyle = !'OffscreenCanvas' in window
+    this.useClassicRenderStyle = 'OffscreenCanvas' in window ? false : true
   }
 
   get moneyOnDispaly() {
@@ -569,14 +576,15 @@ class Game {
       if (selectedT) {
         
         this.onMouseTower = selectedT
+        let virtualTow = new (eval(selectedT.__ctor_name))
+        const descriptionChuned = _.cloneDeep(virtualTow.descriptionChuned)
+        virtualTow.destory()
+        virtualTow = null
         TowerBase.prototype.renderStatusBoard.call(
           {
             position: mousePos,
-            
             informationSeq: [[selectedT.__dn, '']],
-            
-            descriptionChuned: (new (eval(selectedT.__ctor_name))).descriptionChuned,
-            
+            descriptionChuned,
             exploitsSeq: [['建造快捷键', `[${selectedT.__od}]`]],
             radius: selectedT.radius
           },
@@ -741,8 +749,8 @@ class Game {
     )
 
     this.DestinationPosition = new Position(
-      (this.DestinationGrid.x - 0.5) * this.gridSize,
-      (this.DestinationGrid.y - 0.5) * this.gridSize
+      (this.DestinationGrid.y - 0.5) * this.gridSize,
+      (this.DestinationGrid.x - 0.5) * this.gridSize
     )
 
     Game.callOriginPosition = () => this.OriginPosition.copy()
@@ -820,7 +828,7 @@ class Game {
           ename: 'onmousedown',
           cb: e => {
             const mousePos = new Position(e.offsetX, e.offsetY)
-            // console.log('mouse click axis: ' + mousePos)
+            console.log('mouse click axis: ' + mousePos)
             switch (e.button) {
               // left click
               case 0:
@@ -1016,7 +1024,7 @@ class Game {
         )
       }
     }
-    // ------------------ debug ---------------------
+    // ------------------ end debug ---------------------
 
     if (!this.isPausing) {
       this.towerCtl.run(this.monsterCtl.monsters)

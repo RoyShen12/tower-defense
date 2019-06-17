@@ -4,20 +4,13 @@ function _defineProperties(target, props) { for (var i = 0; i < props.length; i+
 
 function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
 
-let EventManager =
-/*#__PURE__*/
-function () {
+let EventManager = function () {
   function EventManager() {
     _classCallCheck(this, EventManager);
   }
 
   _createClass(EventManager, [{
     key: "bindEvent",
-
-    /**
-     * @param {{ename: string, cb: (e: Event & MouseEvent & KeyboardEvent) => void}[]} eventAndCallback
-     * @param {HTMLElement | Document} ele
-     */
     value: function bindEvent(eventAndCallback, ele) {
       eventAndCallback.forEach(eac => ele[eac.ename] = eac.cb);
     }

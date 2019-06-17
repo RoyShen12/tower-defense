@@ -511,9 +511,8 @@ class Tools {
  * 所有[物体]的基类
  */
 class Base {
-
   constructor() {
-    this.id = Tools.randomStr(8)
+    this.id = Math.round(Math.random() * Number.MAX_SAFE_INTEGER)
   }
 }
 
@@ -592,7 +591,7 @@ class CircleBase extends Base {
   }
 
   /**
-   * Circle的内切正方形边长
+   * - Circle的内切正方形边长
    */
   get inscribedSquareSideLength() {
     return 2 * this.radius / Math.SQRT2
@@ -650,6 +649,9 @@ class ItemBase extends CircleBase {
     else if (image instanceof Promise) {
       image.then(r => this.image = r)
     }
+
+    this.intervalTimers = []
+    this.timeoutTimers = []
   }
 
   /**
@@ -659,14 +661,14 @@ class ItemBase extends CircleBase {
    */
   renderSpriteFrame(context, x, y) {
     
-    this.image.renderOneFrame(context, new Position(x, y), super.inscribedSquareSideLength, super.inscribedSquareSideLength, 0, true, true, false)
+    this.image.renderOneFrame(context, new Position(x, y), this.inscribedSquareSideLength, this.inscribedSquareSideLength, 0, true, true, false)
   }
 
   /** @param {CanvasRenderingContext2D} context */
   renderImage(context) {
 
-    const x = this.position.x - super.inscribedSquareSideLength * 0.5
-    const y = this.position.y - super.inscribedSquareSideLength * 0.5
+    const x = this.position.x - this.inscribedSquareSideLength * 0.5
+    const y = this.position.y - this.inscribedSquareSideLength * 0.5
 
     if (this.image instanceof ImageBitmap) {
       context.drawImage(
@@ -677,8 +679,8 @@ class ItemBase extends CircleBase {
         this.image.height,
         x,
         y,
-        super.inscribedSquareSideLength,
-        super.inscribedSquareSideLength
+        this.inscribedSquareSideLength,
+        this.inscribedSquareSideLength
       )
     }
     else if (this.image instanceof AnimationSprite) {
@@ -739,6 +741,8 @@ class ItemBase extends CircleBase {
     if (this.image instanceof AnimationSprite) {
       this.image.terminateLoop()
     }
+    this.intervalTimers.forEach(t => clearInterval(t))
+    this.timeoutTimers.forEach(t => clearTimeout(t))
   }
 }
 
@@ -798,6 +802,8 @@ class TowerBase extends ItemBase {
     }
   ]
 
+  static deniedGems = []
+
   /**
    * @param {string} gn
    */
@@ -806,7 +812,7 @@ class TowerBase extends ItemBase {
     return this.Gems.find(g => g.name === gn).ctor
   }
 
-  static GemsToOptions = TowerBase.Gems.map((gemCtor, idx) => {
+  static GemsToOptions = this.Gems.map((gemCtor, idx) => {
     const option = document.createElement('option')
     option.setAttribute('value', gemCtor.name)
     if (idx === 0) {
@@ -816,11 +822,13 @@ class TowerBase extends ItemBase {
     return option
   })
 
-  static GemsToOptionsInnerHtml = TowerBase.Gems
-    .map((gemCtor, idx) => {
-      return `<option value="${gemCtor.name}"${idx === 0 ? ' selected' : ''}>${gemCtor.ctor.gemName}</option>`
-    })
-    .join('')
+  static get GemsToOptionsInnerHtml() {
+    return this.Gems
+      .map((gemCtor, idx) => {
+        return `<option value="${gemCtor.name}"${idx === 0 ? ' selected' : ''}${this.deniedGems.includes(gemCtor.name) ? ' disabled' : ''}>${gemCtor.ctor.gemName}${this.deniedGems.includes(gemCtor.name) ? ' - 不能装备到此塔' : ''}</option>`
+      })
+      .join('')
+  }
 
   /**
    * 升级后获得的点数
@@ -861,6 +869,8 @@ class TowerBase extends ItemBase {
   constructor(position, radius, borderWidth, borderStyle, image, price, levelAtkFx, levelHstFx, levelSlcFx, levelRngFx) {
     super(position, radius, borderWidth, borderStyle, image)
 
+    // console.log(this)
+
     this.bornStamp = performance.now()
 
     // BulletManager 采用单例模式，所有塔共享
@@ -895,8 +905,17 @@ class TowerBase extends ItemBase {
     this.__on_trapped_atk_ratio = 1
     this.__max_rng_atk_ratio = 1
     this.__min_rng_atk_ratio = 1
-    /** @type {Map<string, number>} */
+    /** @type {Map<number, number>} */
     this.__each_monster_damage_ratio = new Map()
+
+    this.intervalTimers.push(setInterval(() => {
+      // console.time('clean')
+      const msts = Game.callMonsterList()
+      Array.from(this.__each_monster_damage_ratio)
+        .filter(([k]) => msts.every(mst => mst.id !== k))
+        .forEach(([k]) => this.__each_monster_damage_ratio.delete(k))
+      // console.timeEnd('clean')
+    }, 60000))
 
     /**
      * @virtual
@@ -1122,7 +1141,7 @@ class TowerBase extends ItemBase {
    */
   calculateDamageRatio(mst) {
     const bossR = mst.isBoss ? this.__on_boss_atk_ratio : 1
-    const particularR = this.__each_monster_damage_ratio.has(mst.id) ? this.__each_monster_damage_ratio.get(mst.id) : 1
+    const particularR = this.__each_monster_damage_ratio.get(mst.id) || 1
     const trapR = mst.isTrapped ? this.__on_trapped_atk_ratio : 1
     const R = Position.distance(this.position, mst.position) / this.Rng
     const rangeR = this.__min_rng_atk_ratio * (1 - R) + this.__max_rng_atk_ratio * R
@@ -1651,6 +1670,9 @@ class MonsterBase extends ItemBase {
    */
   constructor(position, radius, borderWidth, borderStyle, image, level, levelRwdFx, levelSpdFx, levelHthFx, levelAmrFx, levelShdFx) {
     super(position, radius, borderWidth, borderStyle, image)
+
+    // console.log(this)
+
     this.__inner_level = level
 
     this.maxHealth = Math.round(levelHthFx(level))
@@ -2035,6 +2057,8 @@ class BulletBase extends ItemBase {
   constructor(position, radius, borderWidth, borderStyle, image, atk, speed, target) {
     super(position, radius, borderWidth, borderStyle, image)
 
+    // console.log(this)
+
     this.Atk = atk
     this.speed = speed
     this.target = target
@@ -2091,18 +2115,15 @@ class BulletBase extends ItemBase {
     const transFormed = this.rotateForward(context, this.target.position)
 
     context.drawImage(
-      
       this.image,
       0,
       0,
-      
       this.image.width,
-      
       this.image.height,
-      0 - super.inscribedSquareSideLength * 0.5,
-      0 - super.inscribedSquareSideLength * 0.5,
-      super.inscribedSquareSideLength,
-      super.inscribedSquareSideLength
+      this.inscribedSquareSideLength * -0.5,
+      this.inscribedSquareSideLength * -0.5,
+      this.inscribedSquareSideLength,
+      this.inscribedSquareSideLength
     )
 
     transFormed.restore()

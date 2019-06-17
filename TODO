@@ -1,4 +1,2 @@
 魔法塔添加法力值设定，抑制高攻速下的输出
 TowerBase添加穿甲属性，统一穿甲计算
-使用整数代替字符串ID
-定时清理 __each_monster_damage_ratio

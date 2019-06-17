@@ -20,12 +20,7 @@ function _defineProperties(target, props) { for (var i = 0; i < props.length; i+
 
 function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
 
-let ButtonOnDom =
-/*#__PURE__*/
-function () {
-  /**
-   * @param {HTMLButtonElement} domOptions
-   */
+let ButtonOnDom = function () {
   function ButtonOnDom(domOptions, hookOnToDom = true) {
     _classCallCheck(this, ButtonOnDom);
 
@@ -45,16 +40,9 @@ function () {
   return ButtonOnDom;
 }();
 
-let ButtonOnCanvas =
-/*#__PURE__*/
-function (_RectangleBase) {
+let ButtonOnCanvas = function (_RectangleBase) {
   _inherits(ButtonOnCanvas, _RectangleBase);
 
-  /**
-   * @param {string | ImageBitmap | Promise<ImageBitmap>} imageFill
-   * @param {string | ImageBitmap | Promise<ImageBitmap>} imageFillHover
-   * @param {string | ImageBitmap | Promise<ImageBitmap>} imageFillPress
-   */
   function ButtonOnCanvas(id, positionTL, positionBR, bw, bs, br, text, textsize, fontName, textFs, imageFill, imageFillHover, imageFillPress) {
     var _this;
 
@@ -67,76 +55,35 @@ function (_RectangleBase) {
     _this.id = id;
     imageFillHover = imageFillHover || imageFill;
     imageFillPress = imageFillPress || imageFill;
-    /**
-     * - 0 普通
-     * - 1 hover
-     * - 2 按下
-     * @type {0 | 1 | 2}
-     */
-
     _this.status = 0;
     const p2d = new Path2D();
     p2d.rect(_this.cornerTL.x, _this.cornerTL.y, _this.width, _this.height);
-    /**
-     * 用于事件的检测区域
-     * @type {Path2D}
-     */
-
     _this.pathForDetection = p2d;
-    /** @type {string} */
-
     _this.text = text;
-    /** @type {number} */
-
     _this.textSize = textsize;
     _this.fontName = fontName;
     _this.textFs = textFs;
-    /**
-     * 图形描述符，可以是位图、位图的Promise、动画
-     * @type {ImageBitmap | Promise<ImageBitmap> | AnimationSprite}
-     */
-
     _this.image = null;
-    /**
-     * @type {ImageBitmap | Promise<ImageBitmap> | AnimationSprite}
-     */
-
     _this.imageHov = null;
-    /**
-     * @type {ImageBitmap | Promise<ImageBitmap> | AnimationSprite}
-     */
-
-    _this.imagePrs = null; // -------------------------------------------------
+    _this.imagePrs = null;
 
     if (typeof imageFill === 'string') {
-      /**
-       * 填充描述符
-       * @type {string}
-       */
       _this.fillStyle = imageFill;
     } else if (imageFill instanceof ImageBitmap) {
       _this.image = imageFill;
     } else if (imageFill instanceof Promise) {
       imageFill.then(r => _this.image = r);
-    } // -------------------------------------------------
-
+    }
 
     if (typeof imageFillHover === 'string') {
-      /**
-       * @type {string}
-       */
       _this.fillStyleHov = imageFillHover;
     } else if (imageFillHover instanceof ImageBitmap) {
       _this.imageHov = imageFillHover;
     } else if (imageFillHover instanceof Promise) {
       imageFillHover.then(r => _this.imageHov = r);
-    } // -------------------------------------------------
-
+    }
 
     if (typeof imageFillPress === 'string') {
-      /**
-       * @type {string}
-       */
       _this.fillStylePrs = imageFillPress;
     } else if (imageFillPress instanceof ImageBitmap) {
       _this.imagePrs = imageFillPress;
@@ -159,10 +106,6 @@ function (_RectangleBase) {
       context.fillText(this.text, textX, textY);
       context.restore();
     }
-    /**
-     * @param {CanvasRenderingContext2D} context
-     */
-
   }, {
     key: "render",
     value: function render(context) {
@@ -176,8 +119,7 @@ function (_RectangleBase) {
 
         this.fillStyle = tmp;
         this.renderText(context);
-      } else {// to do
-      }
+      } else {}
     }
   }, {
     key: "onMouseEnter",

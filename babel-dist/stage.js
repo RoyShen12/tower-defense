@@ -4,12 +4,7 @@ function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _d
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-let SummonPair =
-/**
- * @param {string} monsterType 
- * @param {number} amount 
- */
-function SummonPair(monsterType, amount, level) {
+let SummonPair = function SummonPair(monsterType, amount, level) {
   _classCallCheck(this, SummonPair);
 
   this.monsterCtor = MonsterManager.monsterCtors[monsterType];
@@ -17,14 +12,7 @@ function SummonPair(monsterType, amount, level) {
   this.level = level;
 };
 
-let Wave =
-/*#__PURE__*/
-function () {
-  /**
-   * @param {SummonPair[]} seq
-   * @param {number} interval
-   * @param {number} innerBreak
-   */
+let Wave = function () {
   function Wave(seq, interval) {
     _classCallCheck(this, Wave);
 
@@ -36,10 +24,6 @@ function () {
 
   _createClass(Wave, [{
     key: "run",
-
-    /**
-     * @param {(arg0: any, arg1: any) => void} placeMonsterFx
-     */
     value: function run(placeMonsterFx) {
       if (this.canSummon) {
         const pair = this.sequence.pop();
@@ -63,15 +47,10 @@ function () {
   return Wave;
 }();
 
-let Stage =
-/*#__PURE__*/
-function () {
+let Stage = function () {
   function Stage() {
     _classCallCheck(this, Stage);
 
-    /**
-     * @type {Wave[]}
-     */
     this.waves = [];
   }
 
