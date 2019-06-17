@@ -1,0 +1,30 @@
+{
+  "name": "tower-defense",
+  "version": "1.0.0",
+  "description": "a html5 game for practicing Canvas API",
+  "main": "index.html",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/RoyShen12/tower-defense.git"
+  },
+  "author": "Royshen12",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/RoyShen12/tower-defense/issues"
+  },
+  "homepage": "https://github.com/RoyShen12/tower-defense#readme",
+  "devDependencies": {
+    "@babel/cli": "^7.4.4",
+    "@babel/core": "^7.4.5",
+    "@babel/plugin-proposal-class-properties": "^7.4.4",
+    "@babel/plugin-proposal-object-rest-spread": "^7.4.4",
+    "@babel/plugin-transform-async-to-generator": "^7.4.4",
+    "@babel/plugin-transform-classes": "^7.4.4"
+  },
+  "dependencies": {
+    "@babel/plugin-proposal-private-methods": "^7.4.4"
+  }
+}

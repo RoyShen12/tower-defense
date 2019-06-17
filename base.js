@@ -327,8 +327,8 @@ class Tools {
   static EaseFx = class _Ease {
     /** @typedef {(x: number) => number} efx */
     static c1 = 1.70158
-    static c2 = _Ease.c1 * 1.525
-    static c3 = _Ease.c1 + 1
+    static c2 = this.c1 * 1.525
+    static c3 = this.c1 + 1
     static c4 = (2 * Math.PI) / 3
     static c5 = (2 * Math.PI) / 4.5
 
