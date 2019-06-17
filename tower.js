@@ -174,7 +174,26 @@ const TowerManager = new Proxy(
         lsd: lvl => 90, // laser swipe distance
         fatk: lvl => Math.pow(lvl, 1.05) * 10 + 160,
         fw: lvl => 40 + Math.floor(lvl / 8)
-      }
+      },
+      {
+        dn: '航母',
+        c: 'CarrierTower',
+        od: 8,
+        n: 'carrier0',
+        cn: 'star4',
+        p: new Proxy({}, {
+          get(t, p, r) {
+            if (p === 'length') return 100
+            else return Math.ceil(Math.pow(1.1, +p) * 1000)
+          }
+        }),
+        r: () => 100,
+        a: lvl => 25 + lvl * 5,
+        h: () => 1.5,
+        s: () => 3,
+        spd: () => 0.05,
+        bctor: 'CarrierTower.Jet.JetBomb'
+      },
     ]
 
     static rankPostfixL1 = '老兵'
@@ -187,6 +206,8 @@ const TowerManager = new Proxy(
       this.towers = []
 
       this.towerChangeHash = -1
+
+      TowerManager.Factory = this.Factory.bind(this)
     }
 
     /**
@@ -544,7 +565,7 @@ class MaskManTower extends TowerBase {
 
     this.extraBulletV = 0
 
-    this.inner_desc_init = '每次向多个敌人射出箭矢\n+ 有几率暴击\n+ 拥有固定75%的护甲穿透'
+    this.inner_desc_init = '每次向多个敌人射出箭矢\n+ 有几率暴击\n+ 拥有固定30%的护甲穿透'
     this.description = this.inner_desc_init
 
     this.critChance = 0.1
@@ -1313,6 +1334,16 @@ class BlackMagicTower extends TowerBase {
   static rankUpDesc2 = '\n+ 伤害得到大幅加强'
   static rankUpDesc3 = '\n+ 伤害得到大幅加强，附加目标当前生命值 8% 的额外伤害'
 
+  static deniedGems = [
+    'GogokOfSwiftness'
+  ]
+
+  static GemsToOptionsInnerHtml = TowerBase.Gems
+    .map((gemCtor, idx) => {
+      return `<option value="${gemCtor.name}"${idx === 0 ? ' selected' : ''}${this.deniedGems.includes(gemCtor.name) ? ' disabled' : ''}>${gemCtor.ctor.gemName}${this.deniedGems.includes(gemCtor.name) ? ' - 不能装备到此塔' : ''}</option>`
+    })
+    .join('')
+
   constructor(position, image, bimg, radius) {
     super(
       position,
@@ -1443,7 +1474,7 @@ class BlackMagicTower extends TowerBase {
     // 杀死了目标
     if (this.target.isDead) {
       this.imprecationPower += 10
-      if (this.imprecationHaste < 150) this.imprecationHaste += 0.01
+      if (this.imprecationHaste * 100 - 100 < 150) this.imprecationHaste += 0.01
     }
     // 诅咒目标
     else if (!this.target.beImprecated) {
@@ -1789,5 +1820,113 @@ class LaserTower extends TowerBase {
       ls.renderStep(ctx)
       return !ls.fulfilled
     })
+  }
+}
+
+class CarrierTower extends TowerBase {
+
+  static Jet = class _Jet extends TowerBase {
+    static JetBomb = class _JetBomb extends BulletBase {
+      constructor(position, atk, target) {
+        super(position, 3, 0, null, 'rgba(15,44,11,1)', atk, 5, target)
+      }
+    }
+    /**
+     * @param {CarrierTower} carrierTower
+     */
+    constructor(position, image, bimg, radius, carrierTower) {
+      super(
+        position,
+        radius,
+        1,
+        'rgba(56,243,12,.5)',
+        image,
+        [],
+        carrierTower.levelAtkFx,
+        carrierTower.levelHstFx,
+        carrierTower.levelSlcFx,
+        carrierTower.levelRngFx
+      )
+
+      this.bulletCtorName = carrierTower.bulletCtorName
+
+      this.carrierTower = carrierTower
+
+      this.canInsertGem = false
+    }
+
+    get Spd() {
+      return this.carrierTower.Spd
+    }
+
+    /**
+     * @param {MonsterBase[]} monsters
+     */
+    run(monsters) {
+      if (!this.isCurrentTargetAvailable) {
+        this.reChooseTarget(monsters)
+        // 和父类不同，Jet可移动自身
+        if (!this.target && monsters.length > 0) {
+          const nearest = _.minBy(monsters, mst => {
+            return Position.distancePow2(mst.position, this.position)
+          })
+          console.log(this.position, nearest)
+          this.position.moveTo(nearest.position, this.Spd)
+        }
+      }
+      if (this.canShoot) {
+        
+        if (this.target) {
+          this.shoot(monsters)
+        }
+      }
+    }
+  }
+
+  constructor(position, image, bimg, radius) {
+    super(
+      position,
+      radius,
+      1,
+      'rgba(56,243,12,.5)',
+      image,
+      TowerManager.CarrierTower.p,
+      TowerManager.CarrierTower.a,
+      TowerManager.CarrierTower.h,
+      TowerManager.CarrierTower.s,
+      TowerManager.CarrierTower.r
+    )
+
+    this.jets = 0
+
+    /**
+     * @type {(lvl: number) => number}
+     */
+    this.levelSpdFx = TowerManager.CarrierTower.spd
+
+    this.bulletCtorName = TowerManager.CarrierTower.bctor
+
+    this.name = TowerManager.CarrierTower.dn
+
+    this.inner_desc_init = '航母'
+    this.description = this.inner_desc_init
+  }
+
+  get Spd() {
+    return this.levelSpdFx(this.level)
+  }
+
+  run() {
+    if (this.canShoot && this.jets < this.Slc) {
+      Game.callTowerFactory(
+        'CarrierTower.Jet',
+        this.position.dithering(this.radius),
+        Game.callImageBitMap(TowerManager.CarrierTower.cn),
+        null,
+        3,
+        this
+      )
+      this.jets++
+    }
   }
 }

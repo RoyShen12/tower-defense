@@ -84,7 +84,7 @@ class Swordman extends MonsterBase {
 
   static rwd = lvl => 20 * lvl + 20
   static spd = lvl => Math.min(.3 + lvl / 60, 1.15)
-  static hth = lvl => Math.ceil(Math.pow(1.1, lvl)) * 120 + lvl * 40
+  static hth = lvl => 120 + lvl * 40
   static amr = lvl => 3 + lvl / 8
 
   constructor(position, image, level) {
@@ -100,6 +100,9 @@ class Swordman extends MonsterBase {
       Swordman.hth,
       Swordman.amr
     )
+
+    this.name = '邪恶的剑士'
+    this.description = '曾今是流浪的剑士，如今被大魔神控制'
   }
 }
 
@@ -126,6 +129,9 @@ class Axeman extends MonsterBase {
       Axeman.hth,
       Axeman.amr
     )
+
+    this.name = '蛮族斧手'
+    this.description = ''
   }
 }
 
@@ -152,6 +158,9 @@ class LionMan extends MonsterBase {
       LionMan.hth,
       LionMan.amr
     )
+
+    this.name = '狮人'
+    this.description = ''
   }
 }
 
@@ -185,6 +194,10 @@ class HighPriest extends MonsterBase {
     this.lastHealTime = performance.now()
 
     this.isBoss = true
+
+    this.name = '龙人萨满'
+    this.type = '首领'
+    this.description = ''
   }
 
   get healthBarWidth() {
@@ -300,6 +313,10 @@ class Devil extends MonsterBase {
     )
 
     this.isBoss = true
+
+    this.name = '地狱之王'
+    this.type = '首领'
+    this.description = ''
   }
 
   get healthBarWidth() {

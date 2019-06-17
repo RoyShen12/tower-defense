@@ -95,7 +95,7 @@ button:disabled {
   background-color: rgba(64,158,255,.7);
   border: 0;
   padding: 4px 15px;
-  width: 90px;
+  width: 100px;
 }
 .sc_btn {
   transform: none;
@@ -105,7 +105,7 @@ button:disabled {
   background-color: rgba(230,162,60,.7);
   border: 0;
   padding: 4px 15px;
-  width: 90px;
+  width: 100px;
 }
 .tm_btn {
   transform: none;

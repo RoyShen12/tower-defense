@@ -79,6 +79,57 @@ class Game {
    */
   static callRemoveTower = null
 
+
+  /**
+   * @type {(towerName: string, position: Position, image: string | AnimationSprite | ImageBitmap | Promise<ImageBitmap>, bulletImage: any, radius: number, ...extraArgs: any[]) => TowerBase}
+   */
+  static callTowerFactory = null
+
+  /**
+   * - 右侧选择区的依赖注入
+   * - Game无法获得所有塔的信息，只能从TowerManager对象中获取
+   * - 并依次构建基类ItemBase，注入信息以在建造时获取正确信息
+   * @param {ItemBase} itm
+   * @param {CanvasRenderingContext2D} _ctx
+   * @param {number} centerX 中心x坐标
+   * @param {number} centerY 中心y坐标
+   * @param {number} R 半径
+   */
+  static IOC(itm, ctor, _ctx, centerX, centerY, R) {
+    itm.render(_ctx) // 绘制基础图标
+    _ctx.textAlign = 'center'
+    _ctx.fillStyle = '#333'
+    _ctx.fillText('$' + ctor.p[0], centerX, centerY + R + 20) // 绘制价格
+    _ctx.textAlign = 'start'
+
+    itm.__dn = ctor.dn // 注入名称
+
+    itm.__des = ctor.d // 注入描述
+
+    itm.__od = ctor.od // 注入序号
+
+    itm.__inner_img_u = ctor.n // 注入图标
+
+    itm.__inner_b_img_u = ctor.bn // 注入子弹图标
+
+    itm.__init_price = ctor.p // 注入价格数组
+
+    itm.__ctor_name = ctor.c // 注入构造函数名
+
+    itm.__rng_lv0 = ctor.r(0) // 注入初始射程
+
+    itm.__tlx = centerX - R - 3 // 注入中心点坐标
+
+    itm.__tly = centerY - R - 3 // 注入中心点坐标
+
+    itm.rerender = width => { // 注入重绘函数
+      itm.borderWidth = width
+
+      _ctx.clearRect(itm.__tlx, itm.__tly, (R + 2) * 2, (R + 2) * 2)
+      itm.render(_ctx)
+    }
+  }
+
   constructor(GX = 36, GY = 24) {
 
     this.__testMode = localStorage.getItem('debug_mode') === '1'
@@ -127,8 +178,10 @@ class Game {
     this.monsterCtl = new MonsterManager()
     this.bulletsCtl = new BulletManager()
 
+    Game.callTowerFactory = this.towerCtl.Factory.bind(this.towerCtl)
+
     // 传奇宝石 升级点数
-    this.updateGemPoint = this.__testMode ? 1e8 : 0
+    this.updateGemPoint = this.__testMode ? 1e14 : 0
 
     Object.defineProperty(Game, 'updateGemPoint', {
       get: () => this.updateGemPoint,
@@ -182,7 +235,7 @@ class Game {
   }
 
   /**
-   * 新建一个用以寻路的带围墙的Graph
+   * - 新建一个用以寻路的带围墙的Graph
    */
   makeGraph() {
     return new Astar.Graph(this.gridsWithWall)
@@ -213,7 +266,7 @@ class Game {
   }
 
   /**
-   * (inner grid index): this.grids[gx][gy]
+   * - (inner grid index): this.grids[gx][gy]
    */
   removeOutdatedPath(newbdgx, newbdgy) {
     this.posPathMapping.forEach((v, k) => {
@@ -227,6 +280,46 @@ class Game {
     })
 
     // this.posPathMapping.clear()
+  }
+
+  /**
+   * - 对输入的起点进行寻路
+   * - 终点为 grid[12][35]
+   * @param {Position} startPos
+   */
+  getPathToEnd(startPos) {
+    const wg = this.whichGrid(startPos)
+    const key = `${wg[0]}|${wg[1]}`
+
+    if (this.posPathMapping.has(key)) {
+      return this.posPathMapping.get(key)
+    }
+    else {
+      // this.contextCtl._get_path_dbg.clearRect(0, 0, innerWidth, innerHeight)
+      // this.contextCtl._get_path_dbg.strokeStyle = 'rgba(45,54,231,.3)'
+      // this.contextCtl._get_path_dbg.lineWidth = 4
+      // this.contextCtl._get_path_dbg.beginPath()
+
+      const G = this.makeGraph()
+      //console.log(G.grid)
+      // wg.x和y 各加1（寻路时的围墙）
+      //console.log(wg[0] + 1, wg[1] + 1)
+      const path = Astar.astar.search(G, G.grid[wg[0] + 1][wg[1] + 1], G.grid[this.DestinationGrid.x][this.DestinationGrid.y]).map((p, idx) => {
+        // 每一步的x和y都减去1来拆去围墙
+        // 然后加上0.5来调整坐标至单元格的中央
+        const y = (p.x - .5) * this.gridSize
+        const x = (p.y - .5) * this.gridSize
+        // idx === 0 ? this.contextCtl._get_path_dbg.moveTo(x, y, this.gridSize, this.gridSize) :
+        // this.contextCtl._get_path_dbg.lineTo(x, y, this.gridSize, this.gridSize)
+        return { x, y }
+      })
+
+      // this.contextCtl._get_path_dbg.closePath()
+      // this.contextCtl._get_path_dbg.stroke()
+
+      this.posPathMapping.set(key, path)
+      return path
+    }
   }
 
   /**
@@ -464,6 +557,7 @@ class Game {
     // 左侧方格区域
     else {
       const selectedT = this.towerCtl.towers.find(t => t.position.equal(mousePos, t.radius))
+      const selectedM = this.monsterCtl.monsters.find(m => m.position.equal(mousePos, m.radius))
       if (selectedT) {
         // @todo add delay
         // setTimeout(() => {
@@ -473,6 +567,9 @@ class Game {
         
         selectedT.renderRange(this.contextCtl._get_mouse)
         selectedT.renderStatusBoard(0, this.midSplitLineX, 0, innerHeight, true, this.detailFunctionKeyDown)
+      }
+      else if (selectedM) {
+        selectedM.renderStatusBoard(0, this.midSplitLineX, 0, innerHeight, false, false)
       }
       else {
         Game.callHideStatusBlock()
@@ -575,7 +672,7 @@ class Game {
       style: {
         zIndex: '8',
         top: buttonTopA,
-        left: this.leftAreaWidth + 130 + 'px'
+        left: this.leftAreaWidth + 150 + 'px'
       },
       onclick: () => {
         let next = iterator.next()
@@ -737,67 +834,22 @@ class Game {
     ctx.fillRect((this.gridX - 1) * this.gridSize, (this.gridY / 2) * this.gridSize, this.gridSize, this.gridSize)
 
     if (this.__testMode) {
-      this.contextCtl.refreshText('[ Test Mode ]', this.contextCtl._get_bg, new Position(10, 25), new Position(8, 5), 120, 26, 'rgba(2,2,2,1)', true, '10px TimesNewRoman')
+      this.contextCtl.refreshText('[ Test Mode ]', null, new Position(10, 25), new Position(8, 5), 120, 26, 'rgba(2,2,2,1)', true, '10px TimesNewRoman')
     }
 
-    this.contextCtl.refreshText('鼠标点击选取建造，连点两次鼠标右键出售已建造的塔', this.contextCtl._get_bg, new Position(this.leftAreaWidth + 30, 30), new Position(this.leftAreaWidth + 28, 10), this.rightAreaWidth, 26, 'rgba(24,24,24,1)', true, '14px TimesNewRoman')
-    this.contextCtl.refreshText('出现详情时按[Ctrl]切换详细信息和说明', this.contextCtl._get_bg, new Position(this.leftAreaWidth + 30, 70), new Position(this.leftAreaWidth + 28, 50), this.rightAreaWidth, 26, 'rgba(24,24,24,1)', true, '14px TimesNewRoman')
+    this.contextCtl.refreshText('鼠标点击选取建造，连点两次鼠标右键出售已建造的塔', null, new Position(this.leftAreaWidth + 30, 30), new Position(this.leftAreaWidth + 28, 10), this.rightAreaWidth, 26, 'rgba(24,24,24,1)', true, '14px TimesNewRoman')
+    this.contextCtl.refreshText('出现详情时按[Ctrl]切换详细信息和说明', null, new Position(this.leftAreaWidth + 30, 70), new Position(this.leftAreaWidth + 28, 50), this.rightAreaWidth, 26, 'rgba(24,24,24,1)', true, '14px TimesNewRoman')
 
     const tsAeraRectTL = new Position(this.leftAreaWidth + 30, 90)
     const tsMargin = this.gridSize / 2 - 2
     const tsItemRadius = this.gridSize / 2 + 5
 
     const oneTsWidth = tsMargin + 2 * tsItemRadius
-    const chunkSize = Math.floor(this.rightAreaWidth / oneTsWidth)
+    const chunkSize = Math.floor((this.rightAreaWidth - tsItemRadius - 30) / oneTsWidth)
     const chunkedTowerCtors = _.chunk(TowerManager.towerCtors, chunkSize)
-    // console.log('chunk size', chunkSize, 'chunk result', chunkedTowerCtors)
-
     const tsMarginBottom = this.gridSize / 2  + 6
 
-    /**
-     * 右侧选择区的依赖注入
-     * Game无法获得所有塔的信息，只能从TowerManager对象中获取
-     * 并依次构建基类ItemBase，注入信息以在建造时获取正确信息
-     * @param {ItemBase} itm
-     * @param {CanvasRenderingContext2D} _ctx
-     * @param {number} centerX 中心x坐标
-     * @param {number} centerY 中心y坐标
-     * @param {number} R 半径
-     */
-    const IOC = (itm, ctor, _ctx, centerX, centerY, R) => {
-      itm.render(_ctx) // 绘制基础图标
-      _ctx.textAlign = 'center'
-      _ctx.fillStyle = '#333'
-      _ctx.fillText('$' + ctor.p[0], centerX, centerY + R + 20) // 绘制价格
-      _ctx.textAlign = 'start'
-      
-      itm.__dn = ctor.dn // 注入名称
-      
-      itm.__des = ctor.d // 注入描述
-      
-      itm.__od = ctor.od // 注入序号
-      
-      itm.__inner_img_u = ctor.n // 注入图标
-      
-      itm.__inner_b_img_u = ctor.bn // 注入子弹图标
-      
-      itm.__init_price = ctor.p // 注入价格数组
-      
-      itm.__ctor_name = ctor.c // 注入构造函数名
-      
-      itm.__rng_lv0 = ctor.r(0) // 注入初始射程
-      
-      itm.__tlx = centerX - tsItemRadius - 3 // 注入中心点坐标
-      
-      itm.__tly = centerY - tsItemRadius - 3 // 注入中心点坐标
-      
-      itm.rerender = width => { // 注入重绘函数
-        itm.borderWidth = width
-        
-        _ctx.clearRect(itm.__tlx, itm.__tly, (tsItemRadius + 2) * 2, (tsItemRadius + 2) * 2)
-        itm.render(_ctx)
-      }
-    }
+    // console.log(`tsMargin=${tsMargin}, oneTsWidth=${oneTsWidth}, tsItemRadius=${tsItemRadius}, chunkSize=${chunkSize}, tsMarginBottom=${tsMarginBottom}`)
 
     chunkedTowerCtors.forEach((ctorRow, rowIdx) => {
       rowIdx > 0 ? tsAeraRectTL.move(new PolarVector(tsMarginBottom + tsItemRadius * 2, 270)) : void(0)
@@ -806,14 +858,14 @@ class Game {
 
         // const realIdx = rowIdx * chunkSize + idx
 
-        const ax = tsAeraRectTL.x + ((tsItemRadius + 2) * 2 + tsMargin) * idx + tsItemRadius
+        const ax = tsAeraRectTL.x + oneTsWidth * idx + tsItemRadius
         const ay = tsAeraRectTL.y + tsItemRadius
 
         if (!_t.n.includes('$spr::')) {
           
           this.imageCtl.getImage(_t.n).then(img => {
             const temp = new ItemBase(new Position(ax, ay), tsItemRadius, 0, 'rgba(255,67,56,1)', img)
-            IOC(temp, _t, ctx, ax, ay, tsItemRadius)
+            Game.IOC(temp, _t, ctx, ax, ay, tsItemRadius)
             this.towerForSelect.push(temp)
             this.towerForSelect.sort(Tools.compareProperties('__od'))
           })
@@ -821,16 +873,28 @@ class Game {
         else {
           const spr_d = this.imageCtl.getSprite(_t.n.substr(6)).getClone(6)
           const temp = new ItemBase(new Position(ax, ay), tsItemRadius, 0, 'rgba(255,67,56,1)', spr_d)
-          IOC(temp, _t, ctx, ax, ay, tsItemRadius)
+          Game.IOC(temp, _t, ctx, ax, ay, tsItemRadius)
           this.towerForSelect.push(temp)
           this.towerForSelect.sort(Tools.compareProperties('__od'))
         }
       })
     })
 
-    
+    const ax0 = innerWidth - 236
+    const ay0 = innerHeight - 10
+    this.contextCtl.refreshText('金币', null, new Position(ax0, ay0), new Position(ax0 - 4, ay0 - 20), 160, 26, 'rgba(54,54,54,1)', true, '14px TimesNewRoman')
     this.imageCtl.getSprite('gold_spin').getClone(2).renderLoop(this.contextCtl._get_bg, new Position(innerWidth - 190, innerHeight - 25), 18, 18)
+
+    const ax = innerWidth - 293
+    const ay = innerHeight - 70
+    this.contextCtl.refreshText('传奇宝石点数', null, new Position(ax, ay), new Position(ax - 4, ay - 20), 160, 26, 'rgba(54,54,54,1)', true, '14px TimesNewRoman')
+
+    this.imageCtl.getSprite('sparkle').getClone(10).renderLoop(this.contextCtl._get_bg, new Position(innerWidth - 190, innerHeight - 85), 18, 18)
     
+    const ax2 = innerWidth - 250
+    const ay2 = innerHeight - 40
+    this.contextCtl.refreshText('生命值', null, new Position(ax2, ay2), new Position(ax2 - 4, ay2 - 20), 160, 26, 'rgba(54,54,54,1)', true, '14px TimesNewRoman')
+
     this.imageCtl.getImage('heart_px').then(img => {
       
       this.contextCtl._get_bg.drawImage(img, innerWidth - 190, innerHeight - 54, 18, 18)
@@ -840,8 +904,6 @@ class Game {
   }
 
   run() {
-
-    this.tick++
 
     let flag = false
     for (let i = 0; i < this.updateSpeedRatio; i++) {
@@ -881,51 +943,11 @@ class Game {
     }
   }
 
-  /**
-   * 对输入的起点进行寻路
-   * 终点为 grid[12][35]
-   * @param {Position} startPos
-   */
-  getPathToEnd(startPos) {
-    const wg = this.whichGrid(startPos)
-    const key = `${wg[0]}|${wg[1]}`
-
-    if (this.posPathMapping.has(key)) {
-      return this.posPathMapping.get(key)
-    }
-    else {
-
-      // this.contextCtl._get_path_dbg.clearRect(0, 0, innerWidth, innerHeight)
-      // this.contextCtl._get_path_dbg.strokeStyle = 'rgba(45,54,231,.3)'
-      // this.contextCtl._get_path_dbg.lineWidth = 4
-      // this.contextCtl._get_path_dbg.beginPath()
-
-      const G = this.makeGraph()
-      //console.log(G.grid)
-      // wg.x和y 各加1（寻路时的围墙）
-      //console.log(wg[0] + 1, wg[1] + 1)
-      const path = Astar.astar.search(G, G.grid[wg[0] + 1][wg[1] + 1], G.grid[this.DestinationGrid.x][this.DestinationGrid.y]).map((p, idx) => {
-        // 每一步的x和y都减去1来拆去围墙
-        // 然后加上0.5来调整坐标至单元格的中央
-        const y = (p.x - .5) * this.gridSize
-        const x = (p.y - .5) * this.gridSize
-        // idx === 0 ? this.contextCtl._get_path_dbg.moveTo(x, y, this.gridSize, this.gridSize) :
-        // this.contextCtl._get_path_dbg.lineTo(x, y, this.gridSize, this.gridSize)
-        return { x, y }
-      })
-
-      // this.contextCtl._get_path_dbg.closePath()
-      // this.contextCtl._get_path_dbg.stroke()
-
-      this.posPathMapping.set(key, path)
-      return path
-    }
-  }
-
   update() {
 
+    this.tick++
+
     // ------------------ debug ---------------------
-    
     if (!this.isPausing && !window.__d_stop_ms) {
       // if (this.tick === 101) {
       //   this.placeMonster(
@@ -964,45 +986,45 @@ class Game {
 
   render(towerNeedRender = true) {
 
-    this.renderMoney()
-    this.renderLife()
-
-    if (this.tick % 30 === 0) this.renderInformation()
+    if (this.tick % 15 === 0) {
+      this.renderInformation()
+      this.renderMoney()
+    }
+    else if (this.tick % 31 === 0) {
+      this.renderGemPoint()
+    }
+    else if (this.tick % 61 === 0) {
+      this.renderLife()
+    }
 
     
     this.contextCtl._get_off_screen_render.clearRect(
       0,
       0,
-      
       this.contextCtl._get_off_screen_render.dom.width,
-      
       this.contextCtl._get_off_screen_render.dom.height
     )
 
-    
+
+    this.monsterCtl.render(this.contextCtl._get_off_screen_render, this.imageCtl)
     this.imageCtl.play(this.contextCtl._get_off_screen_render)
 
     /// this.contextCtl._get_tower_rapid.clearRect(0, 0, innerWidth, innerHeight)
-    
+
+    this.bulletsCtl.render(this.contextCtl._get_off_screen_render)
     this.towerCtl.rapidRender(this.contextCtl._get_off_screen_render, this.monsterCtl.monsters)
 
     // this.contextCtl._get_main.clearRect(0, 0, innerWidth, innerHeight)
     /// this.bulletsCtl.render(this.contextCtl._get_main)
     /// this.monsterCtl.render(this.contextCtl._get_main, this.imageCtl)
-    
-    this.bulletsCtl.render(this.contextCtl._get_off_screen_render)
-    
-    this.monsterCtl.render(this.contextCtl._get_off_screen_render, this.imageCtl)
 
     if (towerNeedRender) {
-      
       this.contextCtl._get_tower.clearRect(0, 0, innerWidth, innerHeight)
-      
       this.towerCtl.render(this.contextCtl._get_tower)
     }
 
     // this.contextCtl._get_tower_rapid._off_screen_paint()
-    
+
     this.contextCtl._get_main._off_screen_paint()
     // this.contextCtl._get_animation._off_screen_paint()
   }
@@ -1014,32 +1036,34 @@ class Game {
   renderMoney() {
     const ax = innerWidth - 160
     const ay = innerHeight - 10
-    
-    this.contextCtl.refreshText(this.moneyOnDispaly, this.contextCtl._get_bg, new Position(ax, ay), new Position(ax - 4, ay - 20), 160, 26, 'rgba(24,24,24,1)', true, '14px TimesNewRoman')
+    this.contextCtl.refreshText(this.moneyOnDispaly, null, new Position(ax, ay), new Position(ax - 4, ay - 20), 160, 26, 'rgba(24,24,24,1)', true, '14px TimesNewRoman')
   }
 
   renderLife() {
     const ax = innerWidth - 160
     const ay = innerHeight - 40
-    
-    this.contextCtl.refreshText(this.life, this.contextCtl._get_bg, new Position(ax, ay), new Position(ax - 4, ay - 20), 160, 26, 'rgba(24,24,24,1)', true, '14px TimesNewRoman')
+    this.contextCtl.refreshText(this.life, null, new Position(ax, ay), new Position(ax - 4, ay - 20), 160, 26, 'rgba(24,24,24,1)', true, '14px TimesNewRoman')
+  }
+
+  renderGemPoint() {
+    const ax = innerWidth - 160
+    const ay = innerHeight - 70
+    this.contextCtl.refreshText(Tools.formatterUs.format(this.updateGemPoint), null, new Position(ax, ay), new Position(ax - 4, ay - 20), 160, 26, 'rgba(24,24,24,1)', true, '14px TimesNewRoman')
   }
 
   renderInformation() {
     const ax = innerWidth - 190
-
-    const ay1 = innerHeight - 70
+    const ay1 = innerHeight - 100
     const ay2 = ay1 - 30
     const ay3 = ay2 - 30
     // const ay4 = ay3 - 30
 
-    
-    // this.contextCtl.refreshText(`CH: ${Tools.chineseFormatter(this.monsterCtl.totalCurrentHealth, 2, ' ')}`, this.contextCtl._get_bg, new Position(ax, ay1), new Position(ax - 4, ay1 - 20), 190, 26, 'rgba(24,24,24,1)', true, '14px TimesNewRoman')
-    
-    this.contextCtl.refreshText(`总伤害: ${Tools.chineseFormatter(this.towerCtl.totalDamage, 2, ' ')}`, this.contextCtl._get_bg, new Position(ax, ay2), new Position(ax - 4, ay2 - 20), 190, 26, 'rgba(24,24,24,1)', true, '14px TimesNewRoman')
-    
-    this.contextCtl.refreshText(`总击杀: ${Tools.chineseFormatter(this.towerCtl.totalKill, 2, ' ')}`, this.contextCtl._get_bg, new Position(ax, ay3), new Position(ax - 4, ay3 - 20), 190, 26, 'rgba(24,24,24,1)', true, '14px TimesNewRoman')
-    // this.contextCtl.refreshText(`CH: ${Tools.chineseFormatter(this.monsterCtl.totalCurrentHealth, 2, ' ')}`, this.contextCtl._get_bg, new Position(ax, ay4), new Position(ax - 4, ay4 - 20), 190, 26, 'rgba(24,24,24,1)', true, '14px TimesNewRoman')
+    // this.contextCtl.refreshText(`CH: ${Tools.chineseFormatter(this.monsterCtl.totalCurrentHealth, 2, ' ')}`, null, new Position(ax, ay1), new Position(ax - 4, ay1 - 20), 190, 26, 'rgba(24,24,24,1)', true, '14px TimesNewRoman')
+
+    this.contextCtl.refreshText(`总伤害: ${Tools.chineseFormatter(this.towerCtl.totalDamage, 2, ' ')}`, null, new Position(ax, ay2), new Position(ax - 4, ay2 - 20), 190, 26, 'rgba(24,24,24,1)', true, '14px TimesNewRoman')
+
+    this.contextCtl.refreshText(`总击杀: ${Tools.chineseFormatter(this.towerCtl.totalKill, 2, ' ')}`, null, new Position(ax, ay3), new Position(ax - 4, ay3 - 20), 190, 26, 'rgba(24,24,24,1)', true, '14px TimesNewRoman')
+    // this.contextCtl.refreshText(`CH: ${Tools.chineseFormatter(this.monsterCtl.totalCurrentHealth, 2, ' ')}`, null, new Position(ax, ay4), new Position(ax - 4, ay4 - 20), 190, 26, 'rgba(24,24,24,1)', true, '14px TimesNewRoman')
   }
 
 }

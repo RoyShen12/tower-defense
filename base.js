@@ -477,7 +477,7 @@ class Tools {
 
       let dotCount = 0
       target[dotDebuffName].push(thisId)
-      console.log(singleAttack, Math.ceil(duration / interval))
+      // console.log(singleAttack, Math.ceil(duration / interval))
       const itv = setInterval(() => {
         if (++dotCount > duration / interval) {
           // 效果结束、结束计时器
@@ -738,7 +738,7 @@ class TowerBase extends ItemBase {
     ['等级', '鼠标单击图标或按[C]键来消耗金币升级，等级影响很多属性，到达某个等级可以晋升'],
     ['下一级', '升级到下一级需要的金币数量'],
     ['售价', '出售此塔可以返还的金币数量'],
-    ['可用点数', '升级传奇宝石等级的点数，杀敌、制造伤害、升级均可获得点数'],
+    // ['可用点数', '升级传奇宝石等级的点数，杀敌、制造伤害、升级均可获得点数'],
     ['伤害', '此塔的基础攻击力'],
     ['攻击速度', '此塔的每秒攻击次数'],
     ['射程', '此塔的索敌距离，单位是像素'],
@@ -977,7 +977,7 @@ class TowerBase extends ItemBase {
       ['等级', this.levelHuman],
       ['下一级', this.isMaxLevel ? '最高等级' : '$ ' + Tools.formatterUs.format(Math.round(this.price[this.level + 1]))],
       ['售价', '$ ' + Tools.formatterUs.format(Math.round(this.sellingPrice))],
-      ['可用点数', Tools.formatterUs.format(Game.updateGemPoint)],
+      // ['可用点数', Tools.formatterUs.format(Game.updateGemPoint)],
       ['伤害', Tools.chineseFormatter(Math.round(this.Atk), 3)],
       ['攻击速度', Tools.roundWithFixed(this.HstPS, 2)],
       ['射程', Tools.formatterUs.format(Math.round(this.Rng))],
@@ -1010,11 +1010,19 @@ class TowerBase extends ItemBase {
     ]
   }
 
+  /**
+   * - 判断[this.target]是否仍然非空
+   * - 判断当前的敌人是否仍然在范围内
+   * - 判断当前的敌人是否仍然存活
+   */
   get isCurrentTargetAvailable() {
     if (!this.target || this.target.isDead) return false
     else return this.inRange(this.target)
   }
 
+  /**
+   * - 计算上次射击至今的时间，判断是否可以射击
+   */
   get canShoot() {
     return performance.now() - this.lastShootTime > this.Hst
   }
@@ -1036,7 +1044,7 @@ class TowerBase extends ItemBase {
   }
 
   /**
-   * 插入 Legendary Gem
+   * - 插入 Legendary Gem
    * @param {string} gemCtorName
    */
   inlayGem(gemCtorName) {
@@ -1084,6 +1092,8 @@ class TowerBase extends ItemBase {
   }
 
   /**
+   * - 在怪物中重选目标
+   * - 在乱序的怪物中找到首个在攻击范围内的
    * @param {MonsterBase[]} targetList
    */
   reChooseTarget(targetList) {
@@ -1230,7 +1240,7 @@ class TowerBase extends ItemBase {
   }
 
   /** @param {CanvasRenderingContext2D} context */
-  renderRange(context, style = 'rgba(177,188,45,.1)') {
+  renderRange(context, style = 'rgba(177,188,45,.05)') {
     context.fillStyle = style
     context.beginPath()
     context.arc(this.position.x, this.position.y, this.Rng, 0, Math.PI * 2, true)
@@ -1312,7 +1322,7 @@ class TowerBase extends ItemBase {
    * @param {number} [by2]
    * @param {boolean} [showGemPanel]
    */
-  renderStatusBoard(bx1, bx2, by1, by2, showGemPanel, showMoreDetail) {
+  renderStatusBoard(bx1, bx2, by1, by2, showGemPanel, showMoreDetail, specifedWidth) {
     showGemPanel = showGemPanel && this.canInsertGem
 
     const red = '#F51818'
@@ -1325,7 +1335,7 @@ class TowerBase extends ItemBase {
       dataChunk.forEach((data, idx) => {
         const showD = showDesc && this.constructor.informationDesc.has(data[0])
 
-        if (showD) console.log(data[0], showD, 'index: ' + idx + offset + jump)
+        // if (showD) console.log(data[0], showD, 'index: ' + idx + offset + jump)
 
         const row = rootNode.childNodes.item(idx + offset + jump)
         Tools.Dom.removeNodeTextAndStyle(row)
@@ -1351,7 +1361,8 @@ class TowerBase extends ItemBase {
           jump++
         }
 
-        if (data[0] === '可用点数') {
+        if (data[0] === '售价' || data[0] === '类型') {
+          row.lastChild.style.color = '#606266'
           renderDataType_dv(rootNode, idx + offset + jump + (showD ? 2 : 1))
           jump++
         }
@@ -1379,11 +1390,11 @@ class TowerBase extends ItemBase {
     }
 
     /// render start
-    const bWidth = 140
+    specifedWidth = specifedWidth || 140
 
     const blockElement = Game.callElement('status_block')
     blockElement.style.display = 'block'
-    blockElement.style.width = bWidth + 'px'
+    blockElement.style.width = specifedWidth + 'px'
     blockElement.style.borderBottomLeftRadius = showGemPanel ? '0' : ''
     blockElement.style.borderBottomRightRadius = showGemPanel ? '0' : ''
     blockElement.style.borderBottom = showGemPanel ? '0' : ''
@@ -1422,7 +1433,6 @@ class TowerBase extends ItemBase {
     // 需要显示Legendary Gem面板
     if (showGemPanel) {
       // 依赖的变量
-      // bWidth
       // this.gem *
       // this.id *
 
@@ -1431,7 +1441,7 @@ class TowerBase extends ItemBase {
       Tools.Dom.removeAllChildren(gemElement)
 
       gemElement.style.display = 'block'
-      gemElement.style.width = bWidth + 'px'
+      gemElement.style.width = specifedWidth + 'px'
       // gemElement.style.top = positionTLY + bHeight + 'px'
       // gemElement.style.left = positionTLX + 'px'
 
@@ -1468,7 +1478,7 @@ class TowerBase extends ItemBase {
           }
         }
         // TowerBase.GemsToOptions.forEach(opt => select.appendChild(opt))
-        select.innerHTML = TowerBase.GemsToOptionsInnerHtml
+        select.innerHTML = this.constructor.GemsToOptionsInnerHtml
         Tools.Dom.generateRow(gemElement, 'row_nh', { style: { margin: '0 0 8px 0' } }, [select])
 
         // const rowimg = Tools.Dom.generateRow(gemElement, null, { innerHTML: `<img src="${(eval(selected)).imgSrc}" class="lg_gem_img"></img>` })
@@ -1505,6 +1515,9 @@ class TowerBase extends ItemBase {
             this.renderStatusBoard(...arguments)
           }
         }
+        // if (this.constructor.deniedGems && this.constructor.deniedGems.includes(selected)) {
+        //   Tools.Dom.generateRow(gemElement, null, { textContent: this.name + ' 不能装备这个宝石' })
+        // }
         Tools.Dom.generateRow(gemElement, null, null, [btn])
       }
       // 展示Legendary Gem
@@ -1575,7 +1588,7 @@ class TowerBase extends ItemBase {
 
     let position = 2
 
-    if (this.position.x - bx1 < bWidth + this.radius) {
+    if (this.position.x - bx1 < specifedWidth + this.radius) {
       position = 1
       if (this.position.y - by1 < bHeight) {
         position = 4
@@ -1583,12 +1596,12 @@ class TowerBase extends ItemBase {
     }
     if (this.position.y - by1 < bHeight) {
       position = 3
-      if (this.position.x - bx1 < bWidth + this.radius) {
+      if (this.position.x - bx1 < specifedWidth + this.radius) {
         position = 4
       }
     }
 
-    const positionTLX = this.position.x - (position === 1 || position === 4 ? this.radius * -1 : bWidth + this.radius)
+    const positionTLX = this.position.x - (position === 1 || position === 4 ? this.radius * -1 : specifedWidth + this.radius)
     let positionTLY = this.position.y + (position === 1 || position === 2 ? -1 : 0) * (bHeight + this.radius)
     const pyBhGh = positionTLY + bHeight + gHeight
 
@@ -1615,6 +1628,8 @@ class TowerBase extends ItemBase {
 }
 
 class MonsterBase extends ItemBase {
+
+  static informationDesc = new Map()
 
   /**
    * @param {number} level
@@ -1679,6 +1694,16 @@ class MonsterBase extends ItemBase {
     this.isBoss = false
 
     this.isDead = false
+
+    this.name = null
+
+    this.description = null
+
+    this.exploitsSeq = [
+      ['赏金', Tools.chineseFormatter(this.reward, 0)]
+    ]
+
+    this.type = '普通怪物'
   }
 
   get armorResistance() {
@@ -1745,6 +1770,27 @@ class MonsterBase extends ItemBase {
    */
   get isTrapped() {
     return this.beTransformed || this.beImprisoned || this.beFrozen || this.beConfused || this.speedRatio < 1
+  }
+
+  /** @type {string[]} */
+  get descriptionChuned() {
+    if (!this.description) return []
+    return this.description.split('\n')
+  }
+
+  /**
+   * @type {[string, string][]}
+   */
+  get informationSeq() {
+    const base = [
+      [this.name, ''],
+      ['类型', this.type],
+      ['生命值', Tools.chineseFormatter(Math.round(this.__inner_current_health), 3) + '/' + Tools.chineseFormatter(Math.round(this.maxHealth), 3)],
+      ['移动速度', Tools.roundWithFixed(this.speedValue * 60, 1)],
+      ['护甲', Tools.formatterUs.format(Math.round(this.inner_armor)) + '（减伤 ' + Tools.roundWithFixed(this.armorResistance * 100, 1) + '%）'],
+    ]
+
+    return base
   }
 
   /**
@@ -1841,16 +1887,16 @@ class MonsterBase extends ItemBase {
 
   /**
    * @param {{x:number,y:number}[]} path
-   * @param {(changing: number) => void} lifeToken
+   * @param {(changing: number) => void} lifeTokenEmitter
    */
-  run(path, lifeToken, towers, monsters) {
+  run(path, lifeTokenEmitter, towers, monsters) {
 
     this.runDebuffs()
     if (this.beShocked) this.runShock(monsters)
 
     if (this.beImprisoned || this.beFrozen) return // 被禁锢、跳过
     if (path.length === 0) { // 完成任务，造成伤害，杀死自己
-      lifeToken(-this.damage)
+      lifeTokenEmitter(-this.damage)
       this.isDead = true
     }
     else {
@@ -1948,6 +1994,10 @@ class MonsterBase extends ItemBase {
       
       context.drawImage(dbf, x, y, dSize - 1, dSize - 1)
     })
+  }
+
+  renderStatusBoard() {
+    TowerBase.prototype.renderStatusBoard.call(this, ...arguments, 180)
   }
 
   /**

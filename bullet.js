@@ -324,7 +324,7 @@ class NormalArrow extends BulletBase {
     // console.log(critMagnification + ' X')
 
     // 穿甲
-    monster.health -= this.Atk * critMagnification * (1 - monster.armorResistance * .25)
+    monster.health -= this.Atk * critMagnification * (1 - monster.armorResistance * .7)
     this.emitter(monster)
 
     /**
