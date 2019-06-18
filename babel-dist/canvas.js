@@ -43,7 +43,7 @@ let CanvasManager = function () {
           this.offscreenCanvasMapping.set(id, canvasOff);
           ctx.manager = this;
           ctx.dom = canvasOff;
-          ctx.font = 'lighter 7px TimesNewRoman';
+          ctx.font = 'lighter 7px Game';
           return ctx;
         } else {
           const canvasEle = document.createElement('canvas');
@@ -56,7 +56,7 @@ let CanvasManager = function () {
           this.offscreenCanvasMapping.set(id, canvasEle);
           ctx.manager = this;
           ctx.dom = canvasEle;
-          ctx.font = 'lighter 7px TimesNewRoman';
+          ctx.font = 'lighter 7px Game';
           return ctx;
         }
       } else {
@@ -91,7 +91,7 @@ let CanvasManager = function () {
             }
           } else {
             ctx = canvasEle.getContext('2d');
-            ctx.font = 'lighter 7px TimesNewRoman';
+            ctx.font = 'lighter 7px Game';
           }
 
           ctx.manager = this;

@@ -119,6 +119,7 @@ let Game = function () {
 
         if (selectedT) {
           this.selectedTowerTypeToBuild = selectedT;
+          Game.callHideStatusBlock();
           this.selectedTowerTypeToBuild.rerender(2);
         }
       } else {
@@ -275,10 +276,10 @@ let Game = function () {
       x: GY / 2 + 1,
       y: GX
     };
-    this.isPausing = true;
+    this.__inner_is_pausing = true;
     this.updateSpeedRatio = 1;
     this.__inner_b_arr = [new Array(this.gridX + 2).fill(0)];
-    this.money = this.__testMode ? 1e12 : 5e2;
+    this.money = this.__testMode ? 1e15 : 5e2;
     this.life = this.__testMode ? 8e4 : 20;
     this.towerForSelect = [];
     this.selectedTowerTypeToBuild = null;
@@ -685,7 +686,7 @@ let Game = function () {
     key: "renderOnce",
     value: function renderOnce() {
       const ctx = this.contextCtl._get_bg;
-      ctx.font = '12px TimesNewRoman';
+      ctx.font = '12px Game';
       ctx.strokeStyle = 'rgba(45,45,45,.5)';
       ctx.lineWidth = 1;
       ctx.strokeRect(1, 1, this.leftAreaWidth, this.leftAreaHeight);
@@ -874,21 +875,21 @@ let Game = function () {
     value: function renderMoney() {
       const ax = innerWidth - 160;
       const ay = innerHeight - 10;
-      this.contextCtl.refreshText(Tools.formatterUs.format(this.money), null, new Position(ax, ay), new Position(ax - 4, ay - 20), 160, 26, 'rgba(24,24,24,1)', true, '14px TimesNewRoman');
+      this.contextCtl.refreshText(Tools.formatterUs.format(this.money), null, new Position(ax, ay), new Position(ax - 4, ay - 20), 160, 26, 'rgba(24,24,24,1)', true, '14px Game');
     }
   }, {
     key: "renderLife",
     value: function renderLife() {
       const ax = innerWidth - 160;
       const ay = innerHeight - 40;
-      this.contextCtl.refreshText(this.life, null, new Position(ax, ay), new Position(ax - 4, ay - 20), 160, 26, 'rgba(24,24,24,1)', true, '14px TimesNewRoman');
+      this.contextCtl.refreshText(this.life, null, new Position(ax, ay), new Position(ax - 4, ay - 20), 160, 26, 'rgba(24,24,24,1)', true, '14px Game');
     }
   }, {
     key: "renderGemPoint",
     value: function renderGemPoint() {
       const ax = innerWidth - 160;
       const ay = innerHeight - 70;
-      this.contextCtl.refreshText(Tools.formatterUs.format(this.updateGemPoint), null, new Position(ax, ay), new Position(ax - 4, ay - 20), 160, 26, 'rgba(24,24,24,1)', true, '14px TimesNewRoman');
+      this.contextCtl.refreshText(Tools.formatterUs.format(this.updateGemPoint), null, new Position(ax, ay), new Position(ax - 4, ay - 20), 160, 26, 'rgba(24,24,24,1)', true, '14px Game');
     }
   }, {
     key: "renderInformation",
@@ -906,6 +907,15 @@ let Game = function () {
       color = color || 'rgba(2,2,2,1)';
       fsize = fsize || 10;
       this.contextCtl.refreshText(text, null, new Position(bx + 4, by + fsize + 5), new Position(bx, by), maxWidth, 12 + fsize, color, true, `${fsize}px SourceCodePro`);
+    }
+  }, {
+    key: "isPausing",
+    set: function (v) {
+      this.startAndPauseButton.ele.textContent = v ? '开始' : '暂停';
+      this.__inner_is_pausing = v;
+    },
+    get: function () {
+      return this.__inner_is_pausing;
     }
   }, {
     key: "gridsWithWall",
@@ -993,7 +1003,13 @@ function _run() {
       yield imageCtrl.loadSpriteSheets();
       console.timeEnd('load images');
       document.body.removeChild(mask);
-      new Game(imageCtrl, 6 * 6, 4 * 6).init().run();
+      const g = new Game(imageCtrl, 6 * 6, 4 * 6);
+      g.init().run();
+      document.addEventListener("visibilitychange", e => {
+        if (document.hidden) {
+          g.isPausing = true;
+        }
+      }, false);
     } catch (error) {
       console.error(error);
     }

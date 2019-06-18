@@ -109,6 +109,7 @@ button:disabled {
   border: 0;
   padding: 4px 15px;
   width: 100px;
+  height: 32px;
 }
 .tm_btn {
   transform: none;
@@ -119,31 +120,32 @@ button:disabled {
   border: 0;
   padding: 4px 15px;
   width: auto;
+  height: 32px;
 }
 
 .sp_btn:hover {
   background-color: rgba(102,177,255,.7);
-  border: 0;
+  outline: 0;
 }
 .sp_btn:focus, .sp_btn:active {
   background-color: rgba(58,142,230,.7);
-  border: 0;
+  outline: 0;
 }
 .sc_btn:hover {
   background-color: rgba(235,181,99,.7);
-  border: 0;
+  outline: 0;
 }
 .sc_btn:focus, .sc_btn:active {
   background-color: rgba(207,146,54,.7);
-  border: 0;
+  outline: 0;
 }
 .tm_btn:hover {
   background-color: rgba(166,169,173,.7);
-  border: 0;
+  outline: 0;
 }
 .tm_btn:focus, .tm_btn:active {
   background-color: rgba(166,169,173,.7);
-  border: 0;
+  outline: 0;
 }
 /* progress bar */
 .el-loading-mask {

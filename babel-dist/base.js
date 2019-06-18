@@ -1423,6 +1423,7 @@ let MonsterBase = function (_ItemBase2) {
   }, {
     key: "renderLevel",
     value: function renderLevel(context) {
+      context.font = '6px TimesNewRoman';
       context.fillStyle = context.manager.towerLevelTextStyle;
       context.fillText('lv ' + this.__inner_level, this.position.x + this.radius * 0.78, this.position.y - this.radius * 0.78);
     }
@@ -1483,7 +1484,6 @@ let MonsterBase = function (_ItemBase2) {
     key: "render",
     value: function render(context, imgCtl) {
       const ftmp = context.font;
-      context.font = '6px TimesNewRoman';
 
       _get(_getPrototypeOf(MonsterBase.prototype), "render", this).call(this, context);
 

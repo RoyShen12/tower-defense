@@ -200,7 +200,7 @@ let PainEnhancer = function (_GemBase) {
   }, {
     key: "description",
     get: function () {
-      return PainEnhancer.__base_description.replace('$', (this.bleedDamageRatio * 100).toFixed(1).padStart(7));
+      return PainEnhancer.__base_description.replace('$', (this.bleedDamageRatio * 100).toFixed(1));
     }
   }, {
     key: "levelUpPoint",
@@ -294,7 +294,7 @@ let GogokOfSwiftness = function (_GemBase2) {
   }, {
     key: "description",
     get: function () {
-      return GogokOfSwiftness.__base_description.replace('$', (this.hasteAddition * 100).toFixed(1).padStart(6));
+      return GogokOfSwiftness.__base_description.replace('$', (this.hasteAddition * 100).toFixed(1));
     }
   }, {
     key: "levelUpPoint",
@@ -421,7 +421,7 @@ let MirinaeTeardropOfTheStarweaver = function (_GemBase3) {
   }, {
     key: "description",
     get: function () {
-      return MirinaeTeardropOfTheStarweaver.__base_description.replace('$', (this.chitDamageRatio * 100).toFixed(1).padStart(8));
+      return MirinaeTeardropOfTheStarweaver.__base_description.replace('$', (this.chitDamageRatio * 100).toFixed(1));
     }
   }, {
     key: "levelUpPoint",
@@ -510,7 +510,7 @@ let SimplicitysStrength = function (_GemBase4) {
   }, {
     key: "description",
     get: function () {
-      return SimplicitysStrength.__base_description.replace('$', (this.attackAddition * 100).toFixed(1).padStart(6));
+      return SimplicitysStrength.__base_description.replace('$', (this.attackAddition * 100).toFixed(1));
     }
   }, {
     key: "levelUpPoint",
@@ -548,7 +548,7 @@ let BaneOfTheStricken = function (_GemBase5) {
   }, {
     key: "maxLevel",
     get: function () {
-      return 500;
+      return Infinity;
     }
   }, {
     key: "damageMakingRatioOnBoss",
@@ -621,7 +621,7 @@ let BaneOfTheStricken = function (_GemBase5) {
   }, {
     key: "description",
     get: function () {
-      return BaneOfTheStricken.__base_description.replace('$', (this.damageMakingRatioPerHit * 100).toFixed(2).padStart(5));
+      return BaneOfTheStricken.__base_description.replace('$', (this.damageMakingRatioPerHit * 100).toFixed(2));
     }
   }, {
     key: "levelUpPoint",
@@ -705,7 +705,7 @@ let GemOfEase = function (_GemBase6) {
   }, {
     key: "description",
     get: function () {
-      return GemOfEase.__base_description.replace('$', this.goldAddition.toFixed(0).padStart(6));
+      return GemOfEase.__base_description.replace('$', this.goldAddition.toFixed(0));
     }
   }, {
     key: "levelUpPoint",
@@ -794,7 +794,7 @@ let GemOfMysterious = function (_GemBase7) {
   }, {
     key: "description",
     get: function () {
-      return GemOfMysterious.__base_description.replace('$', this.pointAddition.toFixed(0).padStart(6));
+      return GemOfMysterious.__base_description.replace('$', this.pointAddition.toFixed(0));
     }
   }, {
     key: "levelUpPoint",
@@ -878,7 +878,7 @@ let BaneOfTheTrapped = function (_GemBase8) {
   }, {
     key: "description",
     get: function () {
-      return BaneOfTheTrapped.__base_description.replace('$', (this.damageMakingRatioOnTrapped * 100).toFixed(1).padStart(5));
+      return BaneOfTheTrapped.__base_description.replace('$', (this.damageMakingRatioOnTrapped * 100).toFixed(1));
     }
   }, {
     key: "levelUpPoint",
@@ -1011,7 +1011,7 @@ let ZeisStoneOfVengeance = function (_GemBase9) {
   }, {
     key: "description",
     get: function () {
-      return ZeisStoneOfVengeance.__base_description.replace('$', (this.damageMakingRatioMin * 100).toFixed(2).padStart(6)).replace('$', (this.damageMakingRatioMax * 100).toFixed(2).padStart(7));
+      return ZeisStoneOfVengeance.__base_description.replace('$', (this.damageMakingRatioMin * 100).toFixed(2)).replace('$', (this.damageMakingRatioMax * 100).toFixed(2));
     }
   }, {
     key: "levelUpPoint",
@@ -1049,12 +1049,12 @@ let EchoOfLight = function (_GemBase10) {
   }, {
     key: "baseExtraTotalDamageRatio",
     get: function () {
-      return 0.4;
+      return 0.1;
     }
   }, {
     key: "extraTotalDamageRatioLevelMx",
     get: function () {
-      return 0.02;
+      return 0.005;
     }
   }, {
     key: "duration",
@@ -1108,7 +1108,7 @@ let EchoOfLight = function (_GemBase10) {
   }, {
     key: "description",
     get: function () {
-      return EchoOfLight.__base_description.replace('$', (this.extraTotalDamageRatio * 100).toFixed(0).padStart(6));
+      return EchoOfLight.__base_description.replace('$', (this.extraTotalDamageRatio * 100).toFixed(0));
     }
   }, {
     key: "levelUpPoint",
@@ -1146,12 +1146,12 @@ let GemOfAnger = function (_GemBase11) {
   }, {
     key: "baseDamageAdditionPerEnemy",
     get: function () {
-      return 0.01;
+      return 0.02;
     }
   }, {
     key: "damageAdditionPerEnemyLevelMx",
     get: function () {
-      return 0.0002;
+      return 0.008;
     }
   }, {
     key: "stasisDescription",
@@ -1180,7 +1180,7 @@ let GemOfAnger = function (_GemBase11) {
   }, {
     key: "description",
     get: function () {
-      return GemOfAnger.__base_description.replace('$', (this.damageAdditionPerEnemy * 100).toFixed(2).padStart(8));
+      return GemOfAnger.__base_description.replace('$', (this.damageAdditionPerEnemy * 100).toFixed(2));
     }
   }, {
     key: "levelUpPoint",
