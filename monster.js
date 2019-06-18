@@ -279,9 +279,9 @@ class HighPriest extends MonsterBase {
     const xaxisOffset = this.healthBarWidth < this.radius * 2 ? 0 : this.healthBarWidth / 2 - this.radius
 
     context.save()
-    context.fillStyle = 'rgba(0,0,0,1)'
-    context.font = '8px TimesNewRoman'
-    context.fillText(`${Tools.chineseFormatter(this.health, 1)}/${Tools.chineseFormatter(this.maxHealth, 1)}`, this.position.x - this.radius - xaxisOffset + this.healthBarWidth + 2, this.position.y + this.inscribedSquareSideLength / 1.5 + 5)
+    context.fillStyle = this.healthBarTextFillStyle
+    context.font = this.healthBarTextFontStyle
+    context.fillText(`${Tools.chineseFormatter(this.health, 1)}/${Tools.chineseFormatter(this.maxHealth, 1)}`, this.position.x + this.radius + xaxisOffset + 2, this.position.y + this.inscribedSquareSideLength / 1.5 + 5)
     context.restore()
   }
 }
@@ -336,9 +336,9 @@ class Devil extends MonsterBase {
     const xaxisOffset = this.healthBarWidth < this.radius * 2 ? 0 : this.healthBarWidth / 2 - this.radius
 
     context.save()
-    context.fillStyle = 'rgba(0,0,0,1)'
-    context.font = '8px TimesNewRoman'
-    context.fillText(`${Tools.chineseFormatter(this.health, 1)}/${Tools.chineseFormatter(this.maxHealth, 1)}`, this.position.x - this.radius - xaxisOffset + this.healthBarWidth + 2, this.position.y + this.inscribedSquareSideLength / 1.5 + 5)
+    context.fillStyle = this.healthBarTextFillStyle
+    context.font = this.healthBarTextFontStyle
+    context.fillText(`${Tools.chineseFormatter(this.health, 1)}/${Tools.chineseFormatter(this.maxHealth, 1)}`, this.position.x + this.radius + xaxisOffset + 2, this.position.y + this.inscribedSquareSideLength / 1.5 + 5)
     context.restore()
   }
 }

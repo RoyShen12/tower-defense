@@ -28,6 +28,7 @@ class Tools {
           })
         }
       })
+      return node
     }
     /**
      * @param {Node | HTMLBodyElement} node
@@ -799,6 +800,10 @@ class TowerBase extends ItemBase {
     {
       ctor: EchoOfLight,
       name: 'EchoOfLight'
+    },
+    {
+      ctor: GemOfAnger,
+      name: 'GemOfAnger'
     }
   ]
 
@@ -886,6 +891,8 @@ class TowerBase extends ItemBase {
     this.levelSlcFx = levelSlcFx
     this.levelRngFx = levelRngFx
 
+    this.armorPenetratingRate = 0
+
     /** @type {MonsterBase | null} */
     this.target = null
 
@@ -903,6 +910,7 @@ class TowerBase extends ItemBase {
 
     this.__on_boss_atk_ratio = 1
     this.__on_trapped_atk_ratio = 1
+    this.__anger_gem_atk_ratio = 1
     this.__max_rng_atk_ratio = 1
     this.__min_rng_atk_ratio = 1
     /** @type {Map<number, number>} */
@@ -958,7 +966,7 @@ class TowerBase extends ItemBase {
    * 攻击力
    */
   get Atk() {
-    return this.levelAtkFx(this.level) * this.__atk_ratio
+    return this.levelAtkFx(this.level) * this.__atk_ratio * this.__anger_gem_atk_ratio
   }
 
   /**
@@ -1487,6 +1495,7 @@ class TowerBase extends ItemBase {
         }
 
         const select = document.createElement('select')
+        select.size = TowerBase.Gems.length
         select.style.width = '100%'
         select.style.fontSize = '12px'
         select.onchange = () => {
@@ -1795,6 +1804,14 @@ class MonsterBase extends ItemBase {
 
   get healthBarFillStyle() {
     return 'rgba(245,44,34,1)'
+  }
+
+  get healthBarTextFontStyle() {
+    return '8px TimesNewRoman'
+  }
+
+  get healthBarTextFillStyle() {
+    return 'rgba(0,0,0,1)'
   }
 
   /**

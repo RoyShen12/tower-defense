@@ -9,6 +9,7 @@
   <title>TD</title>
   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lodash@4.17.11/lodash.min.js"></script>
   <script type="text/javascript">
+    document.oncontextmenu = function (e) { e.preventDefault() }
     if (!localStorage.getItem('debug_mode')) {
       localStorage.setItem('debug_mode', '0')
     }
@@ -25,10 +26,9 @@
   <script type="text/javascript" src="ui.js"></script>
   <script type="text/javascript" src="astar.min.js"></script>
   <script type="text/javascript" src="game.js"></script>
-  <script type="text/javascript" src="flow.js"></script>
 </head>
 
-<body onload="run();">
+<body onload="new Game(6 * 6, 4 * 6).init().run()">
   <div id="status_block" class="bar" style="display: none;"></div>
   <div id="gem_block" class="bar bar2" style="display: none;"></div>
 </body>

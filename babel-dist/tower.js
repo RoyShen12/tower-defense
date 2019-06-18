@@ -43,8 +43,8 @@ const TowerManager = new Proxy((_temp = _class = function () {
     key: "run",
     value: function run(monsters) {
       this.towers.forEach(t => {
-        t.run(monsters);
         if (t.gem) t.gem.tickHook(t, monsters);
+        t.run(monsters);
       });
     }
   }, {
@@ -1643,7 +1643,7 @@ let CarrierTower = function (_TowerBase9) {
   return CarrierTower;
 }(TowerBase);
 
-_defineProperty(CarrierTower, "deniedGems", ['ZeisStoneOfVengeance']);
+_defineProperty(CarrierTower, "deniedGems", ['ZeisStoneOfVengeance', 'GemOfAnger']);
 
 _defineProperty(CarrierTower, "Jet", (_temp3 = _class3 = function (_TowerBase10) {
   _inherits(_Jet, _TowerBase10);

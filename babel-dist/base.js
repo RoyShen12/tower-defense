@@ -219,6 +219,8 @@ _defineProperty(Tools, "Dom", (_temp = _class = function () {
           });
         }
       });
+
+      return node;
     }
   }, {
     key: "genetateDiv",
@@ -600,6 +602,7 @@ let TowerBase = function (_ItemBase) {
     _this4.levelHstFx = levelHstFx;
     _this4.levelSlcFx = levelSlcFx;
     _this4.levelRngFx = levelRngFx;
+    _this4.armorPenetratingRate = 0;
     _this4.target = null;
     _this4.lastShootTime = _this4.bornStamp;
     _this4.__kill_count = 0;
@@ -611,6 +614,7 @@ let TowerBase = function (_ItemBase) {
     _this4.__kill_extra_gold = 0;
     _this4.__on_boss_atk_ratio = 1;
     _this4.__on_trapped_atk_ratio = 1;
+    _this4.__anger_gem_atk_ratio = 1;
     _this4.__max_rng_atk_ratio = 1;
     _this4.__min_rng_atk_ratio = 1;
     _this4.__each_monster_damage_ratio = new Map();
@@ -935,6 +939,7 @@ let TowerBase = function (_ItemBase) {
           }
 
           const select = document.createElement('select');
+          select.size = TowerBase.Gems.length;
           select.style.width = '100%';
           select.style.fontSize = '12px';
 
@@ -1117,7 +1122,7 @@ let TowerBase = function (_ItemBase) {
   }, {
     key: "Atk",
     get: function () {
-      return this.levelAtkFx(this.level) * this.__atk_ratio;
+      return this.levelAtkFx(this.level) * this.__atk_ratio * this.__anger_gem_atk_ratio;
     }
   }, {
     key: "Hst",
@@ -1219,6 +1224,9 @@ _defineProperty(TowerBase, "Gems", [{
 }, {
   ctor: EchoOfLight,
   name: 'EchoOfLight'
+}, {
+  ctor: GemOfAnger,
+  name: 'GemOfAnger'
 }]);
 
 _defineProperty(TowerBase, "deniedGems", []);
@@ -1522,6 +1530,16 @@ let MonsterBase = function (_ItemBase2) {
     key: "healthBarFillStyle",
     get: function () {
       return 'rgba(245,44,34,1)';
+    }
+  }, {
+    key: "healthBarTextFontStyle",
+    get: function () {
+      return '8px TimesNewRoman';
+    }
+  }, {
+    key: "healthBarTextFillStyle",
+    get: function () {
+      return 'rgba(0,0,0,1)';
     }
   }, {
     key: "isTrapped",

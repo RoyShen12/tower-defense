@@ -237,8 +237,8 @@ const TowerManager = new Proxy(
      */
     run(monsters) {
       this.towers.forEach(t => {
-        t.run(monsters)
         if (t.gem) t.gem.tickHook(t, monsters)
+        t.run(monsters)
       })
     }
 
@@ -1833,7 +1833,8 @@ class LaserTower extends TowerBase {
 class CarrierTower extends TowerBase {
 
   static deniedGems = [
-    'ZeisStoneOfVengeance'
+    'ZeisStoneOfVengeance',
+    'GemOfAnger'
   ]
 
   static Jet = class _Jet extends TowerBase {

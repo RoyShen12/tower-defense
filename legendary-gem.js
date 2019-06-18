@@ -889,3 +889,65 @@ class EchoOfLight extends GemBase {
     )
   }
 }
+
+class GemOfAnger extends GemBase {
+
+  static get gemName() {
+    return '愤怒宝石'
+  }
+
+  static get price() {
+    return 30000
+  }
+
+  static get maxLevel() {
+    return Infinity
+  }
+
+  static get imgSrc() {
+    return 'data:image/png;base64,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'
+  }
+
+  static get baseDamageAdditionPerEnemy() {
+    return 0.01
+  }
+
+  static get damageAdditionPerEnemyLevelMx() {
+    return 0.0002
+  }
+
+  static get stasisDescription() {
+    return `攻击范围内每有1个敌人就使你的攻击力提高 ${Tools.roundWithFixed(this.baseDamageAdditionPerEnemy * 100, 2)}%（+${Tools.roundWithFixed(this.damageAdditionPerEnemyLevelMx * 100, 2)}%/等级）`
+  }
+
+  static get __base_description() {
+    return '攻击范围内每有1个敌人就使你的攻击力提高 $%'
+  }
+
+  constructor() {
+    super()
+  }
+
+  get description() {
+    return GemOfAnger.__base_description.replace('$', (this.damageAdditionPerEnemy * 100).toFixed(2).padStart(8)) // 1005.01
+  }
+
+  get levelUpPoint() {
+    return (this.level + 1) * 205
+  }
+
+  get damageAdditionPerEnemy() {
+    return GemOfAnger.baseDamageAdditionPerEnemy + this.level * GemOfAnger.damageAdditionPerEnemyLevelMx
+  }
+
+  /**
+   * @todo 如果这个钩子函数负担过重可以减少调用频率
+   * @param {TowerBase} thisTower
+   * @param {MonsterBase[]} monsters
+   */
+  tickHook(thisTower, monsters) {
+    const inRangeCount = monsters.filter(mst => thisTower.inRange(mst)).length
+    console.log('inRangeCount', inRangeCount)
+    thisTower.__anger_gem_atk_ratio = (this.damageAdditionPerEnemy * inRangeCount + 1)
+  }
+}

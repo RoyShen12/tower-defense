@@ -1,9 +1,12 @@
 class CanvasManager {
   constructor() {
+
     /** @type {(HTMLCanvasElement | OffscreenCanvas)[]} */
     this.canvasElements = []
+
     /** @type {Map<string, CanvasRenderingContext2D | OffscreenRenderingContext |　ImageBitmapRenderingContext>} */
     this.canvasContextMapping = new Map()
+
     /** @type {Map<string, OffscreenCanvas>} */
     this.offscreenCanvasMapping = new Map()
 

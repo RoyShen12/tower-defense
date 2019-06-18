@@ -251,8 +251,9 @@ let Game = function () {
 
     this.__testMode = localStorage.getItem('debug_mode') === '1';
     this.count = this.__testMode ? 50 : 0;
-    this.stepDivide = this.__testMode ? 4 : 8;
-    this.tick = 0;
+    this.stepDivide = this.__testMode ? 2 : 8;
+    this.updateTick = 0;
+    this.renderTick = 0;
     window.g = this;
     this.gridX = GX;
     this.gridY = GY;
@@ -411,6 +412,7 @@ let Game = function () {
     key: "initButtons",
     value: function initButtons() {
       const buttonTopA = this.gridSize * 7 + 'px';
+      const buttonTopB = this.gridSize * 8.5 + 'px';
       this.startAndPauseButton = new ButtonOnDom({
         id: 'start_pause_btn',
         className: 'sp_btn',
@@ -464,6 +466,83 @@ let Game = function () {
           window.location.reload();
         }
       });
+
+      if (this.__testMode) {
+        const ipt = Tools.Dom.__installOptionOnNode(document.createElement('input'), {
+          type: 'range',
+          min: '1',
+          max: '30',
+          step: '1',
+          value: this.stepDivide,
+          onchange: () => {
+            this.stepDivide = +ipt.value;
+            spn.refresh();
+          },
+          style: {
+            width: '50px'
+          }
+        });
+
+        const spn = Tools.Dom.__installOptionOnNode(document.createElement('span'), {
+          style: {
+            marginLeft: '10px'
+          },
+          refresh: () => {
+            spn.textContent = '升级步长 ' + this.stepDivide;
+          }
+        });
+
+        spn.refresh();
+
+        const spn2 = Tools.Dom.__installOptionOnNode(document.createElement('span'), {
+          style: {
+            marginLeft: '10px',
+            fontSize: '13px'
+          },
+          refresh: () => {
+            spn2.textContent = '步数 ' + Tools.formatterUs.format(this.count);
+          }
+        });
+
+        spn2.refresh();
+        setInterval(() => spn2.refresh(), 50);
+        Tools.Dom.generateRow(document.body, null, {
+          style: {
+            position: 'fixed',
+            top: buttonTopB,
+            left: this.leftAreaWidth + 30 + 'px',
+            lineHeight: '20px',
+            zIndex: '8'
+          }
+        }, [ipt, spn, Tools.Dom.__installOptionOnNode(document.createElement('button'), {
+          type: 'button',
+          textContent: '+100',
+          style: {
+            marginLeft: '20px'
+          },
+          onclick: () => {
+            this.count += 100;
+          }
+        }), Tools.Dom.__installOptionOnNode(document.createElement('button'), {
+          type: 'button',
+          textContent: '+1000',
+          onclick: () => {
+            this.count += 1000;
+          }
+        }), Tools.Dom.__installOptionOnNode(document.createElement('button'), {
+          type: 'button',
+          textContent: '+1万',
+          onclick: () => {
+            this.count += 10000;
+          }
+        }), Tools.Dom.__installOptionOnNode(document.createElement('button'), {
+          type: 'button',
+          textContent: '+1亿',
+          onclick: () => {
+            this.count += 1e8;
+          }
+        }), spn2]);
+      }
     }
   }, {
     key: "init",
@@ -551,6 +630,8 @@ let Game = function () {
       Game.callAnimation = (name, pos, w, h, speed, delay, wait, cb) => {
         this.imageCtl.onPlaySprites.push(new HostedAnimationSprite(this.imageCtl.getSprite(name).getClone(speed), pos, w, h, delay, false, wait));
       };
+
+      return this;
     }
   }, {
     key: "renderOnce",
@@ -670,14 +751,14 @@ let Game = function () {
   }, {
     key: "update",
     value: function update() {
-      this.tick++;
+      this.updateTick++;
 
       if (!this.isPausing && !window.__d_stop_ms) {
-        if (this.tick % (this.__testMode ? 10 : 100) === 0) {
+        if (this.updateTick % (this.__testMode ? 10 : 100) === 0) {
           this.placeMonster(Math.floor(++this.count / this.stepDivide), this.OriginPosition.copy(), _.shuffle(['Swordman', 'Axeman', 'LionMan'])[0]);
         }
 
-        if (this.tick % (this.__testMode ? 501 : 1201) === 0) {
+        if (this.updateTick % (this.__testMode ? 501 : 1201) === 0) {
           this.placeMonster(Math.floor(++this.count / this.stepDivide + (this.__testMode ? 100 : 0)), this.OriginPosition.copy(), _.shuffle(['Devil', 'HighPriest'])[0]);
         }
       }
@@ -695,12 +776,14 @@ let Game = function () {
   }, {
     key: "render",
     value: function render(towerNeedRender = true) {
-      if (this.tick % 15 === 0) {
+      this.renderTick++;
+
+      if (this.renderTick % 2 === 0) {
         this.renderInformation();
         this.renderMoney();
-      } else if (this.tick % 31 === 0) {
+      } else if (this.renderTick % 5 === 0) {
         this.renderGemPoint();
-      } else if (this.tick % 61 === 0) {
+      } else if (this.renderTick % 60 === 0) {
         this.renderLife();
       }
 
@@ -709,8 +792,8 @@ let Game = function () {
       }
 
       this.monsterCtl.render(this.contextCtl._get_off_screen_render, this.imageCtl);
-      this.imageCtl.play(this.contextCtl._get_off_screen_render);
       this.bulletsCtl.render(this.contextCtl._get_off_screen_render);
+      this.imageCtl.play(this.contextCtl._get_off_screen_render);
       this.towerCtl.rapidRender(this.contextCtl._get_off_screen_render, this.monsterCtl.monsters);
 
       if (towerNeedRender) {
