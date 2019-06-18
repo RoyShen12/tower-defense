@@ -54,7 +54,7 @@ class CanvasManager {
 
         ctx.manager = this
         ctx.dom = canvasOff
-        ctx.font = 'lighter 7px TimesNewRoman'
+        ctx.font = 'lighter 7px Game'
 
         return ctx
       }
@@ -72,7 +72,7 @@ class CanvasManager {
 
         ctx.manager = this
         ctx.dom = canvasEle
-        ctx.font = 'lighter 7px TimesNewRoman'
+        ctx.font = 'lighter 7px Game'
 
         return ctx
       }
@@ -116,7 +116,7 @@ class CanvasManager {
       }
       else {
         ctx = canvasEle.getContext('2d')
-        ctx.font = 'lighter 7px TimesNewRoman'
+        ctx.font = 'lighter 7px Game'
       }
 
       ctx.manager = this

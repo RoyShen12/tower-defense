@@ -2020,6 +2020,7 @@ class MonsterBase extends ItemBase {
 
   /** @param {CanvasRenderingContext2D} context */
   renderLevel(context) {
+    context.font = '6px TimesNewRoman'
     
     context.fillStyle = context.manager.towerLevelTextStyle
     context.fillText('lv ' + this.__inner_level, this.position.x + this.radius * 0.78, this.position.y - this.radius * 0.78)
@@ -2083,7 +2084,6 @@ class MonsterBase extends ItemBase {
   
   render(context, imgCtl) {
     const ftmp = context.font
-    context.font = '6px TimesNewRoman'
 
     super.render(context)
     this.renderHealthBar(context)

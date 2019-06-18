@@ -171,7 +171,7 @@ class PainEnhancer extends GemBase {
   }
 
   get description() {
-    return PainEnhancer.__base_description.replace('$', (this.bleedDamageRatio * 100).toFixed(1).padStart(7)) // 2500.0
+    return PainEnhancer.__base_description.replace('$', (this.bleedDamageRatio * 100).toFixed(1))
   }
 
   get levelUpPoint() {
@@ -250,7 +250,7 @@ class GogokOfSwiftness extends GemBase {
   }
 
   get description() {
-    return GogokOfSwiftness.__base_description.replace('$', (this.hasteAddition * 100).toFixed(1).padStart(6)) // 715.0
+    return GogokOfSwiftness.__base_description.replace('$', (this.hasteAddition * 100).toFixed(1))
   }
 
   get levelUpPoint() {
@@ -341,7 +341,7 @@ class MirinaeTeardropOfTheStarweaver extends GemBase {
   }
 
   get description() {
-    return MirinaeTeardropOfTheStarweaver.__base_description.replace('$', (this.chitDamageRatio * 100).toFixed(1).padStart(8)) // 10000.0
+    return MirinaeTeardropOfTheStarweaver.__base_description.replace('$', (this.chitDamageRatio * 100).toFixed(1))
   }
 
   get levelUpPoint() {
@@ -438,7 +438,7 @@ class SimplicitysStrength extends GemBase {
   }
 
   get description() {
-    return SimplicitysStrength.__base_description.replace('$', (this.attackAddition * 100).toFixed(1).padStart(6)) // 125.0
+    return SimplicitysStrength.__base_description.replace('$', (this.attackAddition * 100).toFixed(1))
   }
 
   get levelUpPoint() {
@@ -483,7 +483,7 @@ class BaneOfTheStricken extends GemBase {
   }
 
   static get maxLevel() {
-    return 500
+    return Infinity
   }
 
   static get damageMakingRatioOnBoss() {
@@ -522,7 +522,7 @@ class BaneOfTheStricken extends GemBase {
   }
 
   get description() {
-    return BaneOfTheStricken.__base_description.replace('$', (this.damageMakingRatioPerHit * 100).toFixed(2).padStart(5)) // 2.80
+    return BaneOfTheStricken.__base_description.replace('$', (this.damageMakingRatioPerHit * 100).toFixed(2))
   }
 
   get levelUpPoint() {
@@ -600,7 +600,7 @@ class GemOfEase extends GemBase {
   }
 
   get description() {
-    return GemOfEase.__base_description.replace('$', this.goldAddition.toFixed(0).padStart(6)) // 10500
+    return GemOfEase.__base_description.replace('$', this.goldAddition.toFixed(0))
   }
 
   get levelUpPoint() {
@@ -672,7 +672,7 @@ class GemOfMysterious extends GemBase {
   }
 
   get description() {
-    return GemOfMysterious.__base_description.replace('$', this.pointAddition.toFixed(0).padStart(6)) // 10500
+    return GemOfMysterious.__base_description.replace('$', this.pointAddition.toFixed(0))
   }
 
   get levelUpPoint() {
@@ -740,7 +740,7 @@ class BaneOfTheTrapped extends GemBase {
   }
 
   get description() {
-    return BaneOfTheTrapped.__base_description.replace('$', (this.damageMakingRatioOnTrapped * 100).toFixed(1).padStart(5)) // 75.0
+    return BaneOfTheTrapped.__base_description.replace('$', (this.damageMakingRatioOnTrapped * 100).toFixed(1))
   }
 
   get levelUpPoint() {
@@ -840,7 +840,7 @@ class ZeisStoneOfVengeance extends GemBase {
   }
 
   get description() {
-    return ZeisStoneOfVengeance.__base_description.replace('$', (this.damageMakingRatioMin * 100).toFixed(2).padStart(6)).replace('$', (this.damageMakingRatioMax * 100).toFixed(2).padStart(7))
+    return ZeisStoneOfVengeance.__base_description.replace('$', (this.damageMakingRatioMin * 100).toFixed(2)).replace('$', (this.damageMakingRatioMax * 100).toFixed(2))
   }
 
   get levelUpPoint() {
@@ -897,11 +897,11 @@ class EchoOfLight extends GemBase {
   }
 
   static get baseExtraTotalDamageRatio() {
-    return 0.4
+    return 0.1
   }
 
   static get extraTotalDamageRatioLevelMx() {
-    return 0.02
+    return 0.005
   }
 
   static get duration() {
@@ -933,7 +933,7 @@ class EchoOfLight extends GemBase {
   }
 
   get description() {
-    return EchoOfLight.__base_description.replace('$', (this.extraTotalDamageRatio * 100).toFixed(0).padStart(6)) // 1000
+    return EchoOfLight.__base_description.replace('$', (this.extraTotalDamageRatio * 100).toFixed(0))
   }
 
   get levelUpPoint() {
@@ -983,11 +983,11 @@ class GemOfAnger extends GemBase {
   }
 
   static get baseDamageAdditionPerEnemy() {
-    return 0.01
+    return 0.02
   }
 
   static get damageAdditionPerEnemyLevelMx() {
-    return 0.0002
+    return 0.008
   }
 
   static get stasisDescription() {
@@ -1003,7 +1003,7 @@ class GemOfAnger extends GemBase {
   }
 
   get description() {
-    return GemOfAnger.__base_description.replace('$', (this.damageAdditionPerEnemy * 100).toFixed(2).padStart(8)) // 1005.01
+    return GemOfAnger.__base_description.replace('$', (this.damageAdditionPerEnemy * 100).toFixed(2))
   }
 
   get levelUpPoint() {
