@@ -9,14 +9,18 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
 let Game = function () {
   _createClass(Game, null, [{
     key: "IOC",
-    value: function IOC(itm, ctor, _ctx, centerX, centerY, R) {
+    value: function IOC(itm, ctor, _ctx, _txt_Fx, centerX, centerY, R, price) {
       itm.render(_ctx);
-      _ctx.textAlign = 'center';
-      _ctx.fillStyle = '#333';
 
-      _ctx.fillText('$' + ctor.p[0], centerX, centerY + R + 20);
+      itm.__rerender_text = price => {
+        const temp = _ctx.fillStyle;
+        const color = price ? price >= ctor.p[0] ? '#111111' : '#F56C6C' : '#111111';
 
-      _ctx.textAlign = 'start';
+        _txt_Fx(`$ ${ctor.p[0]}`, centerX - R * 0.55 - 2, centerY + R, R * 2, color, 10);
+      };
+
+      itm.__rerender_text(price);
+
       itm.__dn = ctor.dn;
       itm.__des = ctor.d;
       itm.__od = ctor.od;
@@ -153,6 +157,7 @@ let Game = function () {
       this.contextCtl._get_mouse.clearRect(0, 0, innerWidth, innerHeight);
 
       const mousePos = new Position(e.offsetX, e.offsetY);
+      if (this.__testMode) console.log('mouse move : ' + mousePos);
       this.lastMouseMovePosition = mousePos;
 
       if (this.selectedTowerTypeToBuild) {
@@ -255,6 +260,7 @@ let Game = function () {
     this.updateTick = 0;
     this.renderTick = 0;
     window.g = this;
+    window.__debug_show_refresh_rect = false;
     this.gridX = GX;
     this.gridY = GY;
     this.OriginGrid = {
@@ -315,6 +321,9 @@ let Game = function () {
     Game.callRemoveTower = t => this.removeTower(t);
 
     this.useClassicRenderStyle = 'OffscreenCanvas' in window ? false : true;
+    this.averageFrameInterval = 0;
+    this.renderTimeStamps = new Float64Array(512);
+    this.frameTimes = new Float64Array(64);
   }
 
   _createClass(Game, [{
@@ -409,10 +418,26 @@ let Game = function () {
       this.monsterCtl.Factory(ctorName, pos.dithering(this.gridSize / 3), imgName.indexOf('$spr::') !== -1 ? this.imageCtl.getSprite(imgName.substr(6)).getClone(sprSpd || 1) : this.imageCtl.getImage(imgName), level);
     }
   }, {
+    key: "emitMoney",
+    value: function emitMoney(changing, happenedPosition) {
+      this.money += changing;
+    }
+  }, {
+    key: "emitLife",
+    value: function emitLife(changing) {
+      this.life += changing;
+
+      if (this.life <= 0) {
+        this.life = 0;
+        this.isPausing = true;
+      }
+    }
+  }, {
     key: "initButtons",
     value: function initButtons() {
       const buttonTopA = this.gridSize * 7 + 'px';
-      const buttonTopB = this.gridSize * 8.5 + 'px';
+      const buttonTopB = this.gridSize * 9 + 'px';
+      const buttonTopC = this.gridSize * 11 + 'px';
       this.startAndPauseButton = new ButtonOnDom({
         id: 'start_pause_btn',
         className: 'sp_btn',
@@ -496,8 +521,7 @@ let Game = function () {
 
         const spn2 = Tools.Dom.__installOptionOnNode(document.createElement('span'), {
           style: {
-            marginLeft: '10px',
-            fontSize: '13px'
+            marginLeft: '30px'
           },
           refresh: () => {
             spn2.textContent = '步数 ' + Tools.formatterUs.format(this.count);
@@ -514,11 +538,11 @@ let Game = function () {
             lineHeight: '20px',
             zIndex: '8'
           }
-        }, [ipt, spn, Tools.Dom.__installOptionOnNode(document.createElement('button'), {
+        }, [ipt, spn, spn2, Tools.Dom.__installOptionOnNode(document.createElement('button'), {
           type: 'button',
           textContent: '+100',
           style: {
-            marginLeft: '20px'
+            marginLeft: '10px'
           },
           onclick: () => {
             this.count += 100;
@@ -541,7 +565,27 @@ let Game = function () {
           onclick: () => {
             this.count += 1e8;
           }
-        }), spn2]);
+        })]);
+        Tools.Dom.generateRow(document.body, null, {
+          style: {
+            position: 'fixed',
+            top: buttonTopC,
+            left: this.leftAreaWidth + 30 + 'px',
+            lineHeight: '20px',
+            zIndex: '8'
+          }
+        }, [Tools.Dom.__installOptionOnNode(document.createElement('span'), {
+          style: {
+            marginRight: '10px'
+          },
+          textContent: '切换显示重绘边框'
+        }), Tools.Dom.__installOptionOnNode(document.createElement('input'), {
+          type: 'checkbox',
+          value: 'on',
+          onchange: e => {
+            window.__debug_show_refresh_rect = e.target.checked;
+          }
+        })]);
       }
     }
   }, {
@@ -606,7 +650,7 @@ let Game = function () {
         ename: 'onmousedown',
         cb: e => {
           const mousePos = new Position(e.offsetX, e.offsetY);
-          console.log('mouse click axis: ' + mousePos);
+          if (this.__testMode) console.log('mouse down : ' + mousePos);
 
           switch (e.button) {
             case 0:
@@ -660,11 +704,11 @@ let Game = function () {
       ctx.fillRect((this.gridX - 1) * this.gridSize, this.gridY / 2 * this.gridSize, this.gridSize, this.gridSize);
 
       if (this.__testMode) {
-        this.contextCtl.refreshText('[ Test Mode ]', null, new Position(10, 25), new Position(8, 5), 120, 26, 'rgba(2,2,2,1)', true, '10px TimesNewRoman');
+        this.contextCtl.refreshText('[ Test Mode ]', null, new Position(10, 15), new Position(8, 15), 120, 26, 'rgba(230,204,55,1)', true, '10px SourceCodePro');
       }
 
-      this.contextCtl.refreshText('鼠标点击选取建造，连点两次鼠标右键出售已建造的塔', null, new Position(this.leftAreaWidth + 30, 30), new Position(this.leftAreaWidth + 28, 10), this.rightAreaWidth, 26, 'rgba(24,24,24,1)', true, '14px TimesNewRoman');
-      this.contextCtl.refreshText('出现详情时按[Ctrl]切换详细信息和说明', null, new Position(this.leftAreaWidth + 30, 70), new Position(this.leftAreaWidth + 28, 50), this.rightAreaWidth, 26, 'rgba(24,24,24,1)', true, '14px TimesNewRoman');
+      this.contextCtl.refreshText('鼠标点击选取建造，连点两次鼠标右键出售已建造的塔', null, new Position(this.leftAreaWidth + 30, 30), new Position(this.leftAreaWidth + 28, 10), this.rightAreaWidth, 26, 'rgba(24,24,24,1)', true, '14px Game');
+      this.contextCtl.refreshText('出现详情时按[Ctrl]切换详细信息和说明', null, new Position(this.leftAreaWidth + 30, 70), new Position(this.leftAreaWidth + 28, 50), this.rightAreaWidth, 26, 'rgba(24,24,24,1)', true, '14px Game');
       const tsAeraRectTL = new Position(this.leftAreaWidth + 30, 90);
       const tsMargin = this.gridSize / 2 - 2;
       const tsItemRadius = this.gridSize / 2 + 5;
@@ -683,14 +727,14 @@ let Game = function () {
           if (!_t.n.includes('$spr::')) {
             this.imageCtl.getImage(_t.n).then(img => {
               const temp = new ItemBase(new Position(ax, ay), tsItemRadius, 0, 'rgba(255,67,56,1)', img);
-              Game.IOC(temp, _t, ctx, ax, ay, tsItemRadius);
+              Game.IOC(temp, _t, ctx, this.renderStandardText.bind(this), ax, ay, tsItemRadius, this.money);
               this.towerForSelect.push(temp);
               this.towerForSelect.sort(Tools.compareProperties('__od'));
             });
           } else {
             const spr_d = this.imageCtl.getSprite(_t.n.substr(6)).getClone(6);
             const temp = new ItemBase(new Position(ax, ay), tsItemRadius, 0, 'rgba(255,67,56,1)', spr_d);
-            Game.IOC(temp, _t, ctx, ax, ay, tsItemRadius);
+            Game.IOC(temp, _t, ctx, this.renderStandardText.bind(this), ax, ay, tsItemRadius, this.money);
             this.towerForSelect.push(temp);
             this.towerForSelect.sort(Tools.compareProperties('__od'));
           }
@@ -698,15 +742,15 @@ let Game = function () {
       });
       const ax0 = innerWidth - 236;
       const ay0 = innerHeight - 10;
-      this.contextCtl.refreshText('金币', null, new Position(ax0, ay0), new Position(ax0 - 4, ay0 - 20), 160, 26, 'rgba(54,54,54,1)', true, '14px TimesNewRoman');
+      this.contextCtl.refreshText('金币', null, new Position(ax0, ay0), new Position(ax0 - 4, ay0 - 20), 160, 26, 'rgba(54,54,54,1)', true, '14px Game');
       this.imageCtl.getSprite('gold_spin').getClone(2).renderLoop(this.contextCtl._get_bg, new Position(innerWidth - 190, innerHeight - 25), 18, 18);
       const ax = innerWidth - 293;
       const ay = innerHeight - 70;
-      this.contextCtl.refreshText('传奇宝石点数', null, new Position(ax, ay), new Position(ax - 4, ay - 20), 160, 26, 'rgba(54,54,54,1)', true, '14px TimesNewRoman');
+      this.contextCtl.refreshText('传奇宝石点数', null, new Position(ax, ay), new Position(ax - 4, ay - 20), 160, 26, 'rgba(54,54,54,1)', true, '14px Game');
       this.imageCtl.getSprite('sparkle').getClone(10).renderLoop(this.contextCtl._get_bg, new Position(innerWidth - 190, innerHeight - 85), 18, 18);
       const ax2 = innerWidth - 250;
       const ay2 = innerHeight - 40;
-      this.contextCtl.refreshText('生命值', null, new Position(ax2, ay2), new Position(ax2 - 4, ay2 - 20), 160, 26, 'rgba(54,54,54,1)', true, '14px TimesNewRoman');
+      this.contextCtl.refreshText('生命值', null, new Position(ax2, ay2), new Position(ax2 - 4, ay2 - 20), 160, 26, 'rgba(54,54,54,1)', true, '14px Game');
       this.imageCtl.getImage('heart_px').then(img => {
         this.contextCtl._get_bg.drawImage(img, innerWidth - 190, innerHeight - 54, 18, 18);
       });
@@ -722,30 +766,22 @@ let Game = function () {
 
       this.render(flag);
 
-      if (window.__global_debug) {
-        setTimeout(() => {
+      if (this.__testMode) {
+        requestAnimationFrame(() => {
+          const runStart = performance.now();
           this.run();
-        }, 300);
-        return;
-      }
+          const ft = performance.now() - runStart;
+          this.renderStandardText(`[ Ft ${Tools.roundWithFixed(ft, 3)} ms ]`, 6, 80, 120);
+          const actualLength = Tools.typedArrayPush(this.frameTimes, ft);
 
-      requestAnimationFrame(() => {
-        this.run();
-      });
-    }
-  }, {
-    key: "emitMoney",
-    value: function emitMoney(changing, happenedPosition) {
-      this.money += changing;
-    }
-  }, {
-    key: "emitLife",
-    value: function emitLife(changing) {
-      this.life += changing;
-
-      if (this.life <= 0) {
-        this.life = 0;
-        this.isPausing = true;
+          if (actualLength === this.frameTimes.length) {
+            this.renderStandardText(`[ Ft avg ${Tools.roundWithFixed(this.frameTimes.reduce((c, p) => c + p, 0) / actualLength, 3)} ms ]`, 6, 100, 120);
+          }
+        });
+      } else {
+        requestAnimationFrame(() => {
+          this.run();
+        });
       }
     }
   }, {
@@ -776,15 +812,28 @@ let Game = function () {
   }, {
     key: "render",
     value: function render(towerNeedRender = true) {
+      if (this.renderTick === 0) {
+        this.renderInformation();
+        this.renderMoney();
+        this.renderGemPoint();
+        this.renderLife();
+      }
+
       this.renderTick++;
 
-      if (this.renderTick % 2 === 0) {
+      if (this.__testMode) {
+        this.renderStandardText(`[ R Tick ${this.renderTick} ]`, 6, 20, 120);
+        this.renderStandardText(`[ U Tick ${this.updateTick} ]`, 6, 40, 120);
+      }
+
+      if (this.renderTick % 3 === 0) {
         this.renderInformation();
         this.renderMoney();
       } else if (this.renderTick % 5 === 0) {
         this.renderGemPoint();
-      } else if (this.renderTick % 60 === 0) {
+      } else if (this.renderTick % 61 === 0) {
         this.renderLife();
+        this.towerForSelect.forEach(itm => itm.__rerender_text(this.money));
       }
 
       if (this.useClassicRenderStyle) {
@@ -803,13 +852,26 @@ let Game = function () {
       }
 
       this.contextCtl._get_main._off_screen_paint();
+
+      if (this.__testMode) {
+        const now = performance.now();
+        const actualLength = Tools.typedArrayPush(this.renderTimeStamps, now);
+
+        if (actualLength < 20) {
+          this.averageFrameInterval = (now - this.renderTimeStamps[0]) / actualLength;
+        } else {
+          this.averageFrameInterval = (now - this.renderTimeStamps[actualLength - 20]) / 20;
+        }
+
+        this.renderStandardText(`[ Fps ${(1000 / this.averageFrameInterval).toFixed(1)} ]`, 6, 60, 120);
+      }
     }
   }, {
     key: "renderMoney",
     value: function renderMoney() {
       const ax = innerWidth - 160;
       const ay = innerHeight - 10;
-      this.contextCtl.refreshText(this.moneyOnDispaly, null, new Position(ax, ay), new Position(ax - 4, ay - 20), 160, 26, 'rgba(24,24,24,1)', true, '14px TimesNewRoman');
+      this.contextCtl.refreshText(Tools.formatterUs.format(this.money), null, new Position(ax, ay), new Position(ax - 4, ay - 20), 160, 26, 'rgba(24,24,24,1)', true, '14px TimesNewRoman');
     }
   }, {
     key: "renderLife",
@@ -828,17 +890,19 @@ let Game = function () {
   }, {
     key: "renderInformation",
     value: function renderInformation() {
-      const ax = innerWidth - 190;
+      const ax = innerWidth - 220;
       const ay1 = innerHeight - 100;
       const ay2 = ay1 - 30;
       const ay3 = ay2 - 30;
-      this.contextCtl.refreshText(`总伤害: ${Tools.chineseFormatter(this.towerCtl.totalDamage, 2, ' ')}`, null, new Position(ax, ay2), new Position(ax - 4, ay2 - 20), 190, 26, 'rgba(24,24,24,1)', true, '14px TimesNewRoman');
-      this.contextCtl.refreshText(`总击杀: ${Tools.chineseFormatter(this.towerCtl.totalKill, 2, ' ')}`, null, new Position(ax, ay3), new Position(ax - 4, ay3 - 20), 190, 26, 'rgba(24,24,24,1)', true, '14px TimesNewRoman');
+      this.contextCtl.refreshText(`总伤害    ${Tools.chineseFormatter(this.towerCtl.totalDamage, 2, ' ')}`, null, new Position(ax, ay2), new Position(ax - 4, ay2 - 20), 190, 26, 'rgba(24,24,24,1)', true, '14px Game');
+      this.contextCtl.refreshText(`总击杀    ${Tools.chineseFormatter(this.towerCtl.totalKill, 2, ' ')}`, null, new Position(ax, ay3), new Position(ax - 4, ay3 - 20), 190, 26, 'rgba(24,24,24,1)', true, '14px Game');
     }
   }, {
-    key: "moneyOnDispaly",
-    get: function () {
-      return Tools.formatterUs.format(this.money);
+    key: "renderStandardText",
+    value: function renderStandardText(text, bx, by, maxWidth, color, fsize) {
+      color = color || 'rgba(2,2,2,1)';
+      fsize = fsize || 10;
+      this.contextCtl.refreshText(text, null, new Position(bx + 4, by + fsize + 5), new Position(bx, by), maxWidth, 12 + fsize, color, true, `${fsize}px SourceCodePro`);
     }
   }, {
     key: "gridsWithWall",
@@ -894,3 +958,20 @@ _defineProperty(Game, "callMonsterList", null);
 _defineProperty(Game, "callOriginPosition", null);
 
 _defineProperty(Game, "callDestinationPosition", null);
+
+function run() {
+  const request = new XMLHttpRequest();
+  request.addEventListener('readystatechange', e => {
+    if (request.readyState == 2 && request.status == 200) {} else if (request.readyState == 3) {} else if (request.readyState == 4) {
+      new FontFace('Game', request.response).load().then(resultFont => {
+        document.fonts.add(resultFont);
+        new Game(6 * 6, 4 * 6).init().run();
+      }).catch(error => {
+        console.error(error);
+      });
+    }
+  });
+  request.responseType = 'arraybuffer';
+  request.open('get', 'game_font_1.ttf');
+  request.send();
+}

@@ -107,9 +107,18 @@ let CanvasManager = function () {
     value: function refreshText(text, context, positionTL, outerBoxPositionTL, width, height, style, fillOrStroke = true, font) {
       context = context || this.getContext('bg');
       context.clearRect(outerBoxPositionTL.x, outerBoxPositionTL.y, width, height);
+
+      if (window.__debug_show_refresh_rect) {
+        context.save();
+        context.lineWidth = 1;
+        context.strokeStyle = 'rgba(255,0,0,.5)';
+        context.strokeRect(outerBoxPositionTL.x + 1, outerBoxPositionTL.y + 1, width - 2, height - 2);
+        context.restore();
+      }
+
       if (style) fillOrStroke ? context.fillStyle = style : context.strokeStyle = style;
       if (font) context.font = font;
-      fillOrStroke ? context.fillText(text, positionTL.x, positionTL.y) : context.strokeText(text, positionTL.x, positionTL.y);
+      fillOrStroke ? context.fillText(text, positionTL.x, positionTL.y, width) : context.strokeText(text, positionTL.x, positionTL.y, width);
     }
   }, {
     key: "towerLevelTextStyle",

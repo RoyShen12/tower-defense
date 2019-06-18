@@ -108,7 +108,7 @@ const TowerManager = new Proxy((_temp = _class = function () {
     }
 
   }),
-  r: lvl => lvl * 4 + 180,
+  r: lvl => lvl * 0.8 + 180,
   a: lvl => lvl * 2 + 2,
   h: () => 1,
   s: lvl => Math.floor(lvl / 20) + 2,
@@ -128,7 +128,7 @@ const TowerManager = new Proxy((_temp = _class = function () {
     }
 
   }),
-  r: lvl => lvl * 2 + 120,
+  r: lvl => lvl * 0.75 + 120,
   a: lvl => lvl * 2 + 2,
   h: lvl => 0.7 + lvl * 0.004,
   s: () => 1,
@@ -155,7 +155,7 @@ const TowerManager = new Proxy((_temp = _class = function () {
     }
 
   }),
-  r: lvl => lvl * 3 + 120,
+  r: lvl => lvl * 2.5 + 100,
   a: () => 0,
   h: () => Infinity,
   s: () => 0,
@@ -171,7 +171,7 @@ const TowerManager = new Proxy((_temp = _class = function () {
     }
 
   }),
-  r: lvl => lvl * 2 + 100,
+  r: lvl => lvl * 0.8 + 100,
   a: lvl => Math.round(lvl / 20 + 2),
   h: lvl => 2.1 + lvl * 0.1,
   s: () => 1,
@@ -192,7 +192,7 @@ const TowerManager = new Proxy((_temp = _class = function () {
     }
 
   }),
-  r: () => 100,
+  r: () => 70,
   a: lvl => 18 + Math.round((lvl / 2 + 3) * (lvl / 2 + 3)),
   h: lvl => 0.75 + lvl * 0.01,
   s: () => 0
@@ -210,7 +210,7 @@ const TowerManager = new Proxy((_temp = _class = function () {
     }
 
   }),
-  r: lvl => lvl * 4 + 180,
+  r: lvl => lvl * 1 + 140,
   a: lvl => 8800 + Math.round((lvl + 4) * (lvl + 4)),
   a2: lvl => 8800 + Math.round((lvl + 5) * (lvl + 5)),
   a3: lvl => 8800 + Math.round((lvl + 6) * (lvl + 6)),
@@ -234,7 +234,7 @@ const TowerManager = new Proxy((_temp = _class = function () {
     }
 
   }),
-  r: lvl => lvl * 1 + 90,
+  r: lvl => lvl * 0.55 + 90,
   a: lvl => Math.round(lvl * 3 + 10),
   h: () => 0.8,
   h2: () => 1,
@@ -1676,7 +1676,6 @@ _defineProperty(CarrierTower, "Jet", (_temp3 = _class3 = function (_TowerBase10)
     key: "calculateDamageRatio",
     value: function calculateDamageRatio(...args) {
       const ratio = this.carrierTower.calculateDamageRatio(...args);
-      console.log(ratio.toFixed(3).padEnd(12) + ' X');
       return ratio;
     }
   }, {

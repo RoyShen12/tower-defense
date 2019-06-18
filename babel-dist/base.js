@@ -28,18 +28,20 @@ let Tools = function () {
   }
 
   _createClass(Tools, null, [{
-    key: "k_m_b_Formatter",
-    value: function k_m_b_Formatter(num, precise = 1, useBillion = false) {
+    key: "britishFormatter",
+    value: function britishFormatter(num, precise = 1) {
       const thisAbs = Math.abs(num);
 
       if (thisAbs < 1e3) {
-        return num;
+        return this.roundWithFixed(num, precise) + '';
       } else if (thisAbs < 1e6) {
-        return this.roundWithFixed(num / 1000, precise) + ' k';
+        return this.roundWithFixed(num / 1e3, precise) + ' K';
       } else if (thisAbs < 1e9) {
-        return this.roundWithFixed(num / 1000000, precise) + ' m';
+        return this.roundWithFixed(num / 1e6, precise) + ' M';
+      } else if (thisAbs < 1e12) {
+        return this.roundWithFixed(num / 1e9, precise) + ' B';
       } else {
-        return useBillion ? Tools.formatterUs.format(Math.sign(num) * this.roundWithFixed(thisAbs / 1000000000, precise)) + ' b' : this.roundWithFixed(num / 1000000, precise) + ' m';
+        return Tools.formatterUs.format(this.roundWithFixed(num / 1e12, precise)) + ' T';
       }
     }
   }, {
@@ -60,6 +62,21 @@ let Tools = function () {
       } else {
           return this.roundWithFixed(num / 1e20, precise) + block + '垓';
         }
+    }
+  }, {
+    key: "typedArrayPush",
+    value: function typedArrayPush(tArr, newValue) {
+      const zeroIndex = tArr.indexOf(0);
+      const actualLength = zeroIndex === -1 ? tArr.length : zeroIndex + 1;
+
+      if (zeroIndex === -1) {
+        tArr.set(tArr.subarray(1));
+        tArr.set([newValue], tArr.length - 1);
+      } else {
+        tArr.set([newValue], zeroIndex);
+      }
+
+      return actualLength;
     }
   }, {
     key: "roundWithFixed",
@@ -612,6 +629,7 @@ let TowerBase = function (_ItemBase) {
     _this4.__hst_ps_ratio = 1;
     _this4.__atk_ratio = 1;
     _this4.__kill_extra_gold = 0;
+    _this4.__kill_extra_point = 0;
     _this4.__on_boss_atk_ratio = 1;
     _this4.__on_trapped_atk_ratio = 1;
     _this4.__anger_gem_atk_ratio = 1;
@@ -654,7 +672,7 @@ let TowerBase = function (_ItemBase) {
 
       if (isDead) {
         this.recordKill();
-        Game.updateGemPoint += isBoss ? TowerBase.killBossPointEarnings : TowerBase.killNormalPointEarnings;
+        Game.updateGemPoint += (isBoss ? TowerBase.killBossPointEarnings : TowerBase.killNormalPointEarnings) + this.__kill_extra_point;
 
         if (this.gem) {
           this.gem.killHook(this, arguments[0]);
@@ -881,7 +899,7 @@ let TowerBase = function (_ItemBase) {
         Tools.Dom.removeNodeTextAndStyle(div, 'division');
       };
 
-      specifedWidth = specifedWidth || 140;
+      specifedWidth = specifedWidth || 150;
       const blockElement = Game.callElement('status_block');
       blockElement.style.display = 'block';
       blockElement.style.width = specifedWidth + 'px';
@@ -1215,6 +1233,9 @@ _defineProperty(TowerBase, "Gems", [{
 }, {
   ctor: GemOfEase,
   name: 'GemOfEase'
+}, {
+  ctor: GemOfMysterious,
+  name: 'GemOfMysterious'
 }, {
   ctor: BaneOfTheTrapped,
   name: 'BaneOfTheTrapped'
