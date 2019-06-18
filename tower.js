@@ -220,7 +220,7 @@ const TowerManager = new Proxy(
     /**
      * @param {string} towerName
      * @param {Position} position
-     * @param {string | ImageBitmap | Promise<ImageBitmap> | AnimationSprite} image
+     * @param {string | ImageBitmap | AnimationSprite} image
      * @param {number} radius
      *
      * @returns {TowerBase}

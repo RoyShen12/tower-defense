@@ -647,7 +647,7 @@ class ItemBase extends CircleBase {
    * @param {number} radius
    * @param {number} borderWidth
    * @param {string} borderStyle
-   * @param {string | ImageBitmap | Promise<ImageBitmap> | AnimationSprite} image
+   * @param {string | ImageBitmap | AnimationSprite} image
    */
   constructor(position, radius, borderWidth, borderStyle, image) {
 
@@ -656,7 +656,7 @@ class ItemBase extends CircleBase {
     /**
      * - Item的图形描述符，可以是位图、位图的Promise、动画
      * - 如果为 null, 则必须具备 fill
-     * @type {ImageBitmap | Promise<ImageBitmap> | AnimationSprite | null}
+     * @type {ImageBitmap | AnimationSprite | null}
      */
     this.image = null
 
@@ -672,9 +672,6 @@ class ItemBase extends CircleBase {
     }
     else if (image instanceof AnimationSprite) {
       this.image = image
-    }
-    else if (image instanceof Promise) {
-      image.then(r => this.image = r)
     }
 
     this.intervalTimers = []

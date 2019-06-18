@@ -81,7 +81,7 @@ class Game {
 
 
   /**
-   * @type {(towerName: string, position: Position, image: string | AnimationSprite | ImageBitmap | Promise<ImageBitmap>, bulletImage: any, radius: number, ...extraArgs: any[]) => TowerBase}
+   * @type {(towerName: string, position: Position, image: string | AnimationSprite | ImageBitmap>, bulletImage: any, radius: number, ...extraArgs: any[]) => TowerBase}
    */
   static callTowerFactory = null
 
@@ -142,7 +142,10 @@ class Game {
     }
   }
 
-  constructor(GX = 36, GY = 24) {
+  /**
+   * @param {ImageManger} imageManager
+   */
+  constructor(imageManager, GX = 36, GY = 24) {
 
     this.__testMode = localStorage.getItem('debug_mode') === '1'
 
@@ -203,7 +206,7 @@ class Game {
     /** @type {ItemBase} */
     this.selectedTowerTypeToBuild = null
 
-    this.imageCtl = new ImageManger()
+    this.imageCtl = imageManager
     this.contextCtl = new CanvasManager()
     this.evtCtl = new EventManager()
     this.towerCtl = new TowerManager()
@@ -1059,13 +1062,10 @@ class Game {
         const ay = tsAeraRectTL.y + tsItemRadius
 
         if (!_t.n.includes('$spr::')) {
-          
-          this.imageCtl.getImage(_t.n).then(img => {
-            const temp = new ItemBase(new Position(ax, ay), tsItemRadius, 0, 'rgba(255,67,56,1)', img)
-            Game.IOC(temp, _t, ctx, this.renderStandardText.bind(this), ax, ay, tsItemRadius, this.money)
-            this.towerForSelect.push(temp)
-            this.towerForSelect.sort(Tools.compareProperties('__od'))
-          })
+          const temp = new ItemBase(new Position(ax, ay), tsItemRadius, 0, 'rgba(255,67,56,1)', this.imageCtl.getImage(_t.n))
+          Game.IOC(temp, _t, ctx, this.renderStandardText.bind(this), ax, ay, tsItemRadius, this.money)
+          this.towerForSelect.push(temp)
+          this.towerForSelect.sort(Tools.compareProperties('__od'))
         }
         else {
           const spr_d = this.imageCtl.getSprite(_t.n.substr(6)).getClone(6)
@@ -1090,9 +1090,7 @@ class Game {
     const ax2 = innerWidth - 250
     const ay2 = innerHeight - 40
     this.contextCtl.refreshText('生命值', null, new Position(ax2, ay2), new Position(ax2 - 4, ay2 - 20), 160, 26, 'rgba(54,54,54,1)', true, '14px Game')
-    this.imageCtl.getImage('heart_px').then(img => {
-      this.contextCtl._get_bg.drawImage(img, innerWidth - 190, innerHeight - 54, 18, 18)
-    })
+    this.contextCtl._get_bg.drawImage(this.imageCtl.getImage('heart_px'), innerWidth - 190, innerHeight - 54, 18, 18)
 
     // this.__inner_buttons.forEach(b => b.render(this.contextCtl._get_bg))
   }
@@ -1297,83 +1295,25 @@ class Game {
 
 }
 
-function run () {
-  // const tumbH = 64
-  // const tumb = Tools.Dom.__installOptionOnNode(document.createElement('div'), {
-  //   style: {
-  //     zIndex: '102',
-  //     display: 'block',
-  //     border: '0',
-  //     height: tumbH + 'px',
-  //     width: '0',
-  //     textAlign: 'center',
-  //     lineHeight: tumbH + 'px',
-  //     background: 'rgb(0,255,0)'
-  //   }
-  // })
-  // const bar = Tools.Dom.__installOptionOnNode(document.createElement('div'), {
-  //   style: {
-  //     position: 'fixed',
-  //     zIndex: '101',
-  //     top: `calc(50% - ${tumbH}px)`,
-  //     left: '0',
-  //     display: 'block',
-  //     border: '0',
-  //     height: '64px',
-  //     width: '100%',
-  //     background: 'rgb(224,224,224)'
-  //   }
-  // })
-  // const masking = Tools.Dom.__installOptionOnNode(document.createElement('div'), {
-  //   style: {
-  //     position: 'fixed',
-  //     zIndex: '100',
-  //     margin: '0',
-  //     top: '0',
-  //     left: '0',
-  //     display: 'block',
-  //     border: '0',
-  //     height: '100%',
-  //     width: '100%',
-  //     background: 'rgba(255,255,255,0.8)'
-  //   }
-  // })
-  // bar.appendChild(tumb)
-  // masking.appendChild(bar)
-  // document.body.appendChild(masking)
+async function run () {
+  try {
+    const resp = await fetch('game_font_1.ttf')
+    const fontBuffer = await resp.arrayBuffer()
+    const font = new FontFace('Game', fontBuffer)
+    const resultFont = await font.load()
+    document.fonts.add(resultFont)
+  } catch (error) {
+    console.error(error)
+  }
 
-  const request = new XMLHttpRequest()
+  try {
+    const imageCtrl = new ImageManger()
+    await imageCtrl.loadImages()
+    await imageCtrl.loadSpriteSheets()
 
-  request.addEventListener('readystatechange', e => {
-    if (request.readyState == 2 && request.status == 200) {
-      // Download is being started
-    }
-    else if (request.readyState == 3) {
-      // Download is under progress
-    }
-    else if (request.readyState == 4) {
-      // Downloading has finished
-      new FontFace('Game', request.response)
-        .load()
-        .then(resultFont => {
-          document.fonts.add(resultFont)
-          // document.body.removeChild(masking)
+    new Game(imageCtrl, 6 * 6, 4 * 6).init().run()
+  } catch (error) {
+    
+  }
 
-          new Game(6 * 6, 4 * 6).init().run()
-        })
-        .catch(error => {
-          console.error(error)
-        })
-    }
-  })
-
-  // request.addEventListener('progress', e => {
-  //   const percent_complete = (e.loaded / e.total) * 100
-  //   console.log(percent_complete)
-  //   tumb.style.width = percent_complete + '%'
-  // })
-
-  request.responseType = 'arraybuffer'
-  request.open('get', 'game_font_1.ttf')
-  request.send()
 }

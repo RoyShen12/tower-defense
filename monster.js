@@ -20,7 +20,7 @@ class MonsterManager {
   /**
    * @param {string} monsterName
    * @param {Position} position
-   * @param {string | ImageBitmap | Promise<ImageBitmap> | AnimationSprite} image
+   * @param {string | ImageBitmap | AnimationSprite} image
    * @param {number} level
    *
    * @returns {MonsterBase}
