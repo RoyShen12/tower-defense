@@ -270,7 +270,7 @@ class Game {
 
     this.averageFrameInterval = 0
     this.renderTimeStamps = new Float64Array(512)
-    this.frameTimes = new Float64Array(64)
+    this.frameTimes = new Float64Array(128)
   }
 
   get gridsWithWall() {
@@ -1123,6 +1123,9 @@ class Game {
         if (actualLength === this.frameTimes.length) {
           this.renderStandardText(`[ Ft avg ${Tools.roundWithFixed(this.frameTimes.reduce((c, p) => c + p, 0) / actualLength, 3)} ms ]`, 6, 100, 120)
         }
+        else {
+          this.renderStandardText(`[ Ft avg - ms ]`, 6, 100, 120)
+        }
       })
     }
     else {
@@ -1296,24 +1299,37 @@ class Game {
 }
 
 async function run () {
+  const text = document.getElementById('loading_text')
+  const mask = document.getElementById('loading_mask')
   try {
+    console.time('load font')
+
+    text.textContent = '加载字体中'
     const resp = await fetch('game_font_1.ttf')
     const fontBuffer = await resp.arrayBuffer()
     const font = new FontFace('Game', fontBuffer)
     const resultFont = await font.load()
     document.fonts.add(resultFont)
+
+    console.timeEnd('load font')
   } catch (error) {
     console.error(error)
   }
 
   try {
+    console.time('load images')
+
     const imageCtrl = new ImageManger()
+    text.textContent = '加载贴图'
     await imageCtrl.loadImages()
+    text.textContent = '加载动画'
     await imageCtrl.loadSpriteSheets()
 
+    console.timeEnd('load images')
+
+    document.body.removeChild(mask)
     new Game(imageCtrl, 6 * 6, 4 * 6).init().run()
   } catch (error) {
-    
+    console.error(error)
   }
-
 }

@@ -1,3 +1,7 @@
+function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
+
+function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
+
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
@@ -42,7 +46,7 @@ let Game = function () {
     }
   }]);
 
-  function Game(GX = 36, GY = 24) {
+  function Game(imageManager, GX = 36, GY = 24) {
     _classCallCheck(this, Game);
 
     _defineProperty(this, "leftClickHandler", mousePos => {
@@ -278,7 +282,7 @@ let Game = function () {
     this.life = this.__testMode ? 8e4 : 20;
     this.towerForSelect = [];
     this.selectedTowerTypeToBuild = null;
-    this.imageCtl = new ImageManger();
+    this.imageCtl = imageManager;
     this.contextCtl = new CanvasManager();
     this.evtCtl = new EventManager();
     this.towerCtl = new TowerManager();
@@ -323,7 +327,7 @@ let Game = function () {
     this.useClassicRenderStyle = 'OffscreenCanvas' in window ? false : true;
     this.averageFrameInterval = 0;
     this.renderTimeStamps = new Float64Array(512);
-    this.frameTimes = new Float64Array(64);
+    this.frameTimes = new Float64Array(128);
   }
 
   _createClass(Game, [{
@@ -725,12 +729,10 @@ let Game = function () {
           const ay = tsAeraRectTL.y + tsItemRadius;
 
           if (!_t.n.includes('$spr::')) {
-            this.imageCtl.getImage(_t.n).then(img => {
-              const temp = new ItemBase(new Position(ax, ay), tsItemRadius, 0, 'rgba(255,67,56,1)', img);
-              Game.IOC(temp, _t, ctx, this.renderStandardText.bind(this), ax, ay, tsItemRadius, this.money);
-              this.towerForSelect.push(temp);
-              this.towerForSelect.sort(Tools.compareProperties('__od'));
-            });
+            const temp = new ItemBase(new Position(ax, ay), tsItemRadius, 0, 'rgba(255,67,56,1)', this.imageCtl.getImage(_t.n));
+            Game.IOC(temp, _t, ctx, this.renderStandardText.bind(this), ax, ay, tsItemRadius, this.money);
+            this.towerForSelect.push(temp);
+            this.towerForSelect.sort(Tools.compareProperties('__od'));
           } else {
             const spr_d = this.imageCtl.getSprite(_t.n.substr(6)).getClone(6);
             const temp = new ItemBase(new Position(ax, ay), tsItemRadius, 0, 'rgba(255,67,56,1)', spr_d);
@@ -751,9 +753,8 @@ let Game = function () {
       const ax2 = innerWidth - 250;
       const ay2 = innerHeight - 40;
       this.contextCtl.refreshText('生命值', null, new Position(ax2, ay2), new Position(ax2 - 4, ay2 - 20), 160, 26, 'rgba(54,54,54,1)', true, '14px Game');
-      this.imageCtl.getImage('heart_px').then(img => {
-        this.contextCtl._get_bg.drawImage(img, innerWidth - 190, innerHeight - 54, 18, 18);
-      });
+
+      this.contextCtl._get_bg.drawImage(this.imageCtl.getImage('heart_px'), innerWidth - 190, innerHeight - 54, 18, 18);
     }
   }, {
     key: "run",
@@ -776,6 +777,8 @@ let Game = function () {
 
           if (actualLength === this.frameTimes.length) {
             this.renderStandardText(`[ Ft avg ${Tools.roundWithFixed(this.frameTimes.reduce((c, p) => c + p, 0) / actualLength, 3)} ms ]`, 6, 100, 120);
+          } else {
+            this.renderStandardText(`[ Ft avg - ms ]`, 6, 100, 120);
           }
         });
       } else {
@@ -960,18 +963,40 @@ _defineProperty(Game, "callOriginPosition", null);
 _defineProperty(Game, "callDestinationPosition", null);
 
 function run() {
-  const request = new XMLHttpRequest();
-  request.addEventListener('readystatechange', e => {
-    if (request.readyState == 2 && request.status == 200) {} else if (request.readyState == 3) {} else if (request.readyState == 4) {
-      new FontFace('Game', request.response).load().then(resultFont => {
-        document.fonts.add(resultFont);
-        new Game(6 * 6, 4 * 6).init().run();
-      }).catch(error => {
-        console.error(error);
-      });
+  return _run.apply(this, arguments);
+}
+
+function _run() {
+  _run = _asyncToGenerator(function* () {
+    const text = document.getElementById('loading_text');
+    const mask = document.getElementById('loading_mask');
+
+    try {
+      console.time('load font');
+      text.textContent = '加载字体中';
+      const resp = yield fetch('game_font_1.ttf');
+      const fontBuffer = yield resp.arrayBuffer();
+      const font = new FontFace('Game', fontBuffer);
+      const resultFont = yield font.load();
+      document.fonts.add(resultFont);
+      console.timeEnd('load font');
+    } catch (error) {
+      console.error(error);
+    }
+
+    try {
+      console.time('load images');
+      const imageCtrl = new ImageManger();
+      text.textContent = '加载贴图';
+      yield imageCtrl.loadImages();
+      text.textContent = '加载动画';
+      yield imageCtrl.loadSpriteSheets();
+      console.timeEnd('load images');
+      document.body.removeChild(mask);
+      new Game(imageCtrl, 6 * 6, 4 * 6).init().run();
+    } catch (error) {
+      console.error(error);
     }
   });
-  request.responseType = 'arraybuffer';
-  request.open('get', 'game_font_1.ttf');
-  request.send();
+  return _run.apply(this, arguments);
 }

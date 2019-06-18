@@ -492,8 +492,6 @@ let ItemBase = function (_CircleBase) {
       _this3.image = image;
     } else if (image instanceof AnimationSprite) {
       _this3.image = image;
-    } else if (image instanceof Promise) {
-      image.then(r => _this3.image = r);
     }
 
     _this3.intervalTimers = [];
