@@ -7,6 +7,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1.0">
   <link href="global.css" rel="stylesheet" type="text/css">
   <title>TD</title>
+  <script type="text/javascript" src="pace.min.js"></script>
   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lodash@4.17.11/lodash.min.js"></script>
   <script type="text/javascript">
     document.oncontextmenu = function (e) { e.preventDefault() }
@@ -28,7 +29,7 @@
   <script type="text/javascript" src="game.js"></script>
 </head>
 
-<body onload="new Game(6 * 6, 4 * 6).init().run()">
+<body onload="run()">
   <div id="status_block" class="bar" style="display: none;"></div>
   <div id="gem_block" class="bar bar2" style="display: none;"></div>
 </body>

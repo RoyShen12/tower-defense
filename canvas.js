@@ -139,20 +139,30 @@ class CanvasManager {
   /**
    * @param {string | number} text
    * @param {CanvasRenderingContext2D} context
-   * @param {Position} positionTL
-   * @param {Position} outerBoxPositionTL
-   * @param {number} width
-   * @param {number} height
+   * @param {Position} positionTL 文字的实际绘制位置
+   * @param {Position} outerBoxPositionTL 文字的外边框，会被刷新的区域
+   * @param {number} width 外边框宽度
+   * @param {number} height 外边框高度
    * @param {string} [style]
    * @param {boolean} [fillOrStroke]
    * @param {string} [font]
    */
   refreshText(text, context, positionTL, outerBoxPositionTL, width, height, style, fillOrStroke = true, font) {
     context = context || this.getContext('bg')
+
     context.clearRect(outerBoxPositionTL.x, outerBoxPositionTL.y, width, height)
+
+    if (window.__debug_show_refresh_rect) {
+      context.save()
+      context.lineWidth = 1
+      context.strokeStyle = 'rgba(255,0,0,.5)'
+      context.strokeRect(outerBoxPositionTL.x + 1, outerBoxPositionTL.y + 1, width - 2, height - 2)
+      context.restore()
+    }
+
     if (style) fillOrStroke ? context.fillStyle = style : context.strokeStyle = style
     if (font) context.font = font
-    
-    fillOrStroke ? context.fillText(text, positionTL.x, positionTL.y) : context.strokeText(text, positionTL.x, positionTL.y)
+
+    fillOrStroke ? context.fillText(text, positionTL.x, positionTL.y, width) : context.strokeText(text, positionTL.x, positionTL.y, width)
   }
 }

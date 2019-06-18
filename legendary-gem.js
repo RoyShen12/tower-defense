@@ -40,17 +40,17 @@ class GemBase {
   }
 
   get gemName() {
-    
+
     return this.constructor.gemName
   }
 
   get imgSrc() {
-    
+
     return this.constructor.imgSrc
   }
 
   get maxLevelHuman() {
-    
+
     return isFinite(this.constructor.maxLevel) ? (this.constructor.maxLevel + '  级') : '∞'
   }
 
@@ -62,23 +62,25 @@ class GemBase {
   }
 
   get isMaxLevel() {
-    
+
     return this.level >= this.constructor.maxLevel
   }
 
   get description() {
+
     return ''
   }
 
   levelUp(currentPoint) {
+
     if (this.isMaxLevel) return 0
+
     if (this.levelUpPoint > currentPoint) {
       return 0
     }
     else {
       const cost = this.levelUpPoint
       this.level += 1
-
       return cost
     }
   }
@@ -563,7 +565,7 @@ class GemOfEase extends GemBase {
   }
 
   static get price() {
-    return 100000
+    return 10000
   }
 
   static get maxLevel() {
@@ -623,6 +625,78 @@ class GemOfEase extends GemBase {
     const ret = super.levelUp(currentPoint)
 
     this.tower.__kill_extra_gold = this.goldAddition
+
+    return ret
+  }
+}
+
+class GemOfMysterious extends GemBase {
+
+  static get gemName() {
+    return '秘法宝石'
+  }
+
+  static get price() {
+    return 500000
+  }
+
+  static get maxLevel() {
+    return 50
+  }
+
+  static get imgSrc() {
+    return 'data:image/png;base64,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'
+  }
+
+  static get basePointAddition() {
+    return 4000
+  }
+
+  static get pointAdditionLevelMx() {
+    return 500
+  }
+
+  static get stasisDescription() {
+    return `消灭敌人获得的传奇点数 +${this.basePointAddition}（+${this.pointAdditionLevelMx}/等级）`
+  }
+
+  static get __base_description() {
+    return '消灭敌人获得的传奇点数 +$'
+  }
+
+  constructor() {
+    super()
+
+    /** @type {TowerBase} */
+    this.tower = null
+  }
+
+  get description() {
+    return GemOfMysterious.__base_description.replace('$', this.pointAddition.toFixed(0).padStart(6)) // 10500
+  }
+
+  get levelUpPoint() {
+    return (this.level + 1) * 100
+  }
+
+  get pointAddition() {
+    return GemOfMysterious.basePointAddition + this.level * GemOfMysterious.pointAdditionLevelMx
+  }
+
+  /**
+   * @override
+   * @param {TowerBase} thisTower
+   */
+  initEffect(thisTower) {
+    this.tower = thisTower
+
+    this.tower.__kill_extra_point = this.pointAddition
+  }
+
+  levelUp(currentPoint) {
+    const ret = super.levelUp(currentPoint)
+
+    this.tower.__kill_extra_point = this.pointAddition
 
     return ret
   }
@@ -947,7 +1021,7 @@ class GemOfAnger extends GemBase {
    */
   tickHook(thisTower, monsters) {
     const inRangeCount = monsters.filter(mst => thisTower.inRange(mst)).length
-    console.log('inRangeCount', inRangeCount)
+    // console.log('inRangeCount', inRangeCount)
     thisTower.__anger_gem_atk_ratio = (this.damageAdditionPerEnemy * inRangeCount + 1)
   }
 }

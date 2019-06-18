@@ -192,19 +192,22 @@ class Tools {
   static formatterUs = new Intl.NumberFormat('en-US')
   static formatterCh = new Intl.NumberFormat('zh-u-nu-hanidec')
 
-  static k_m_b_Formatter(num, precise = 1, useBillion = false) {
+  static britishFormatter(num, precise = 1) {
     const thisAbs = Math.abs(num)
     if (thisAbs < 1e3) {
-      return num
+      return this.roundWithFixed(num, precise) + ''
     }
     else if (thisAbs < 1e6) {
-      return this.roundWithFixed(num / 1000, precise) + ' k'
+      return this.roundWithFixed(num / 1e3, precise) + ' K'
     }
     else if (thisAbs < 1e9) {
-      return this.roundWithFixed(num / 1000000, precise) + ' m'
+      return this.roundWithFixed(num / 1e6, precise) + ' M'
+    }
+    else if (thisAbs < 1e12) {
+      return this.roundWithFixed(num / 1e9, precise) + ' B'
     }
     else {
-      return useBillion ? (Tools.formatterUs.format(Math.sign(num) * this.roundWithFixed(thisAbs / 1000000000, precise)) + ' b') : (this.roundWithFixed(num / 1000000, precise) + ' m')
+      return Tools.formatterUs.format(this.roundWithFixed(num / 1e12, precise)) + ' T'
     }
   }
 
@@ -234,6 +237,29 @@ class Tools {
     else/* if (thisAbs < 1e24)*/ {
       return this.roundWithFixed(num / 1e20, precise) + block + '垓'
     }
+  }
+
+  /**
+   * - 将新值推入类型数组的尾部，如已满会抛弃最头部的一个值
+   * - 返回此数组的实际类型
+   * - 此方法认为所有连续 0 值都来自初始化
+   * @param {Float64Array} tArr
+   * @param {number} newValue
+   *
+   * @returns {number} actual length
+   */
+  static typedArrayPush(tArr, newValue) {
+    const zeroIndex = tArr.indexOf(0)
+    const actualLength = zeroIndex === -1 ? tArr.length : zeroIndex + 1
+
+    if (zeroIndex === -1) {
+      tArr.set(tArr.subarray(1))
+      tArr.set([newValue], tArr.length - 1)
+    }
+    else {
+      tArr.set([newValue], zeroIndex)
+    }
+    return actualLength
   }
 
   /**
@@ -790,6 +816,10 @@ class TowerBase extends ItemBase {
       name: 'GemOfEase'
     },
     {
+      ctor: GemOfMysterious,
+      name: 'GemOfMysterious'
+    },
+    {
       ctor: BaneOfTheTrapped,
       name: 'BaneOfTheTrapped'
     },
@@ -813,7 +843,6 @@ class TowerBase extends ItemBase {
    * @param {string} gn
    */
   static GemNameToGemCtor(gn) {
-    
     return this.Gems.find(g => g.name === gn).ctor
   }
 
@@ -907,6 +936,7 @@ class TowerBase extends ItemBase {
     this.__hst_ps_ratio = 1
     this.__atk_ratio = 1
     this.__kill_extra_gold = 0
+    this.__kill_extra_point = 0
 
     this.__on_boss_atk_ratio = 1
     this.__on_trapped_atk_ratio = 1
@@ -1101,7 +1131,7 @@ class TowerBase extends ItemBase {
 
     if (isDead) {
       this.recordKill()
-      Game.updateGemPoint += isBoss ? TowerBase.killBossPointEarnings : TowerBase.killNormalPointEarnings
+      Game.updateGemPoint += ((isBoss ? TowerBase.killBossPointEarnings : TowerBase.killNormalPointEarnings) + this.__kill_extra_point)
 
       if (this.gem) {
         this.gem.killHook(this, arguments[0])
@@ -1427,7 +1457,7 @@ class TowerBase extends ItemBase {
     }
 
     /// render start
-    specifedWidth = specifedWidth || 140
+    specifedWidth = specifedWidth || 150
 
     const blockElement = Game.callElement('status_block')
     blockElement.style.display = 'block'
