@@ -90,6 +90,9 @@ let GemBase = function () {
     key: "tickHook",
     value: function tickHook(thisTower, monsters) {}
   }, {
+    key: "damageHook",
+    value: function damageHook(thisTower, monster, damage) {}
+  }, {
     key: "gemName",
     get: function () {
       return this.constructor.gemName;
@@ -233,7 +236,7 @@ let GogokOfSwiftness = function (_GemBase2) {
   }, {
     key: "maxLevel",
     get: function () {
-      return Infinity;
+      return 2000;
     }
   }, {
     key: "price",
@@ -548,7 +551,7 @@ let BaneOfTheStricken = function (_GemBase5) {
   }, {
     key: "maxLevel",
     get: function () {
-      return Infinity;
+      return 1000;
     }
   }, {
     key: "damageMakingRatioOnBoss",
@@ -1039,7 +1042,7 @@ let EchoOfLight = function (_GemBase10) {
   }, {
     key: "maxLevel",
     get: function () {
-      return Infinity;
+      return 1000;
     }
   }, {
     key: "imgSrc",
@@ -1136,7 +1139,7 @@ let GemOfAnger = function (_GemBase11) {
   }, {
     key: "maxLevel",
     get: function () {
-      return Infinity;
+      return 2000;
     }
   }, {
     key: "imgSrc",

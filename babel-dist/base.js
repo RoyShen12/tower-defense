@@ -156,6 +156,40 @@ let Tools = function () {
       }
     }
   }, {
+    key: "renderStatistic",
+    value: function renderStatistic(ctx, dataArr, positionTL, width, height, color) {
+      color = color || '#67C23A';
+      ctx.fillStyle = color;
+      const maxV = 50;
+      const horizonSpan = width / dataArr.length;
+      const drawHeight = height - 2;
+
+      if (!Tools.renderStatistic.onceWork) {
+        ctx.save();
+        ctx.textBaseline = 'middle';
+        ctx.font = '8px SourceCodePro';
+        ctx.fillStyle = 'rgb(255,0,0)';
+        ctx.fillRect(positionTL.x + width, positionTL.y - 2, 4, 1);
+        ctx.fillText(maxV + ' ms', positionTL.x + width + 6, positionTL.y);
+        ctx.fillStyle = 'rgb(1,251,124)';
+        ctx.fillRect(positionTL.x + width, positionTL.y + drawHeight / 3 * 2 - 2, 4, 1);
+        ctx.fillText('16.67 ms', positionTL.x + width + 6, positionTL.y + drawHeight / 3 * 2);
+        ctx.fillStyle = 'rgb(0,0,0)';
+        ctx.fillRect(positionTL.x + width, positionTL.y + drawHeight - 2, 4, 1);
+        ctx.fillText('0 ms', positionTL.x + width + 6, positionTL.y + drawHeight);
+        ctx.restore();
+        Tools.renderStatistic.onceWork = true;
+      }
+
+      ctx.clearRect(positionTL.x, positionTL.y, width, drawHeight);
+      dataArr.forEach((v, i) => {
+        const x = Math.floor(positionTL.x + i * horizonSpan);
+        const y = Math.floor(positionTL.y + drawHeight * (1 - v / maxV));
+        const h = Math.round(drawHeight * v / maxV);
+        ctx.fillRect(x, y, 1, h);
+      });
+    }
+  }, {
     key: "installDot",
     value: function installDot(target, dotDebuffName, duration, interval, singleAttack, isIgnoreArmor, damageEmitter) {
       if (typeof target[dotDebuffName] !== 'boolean') {
@@ -164,6 +198,10 @@ let Tools = function () {
       }
 
       if (target[dotDebuffName] || target.isDead) {
+        return;
+      }
+
+      if (singleAttack === 0 || duration === 0) {
         return;
       } else {
         let dotCount = 0;
@@ -193,6 +231,10 @@ let Tools = function () {
       }
 
       if (target.isDead) {
+        return;
+      }
+
+      if (singleAttack === 0 || duration === 0) {
         return;
       } else {
         const thisId = this.randomStr(8);
@@ -496,6 +538,7 @@ let ItemBase = function (_CircleBase) {
 
     _this3.intervalTimers = [];
     _this3.timeoutTimers = [];
+    _this3.controlable = false;
     return _this3;
   }
 
@@ -642,7 +685,7 @@ let TowerBase = function (_ItemBase) {
 
     _this4.description = undefined;
     _this4.name = undefined;
-    _this4.bulletCtorName = undefined;
+    _this4.bulletCtorName = '';
     _this4.isSold = false;
     return _this4;
   }
@@ -1211,7 +1254,7 @@ let TowerBase = function (_ItemBase) {
   return TowerBase;
 }(ItemBase);
 
-_defineProperty(TowerBase, "informationDesc", new Map([['等级', '鼠标单击图标或按[C]键来消耗金币升级，等级影响很多属性，到达某个等级可以晋升'], ['下一级', '升级到下一级需要的金币数量'], ['售价', '出售此塔可以返还的金币数量'], ['伤害', '此塔的基础攻击力'], ['攻击速度', '此塔的每秒攻击次数'], ['射程', '此塔的索敌距离，单位是像素'], ['弹药储备', '此塔每次攻击时发射的弹药数量'], ['DPS', '估计的每秒伤害']]));
+_defineProperty(TowerBase, "informationDesc", new Map([['等级', '鼠标单击图标或按 [C] 键来消耗金币升级，等级影响很多属性，到达某个等级可以晋升'], ['下一级', '升级到下一级需要的金币数量'], ['售价', '出售此塔可以返还的金币数量'], ['伤害', '此塔的基础攻击力'], ['攻击速度', '此塔的每秒攻击次数'], ['射程', '此塔的索敌距离，单位是像素'], ['弹药储备', '此塔每次攻击时发射的弹药数量'], ['DPS', '估计的每秒伤害']]));
 
 _defineProperty(TowerBase, "Gems", [{
   ctor: PainEnhancer,
@@ -1488,7 +1531,6 @@ let MonsterBase = function (_ItemBase2) {
       _get(_getPrototypeOf(MonsterBase.prototype), "render", this).call(this, context);
 
       this.renderHealthBar(context);
-      this.renderLevel(context);
       this.renderDebuffs(context, imgCtl);
       context.font = ftmp;
     }

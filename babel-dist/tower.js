@@ -29,6 +29,7 @@ const TowerManager = new Proxy((_temp = _class = function () {
     _classCallCheck(this, _TowerManager);
 
     this.towers = [];
+    this.independentTowers = [];
     this.towerChangeHash = -1;
   }
 
@@ -36,7 +37,7 @@ const TowerManager = new Proxy((_temp = _class = function () {
     key: "Factory",
     value: function Factory(towerName, position, image, bulletImage, radius, ...extraArgs) {
       const nt = new (eval(towerName))(position, image, bulletImage, radius, ...extraArgs);
-      this.towers.push(nt);
+      this.constructor.independentCtors.includes(nt.constructor.name) ? this.independentTowers.push(nt) : this.towers.push(nt);
       return nt;
     }
   }, {
@@ -44,6 +45,9 @@ const TowerManager = new Proxy((_temp = _class = function () {
     value: function run(monsters) {
       this.towers.forEach(t => {
         if (t.gem) t.gem.tickHook(t, monsters);
+        t.run(monsters);
+      });
+      this.independentTowers.forEach(t => {
         t.run(monsters);
       });
     }
@@ -56,6 +60,7 @@ const TowerManager = new Proxy((_temp = _class = function () {
     key: "rapidRender",
     value: function rapidRender(ctxRapid, monsters) {
       this.towers.forEach(t => t.rapidRender(ctxRapid, monsters));
+      this.independentTowers.forEach(t => t.rapidRender(ctxRapid, monsters));
     }
   }, {
     key: "makeHash",
@@ -69,6 +74,14 @@ const TowerManager = new Proxy((_temp = _class = function () {
     key: "scanSwipe",
     value: function scanSwipe(emitCallback) {
       this.towers = this.towers.filter(t => {
+        if (t.isSold) {
+          emitCallback(t.sellingPrice);
+          t.destory();
+        }
+
+        return !t.isSold;
+      });
+      this.independentTowers = this.independentTowers.filter(t => {
         if (t.isSold) {
           emitCallback(t.sellingPrice);
           t.destory();
@@ -220,34 +233,9 @@ const TowerManager = new Proxy((_temp = _class = function () {
   ide: lvl => Math.min(lvl * 0.022 + 0.1, 10),
   idr: lvl => 10000 + 1000 * lvl
 }, {
-  dn: '激光塔',
-  c: 'LaserTower',
-  od: 7,
-  n: 'laser0',
-  n2: 'laser1',
-  n3: 'laser2',
-  n4: 'laser3',
-  n5: 'laser4',
-  p: new Proxy({}, {
-    get(t, p, r) {
-      if (p === 'length') return 150;else return Math.ceil(Math.pow(1.1, +p) * 500);
-    }
-
-  }),
-  r: lvl => lvl * 0.55 + 90,
-  a: lvl => Math.round(lvl * 3 + 10),
-  h: () => 0.8,
-  h2: () => 1,
-  s: () => 1,
-  s2: lvl => Math.floor(lvl / 30) + 1,
-  s3: lvl => Math.floor(lvl / 28) + 3,
-  lsd: lvl => 90,
-  fatk: lvl => Math.pow(lvl, 1.05) * 10 + 160,
-  fw: lvl => 40 + Math.floor(lvl / 8)
-}, {
   dn: '航母',
   c: 'CarrierTower',
-  od: 8,
+  od: 7,
   n: 'carrier0',
   n1: 'carrier1',
   n2: 'carrier2',
@@ -260,11 +248,10 @@ const TowerManager = new Proxy((_temp = _class = function () {
   }),
   r: () => 150,
   a: lvl => 25 + lvl * 8,
-  h: lvl => 1.8 + lvl * 0.01,
-  s: () => 2,
+  h: lvl => 0.8 + lvl * 0.01,
+  s: () => 1,
   child: lvl => 1 + Math.floor(lvl / 20),
-  spd: () => 5,
-  bctor: 'CarrierTower.Jet.JetBullet'
+  spd: () => 5
 }]), _defineProperty(_class, "rankPostfixL1", '老兵'), _defineProperty(_class, "rankPostfixL2", '身经百战'), _defineProperty(_class, "rankPostfixL3", '大师'), _temp), {
   get: function (target, property, reciever) {
     if (typeof property === 'string' && /[A-Z]/.test(property[0])) {
@@ -516,7 +503,7 @@ let MaskManTower = function (_TowerBase3) {
     _this3.trapChance = 0;
     _this3.trapDuration = 0;
     _this3.extraBulletV = 0;
-    _this3.inner_desc_init = '每次向多个敌人射出箭矢\n+ 有几率暴击\n+ 拥有固定30%的护甲穿透';
+    _this3.inner_desc_init = '每次向多个敌人射出箭矢\n+ 有几率暴击\n+ 拥有固定 30%的护甲穿透';
     _this3.description = _this3.inner_desc_init;
     _this3.critChance = 0.1;
     _this3.critDamageRatio = 2;
@@ -749,7 +736,7 @@ let FrostTower = function (_TowerBase4) {
 
     _this4.freezeDamage = 300;
     _this4.lastFreezeTime = performance.now();
-    _this4.armorDecreasingStrength = .88;
+    _this4.armorDecreasingStrength = 0.95;
     return _this4;
   }
 
@@ -782,7 +769,7 @@ let FrostTower = function (_TowerBase4) {
           case 10:
             this.rankUp();
             this.name = '暴风雪II';
-            this.description += FrostTower.rankUpDesc2;
+            this.description += FrostTower.rankUpDesc2.replace('$', Math.round((1 - this.armorDecreasingStrength) * 100));
             this.freezeInterval = 5000;
             this.freezeDuration = 600;
 
@@ -909,7 +896,7 @@ let FrostTower = function (_TowerBase4) {
 
 _defineProperty(FrostTower, "rankUpDesc1", '\n+ 周期性造成范围冻结');
 
-_defineProperty(FrostTower, "rankUpDesc2", '\n+ 冻结时能制造伤害并削减敌方护甲');
+_defineProperty(FrostTower, "rankUpDesc2", '\n+ 冻结时能制造伤害并削减敌方 $% 护甲');
 
 _defineProperty(FrostTower, "rankUpDesc3", '\n+ 冻结能力加强');
 
@@ -983,7 +970,7 @@ let PoisonTower = function (_TowerBase5) {
   }, {
     key: "Patk",
     get: function () {
-      return this.levelPatkFx(this.level);
+      return this.levelPatkFx(this.level) * this.__atk_ratio * this.__anger_gem_atk_ratio;
     }
   }, {
     key: "DOTPS",
@@ -993,7 +980,7 @@ let PoisonTower = function (_TowerBase5) {
   }, {
     key: "informationSeq",
     get: function () {
-      return _get(_getPrototypeOf(PoisonTower.prototype), "informationSeq", this).concat([['每跳毒素伤害', Math.round(this.Patk)], ['毒素伤害频率', this.Pitv / 1000 + ' 秒'], ['毒素持续', Tools.roundWithFixed(this.Pdur / 1000, 1) + ' 秒']]);
+      return _get(_getPrototypeOf(PoisonTower.prototype), "informationSeq", this).concat([['每跳毒素伤害', Math.round(this.Patk)], ['毒素伤害频率', Tools.roundWithFixed(this.Pitv / 1000, 1) + ' 秒'], ['毒素持续', Math.round(this.Pdur / 1000) + ' 秒']]);
     }
   }, {
     key: "isCurrentTargetAvailable",
@@ -1101,9 +1088,13 @@ let TeslaTower = function (_TowerBase6) {
   }, {
     key: "shock",
     value: function shock(monster) {
-      monster.health -= this.Atk * (1 - monster.armorResistance) * this.calculateDamageRatio(monster);
+      const ratio = this.calculateDamageRatio(monster);
+      monster.health -= this.Atk * (1 - monster.armorResistance) * ratio;
       this.recordDamage(monster);
-      if (this.canCharge) monster.registerShock(this.shockDurationTick, this.Atk * this.shockChargingPowerRatio, this, this.shockLeakingChance);
+
+      if (this.canCharge) {
+        monster.registerShock(this.shockDurationTick, this.Atk * ratio * this.shockChargingPowerRatio, this, this.shockLeakingChance);
+      }
     }
   }, {
     key: "run",
@@ -1512,8 +1503,8 @@ let LaserTower = function (_TowerBase8) {
 }(TowerBase);
 
 _defineProperty(LaserTower, "Laser", (_temp2 = _class2 = function () {
-  function ColossusLaser(startPos, endPos, lineWidth, duration, swipeVector, easingFunc, ls1, ls2) {
-    _classCallCheck(this, ColossusLaser);
+  function _ColossusLaser(startPos, endPos, lineWidth, duration, swipeVector, easingFunc, ls1, ls2) {
+    _classCallCheck(this, _ColossusLaser);
 
     this.sx = startPos.x;
     this.sy = startPos.y;
@@ -1526,21 +1517,21 @@ _defineProperty(LaserTower, "Laser", (_temp2 = _class2 = function () {
     const updateCount = duration / updateTime;
     this.perUpdateDistance = 1 / updateCount;
     this.currentStep = 0;
-    const maxAnimationCount = Math.floor(this.swipeVector.r / (Math.max(ColossusLaser.animationW, ColossusLaser.animationH) + 1));
+    const maxAnimationCount = Math.floor(this.swipeVector.r / (Math.max(_ColossusLaser.animationW, _ColossusLaser.animationH) + 1));
     this.animationStepInterval = maxAnimationCount >= updateCount ? 1 : Math.ceil(updateTime / maxAnimationCount);
     this.stepPosition = 0;
     this.easingFx = easingFunc || Tools.EaseFx.linear;
     this.fulfilled = false;
   }
 
-  _createClass(ColossusLaser, [{
+  _createClass(_ColossusLaser, [{
     key: "renderStep",
     value: function renderStep(ctx) {
       if (this.fulfilled) return;
       const stepEndPos = this.step;
 
       if (this.canAnimate) {
-        Game.callAnimation(ColossusLaser.animationName, stepEndPos, ColossusLaser.animationW, ColossusLaser.animationH, ColossusLaser.animationSpeed, 400);
+        Game.callAnimation(_ColossusLaser.animationName, stepEndPos, _ColossusLaser.animationW, _ColossusLaser.animationH, _ColossusLaser.animationSpeed, 400);
       }
 
       const pt = new Path2D();
@@ -1575,7 +1566,7 @@ _defineProperty(LaserTower, "Laser", (_temp2 = _class2 = function () {
     }
   }]);
 
-  return ColossusLaser;
+  return _ColossusLaser;
 }(), _defineProperty(_class2, "animationW", 36), _defineProperty(_class2, "animationH", 36), _defineProperty(_class2, "animationName", 'explo_3'), _defineProperty(_class2, "animationSpeed", .5), _temp2));
 
 _defineProperty(LaserTower, "rankUpDesc1", '\n+ 伤害得到加强');
@@ -1589,6 +1580,26 @@ _defineProperty(LaserTower, "rankUpDesc4", '\n+ 所有属性得到增强');
 let CarrierTower = function (_TowerBase9) {
   _inherits(CarrierTower, _TowerBase9);
 
+  _createClass(CarrierTower, null, [{
+    key: "F1Mode",
+    set: function (v) {
+      Game.callChangeF1Mode(v);
+      this.__inner_f1_mode = v;
+    },
+    get: function () {
+      return this.__inner_f1_mode;
+    }
+  }, {
+    key: "WeaponMode",
+    set: function (v) {
+      Game.callChangeCarrierWeaponMode(v);
+      this.__inner_wp_mode = v;
+    },
+    get: function () {
+      return this.__inner_wp_mode;
+    }
+  }]);
+
   function CarrierTower(position, image, bimg, radius) {
     var _this9;
 
@@ -1598,9 +1609,8 @@ let CarrierTower = function (_TowerBase9) {
     _this9.jets = 0;
     _this9.levelSpdFx = TowerManager.CarrierTower.spd;
     _this9.levelKcFx = TowerManager.CarrierTower.child;
-    _this9.bulletCtorName = TowerManager.CarrierTower.bctor;
     _this9.name = TowerManager.CarrierTower.dn;
-    _this9.inner_desc_init = '自身无法攻击，拥有多架载机\n+ 载机继承自身属性\n+ 可以对任意位置进行机动打击';
+    _this9.inner_desc_init = '自身无法攻击，释放搭载的载机进行战斗\n使用 [F1] 切换载机的自主/受控模式\n使用 [Q] 切换载机的武器\n+ 载机继承自身属性\n+ 可以对任意位置进行机动打击';
     _this9.description = _this9.inner_desc_init;
     return _this9;
   }
@@ -1621,7 +1631,7 @@ let CarrierTower = function (_TowerBase9) {
     value: function destory() {
       _get(_getPrototypeOf(CarrierTower.prototype), "destory", this).call(this);
 
-      Game.callTowerList().filter(tow => tow.carrierTower && tow.carrierTower === this).forEach(tow => tow.isSold = true);
+      Game.callIndependentTowerList().filter(tow => tow.carrierTower && tow.carrierTower === this).forEach(tow => tow.isSold = true);
     }
   }, {
     key: "informationSeq",
@@ -1643,6 +1653,10 @@ let CarrierTower = function (_TowerBase9) {
   return CarrierTower;
 }(TowerBase);
 
+_defineProperty(CarrierTower, "__inner_f1_mode", false);
+
+_defineProperty(CarrierTower, "__inner_wp_mode", 1);
+
 _defineProperty(CarrierTower, "deniedGems", ['ZeisStoneOfVengeance', 'GemOfAnger']);
 
 _defineProperty(CarrierTower, "Jet", (_temp3 = _class3 = function (_TowerBase10) {
@@ -1654,10 +1668,15 @@ _defineProperty(CarrierTower, "Jet", (_temp3 = _class3 = function (_TowerBase10)
     _classCallCheck(this, _Jet);
 
     _this10 = _possibleConstructorReturn(this, _getPrototypeOf(_Jet).call(this, position, radius, 0, null, image, [], carrierTower.levelAtkFx, carrierTower.levelHstFx, carrierTower.levelSlcFx, carrierTower.levelRngFx));
+    _this10.controlable = true;
     _this10.name = '航母载机';
-    _this10.bulletCtorName = carrierTower.bulletCtorName;
     _this10.carrierTower = carrierTower;
     _this10.canInsertGem = false;
+    _this10.actMode = _Jet.JetActMode.autonomous;
+    _this10.weaponMode = 1;
+    _this10.destinationPosition = Position.O;
+    _this10.inner_desc_init = '航母的载机\n+ 机动性极强\n+ 拥有 10mm 速射机枪和 30mm 反装甲机炮两种武器';
+    _this10.description = _this10.inner_desc_init;
     return _this10;
   }
 
@@ -1679,17 +1698,17 @@ _defineProperty(CarrierTower, "Jet", (_temp3 = _class3 = function (_TowerBase10)
       return ratio;
     }
   }, {
-    key: "reChooseTarget",
-    value: function reChooseTarget(targetList) {
+    key: "reChooseMostThreateningTarget",
+    value: function reChooseMostThreateningTarget(targetList) {
       this.target = _.minBy(targetList, mst => {
         return Position.distancePow2(Game.callDestinationPosition(), mst.position);
       });
     }
   }, {
-    key: "run",
-    value: function run(monsters) {
+    key: "autonomouslyRun",
+    value: function autonomouslyRun(monsters) {
       if (!this.hasCurrentTarget) {
-        this.reChooseTarget(monsters);
+        this.reChooseMostThreateningTarget(monsters);
         if (this.hasCurrentTarget) this.position.moveTo(this.target.position, this.Spd);
       } else if (this.inRange(this.target)) {
           if (this.canShoot && this.target) {
@@ -1700,8 +1719,29 @@ _defineProperty(CarrierTower, "Jet", (_temp3 = _class3 = function (_TowerBase10)
           }
     }
   }, {
+    key: "run",
+    value: function run(monsters) {
+      switch (this.actMode) {
+        case _Jet.JetActMode.autonomous:
+          this.autonomouslyRun(monsters);
+          break;
+
+        case _Jet.JetActMode.f1:
+          _get(_getPrototypeOf(_Jet.prototype), "run", this).call(this, monsters);
+
+          if (Position.distance(this.position, this.destinationPosition) > this.radius * 2) {
+            this.position.moveTo(this.destinationPosition, this.Spd);
+          }
+
+          break;
+      }
+    }
+  }, {
     key: "render",
     value: function render() {}
+  }, {
+    key: "renderLevel",
+    value: function renderLevel() {}
   }, {
     key: "renderImage",
     value: function renderImage(ctx) {
@@ -1727,9 +1767,25 @@ _defineProperty(CarrierTower, "Jet", (_temp3 = _class3 = function (_TowerBase10)
       this.carrierTower.recordKill(...args);
     }
   }, {
+    key: "bulletCtorName",
+    get: function () {
+      return CarrierTower.Jet.JetWeapons.getCtorName(this.weaponMode);
+    },
+    set: function (v) {}
+  }, {
+    key: "attackSupplement",
+    get: function () {
+      return this.weaponMode === 1 ? 0 : Math.pow(this.level + 2, 1.536) * 3;
+    }
+  }, {
+    key: "hasteSupplementRate",
+    get: function () {
+      return this.weaponMode === 1 ? 1 + this.level * 0.02 : 1;
+    }
+  }, {
     key: "Atk",
     get: function () {
-      return this.carrierTower.Atk;
+      return this.carrierTower.Atk + this.attackSupplement;
     }
   }, {
     key: "Slc",
@@ -1744,7 +1800,7 @@ _defineProperty(CarrierTower, "Jet", (_temp3 = _class3 = function (_TowerBase10)
   }, {
     key: "HstPS",
     get: function () {
-      return this.carrierTower.HstPS;
+      return this.carrierTower.HstPS * this.hasteSupplementRate;
     }
   }, {
     key: "Spd",
@@ -1781,15 +1837,63 @@ _defineProperty(CarrierTower, "Jet", (_temp3 = _class3 = function (_TowerBase10)
   }]);
 
   return _Jet;
-}(TowerBase), _defineProperty(_class3, "JetBullet", function (_BulletBase2) {
-  _inherits(_JetBullet, _BulletBase2);
+}(TowerBase), _defineProperty(_class3, "JetActMode", {
+  autonomous: 1,
+  f1: 2,
 
-  function _JetBullet(position, atk, target) {
-    _classCallCheck(this, _JetBullet);
-
-    const bVelocity = 15;
-    return _possibleConstructorReturn(this, _getPrototypeOf(_JetBullet).call(this, position, 1, 0, null, 'rgba(55,14,11,1)', atk, bVelocity, target));
+  switch(oldMode) {
+    return oldMode === this.autonomous ? this.f1 : this.autonomous;
   }
 
-  return _JetBullet;
-}(BulletBase)), _temp3));
+}), _defineProperty(_class3, "JetWeapons", {
+  getCtorName(mode) {
+    return mode === 1 ? 'CarrierTower.Jet.JetWeapons.MachineGun' : 'CarrierTower.Jet.JetWeapons.AutoCannons';
+  },
+
+  MachineGun: function (_BulletBase2) {
+    _inherits(_MachineGun, _BulletBase2);
+
+    _createClass(_MachineGun, null, [{
+      key: "hasteSupplement",
+      value: function hasteSupplement(lvl) {
+        return 1 + lvl * 0.01;
+      }
+    }]);
+
+    function _MachineGun(position, atk, target) {
+      _classCallCheck(this, _MachineGun);
+
+      const bVelocity = 15;
+      return _possibleConstructorReturn(this, _getPrototypeOf(_MachineGun).call(this, position, 1, 0, null, 'rgba(55,14,11,1)', atk, bVelocity, target));
+    }
+
+    return _MachineGun;
+  }(BulletBase),
+  AutoCannons: function (_BulletBase3) {
+    _inherits(_AutoCannons, _BulletBase3);
+
+    _createClass(_AutoCannons, null, [{
+      key: "attackAddition",
+      value: function attackAddition(lvl) {
+        return (lvl + 2) * 3;
+      }
+    }]);
+
+    function _AutoCannons(position, atk, target) {
+      _classCallCheck(this, _AutoCannons);
+
+      const bVelocity = 6;
+      return _possibleConstructorReturn(this, _getPrototypeOf(_AutoCannons).call(this, position, 3, 1, '#CC3333', '#99CC99', atk, bVelocity, target));
+    }
+
+    _createClass(_AutoCannons, [{
+      key: "hit",
+      value: function hit(monster, magnification = 1) {
+        monster.health -= this.Atk * magnification * (1 - monster.armorResistance * .5);
+        this.emitter(monster);
+      }
+    }]);
+
+    return _AutoCannons;
+  }(BulletBase)
+}), _temp3));

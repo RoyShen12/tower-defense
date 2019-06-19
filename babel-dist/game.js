@@ -143,7 +143,7 @@ let Game = function () {
           if (!this.selectedTowerTypeToBuild) {
             const selectedT = this.towerCtl.towers.find(t => t.position.equal(mousePos, t.radius * 0.75));
 
-            if (selectedT && !TowerManager.independentCtors.includes(selectedT.constructor.name)) {
+            if (selectedT) {
               this.removeTower(selectedT);
             }
           }
@@ -162,7 +162,6 @@ let Game = function () {
       this.contextCtl._get_mouse.clearRect(0, 0, innerWidth, innerHeight);
 
       const mousePos = new Position(e.offsetX, e.offsetY);
-      if (this.__testMode) console.log('mouse move : ' + mousePos);
       this.lastMouseMovePosition = mousePos;
 
       if (this.selectedTowerTypeToBuild) {
@@ -196,7 +195,10 @@ let Game = function () {
           this.onMouseTower = null;
         }
       } else {
-          const selectedT = this.towerCtl.towers.find(t => t.position.equal(mousePos, t.radius));
+          this.towerCtl.independentTowers.forEach((t, idx) => {
+            if (idx === 0) t.destinationPosition = mousePos;else t.destinationPosition = this.towerCtl.independentTowers[idx - 1].position;
+          });
+          const selectedT = this.towerCtl.towers.find(t => t.position.equal(mousePos, t.radius)) || this.towerCtl.independentTowers.find(t => t.position.equal(mousePos, t.radius));
           const selectedM = this.monsterCtl.monsters.find(m => m.position.equal(mousePos, m.radius));
 
           if (selectedT) {
@@ -220,6 +222,8 @@ let Game = function () {
         return;
       }
 
+      console.log('keyDownHandler: ' + e.key);
+
       switch (e.key) {
         case 'c':
           this.leftClickHandler(this.lastMouseMovePosition);
@@ -227,6 +231,15 @@ let Game = function () {
 
         case ' ':
           this.startAndPauseButton.onMouseclick();
+          break;
+
+        case 'q':
+          CarrierTower.WeaponMode = CarrierTower.WeaponMode === 1 ? 2 : 1;
+          break;
+
+        case 'F1':
+          CarrierTower.F1Mode = !CarrierTower.F1Mode;
+          e.preventDefault();
           break;
 
         case 'Control':
@@ -283,6 +296,7 @@ let Game = function () {
     this.life = this.__testMode ? 8e4 : 20;
     this.towerForSelect = [];
     this.selectedTowerTypeToBuild = null;
+    this.statusBoardOnTower = null;
     this.imageCtl = imageManager;
     this.contextCtl = new CanvasManager();
     this.evtCtl = new EventManager();
@@ -291,9 +305,23 @@ let Game = function () {
     this.bulletsCtl = new BulletManager();
     Game.callTowerFactory = this.towerCtl.Factory.bind(this.towerCtl);
 
-    Game.callTowerList = () => this.towerCtl.towers;
+    Game.callTowerList = () => [...this.towerCtl.towers];
 
-    Game.callMonsterList = () => this.monsterCtl.monsters;
+    Game.callIndependentTowerList = () => [...this.towerCtl.independentTowers];
+
+    Game.callMonsterList = () => [...this.monsterCtl.monsters];
+
+    Game.callChangeF1Mode = v => {
+      this.towerCtl.independentTowers.forEach(t => {
+        t.actMode = v ? CarrierTower.Jet.JetActMode.f1 : CarrierTower.Jet.JetActMode.autonomous;
+      });
+    };
+
+    Game.callChangeCarrierWeaponMode = v => {
+      this.towerCtl.independentTowers.forEach(t => {
+        t.weaponMode = v;
+      });
+    };
 
     this.updateGemPoint = this.__testMode ? 1e14 : 0;
     Object.defineProperty(Game, 'updateGemPoint', {
@@ -655,7 +683,6 @@ let Game = function () {
         ename: 'onmousedown',
         cb: e => {
           const mousePos = new Position(e.offsetX, e.offsetY);
-          if (this.__testMode) console.log('mouse down : ' + mousePos);
 
           switch (e.button) {
             case 0:
@@ -781,6 +808,8 @@ let Game = function () {
           } else {
             this.renderStandardText(`[ Ft avg - ms ]`, 6, 100, 120);
           }
+
+          Tools.renderStatistic(this.contextCtl._get_bg, this.frameTimes, new Position(6, 130), this.frameTimes.length, 52);
         });
       } else {
         requestAnimationFrame(() => {
@@ -966,11 +995,17 @@ _defineProperty(Game, "callTowerFactory", null);
 
 _defineProperty(Game, "callTowerList", null);
 
+_defineProperty(Game, "callIndependentTowerList", null);
+
 _defineProperty(Game, "callMonsterList", null);
 
 _defineProperty(Game, "callOriginPosition", null);
 
 _defineProperty(Game, "callDestinationPosition", null);
+
+_defineProperty(Game, "callChangeF1Mode", null);
+
+_defineProperty(Game, "callChangeCarrierWeaponMode", null);
 
 function run() {
   return _run.apply(this, arguments);

@@ -148,7 +148,7 @@ _defineProperty(Axeman, "spd", lvl => Math.min(.25 + lvl / 80, 1));
 
 _defineProperty(Axeman, "hth", lvl => 300 + lvl * 100);
 
-_defineProperty(Axeman, "amr", lvl => 15 + lvl / 3);
+_defineProperty(Axeman, "amr", lvl => 5 + lvl / 6);
 
 let LionMan = function (_MonsterBase3) {
   _inherits(LionMan, _MonsterBase3);
@@ -177,7 +177,7 @@ _defineProperty(LionMan, "spd", lvl => Math.min(.38 + lvl / 70, 1.2));
 
 _defineProperty(LionMan, "hth", lvl => 580 + lvl * 122);
 
-_defineProperty(LionMan, "amr", lvl => 22 + lvl);
+_defineProperty(LionMan, "amr", lvl => 22 + lvl / 5);
 
 let HighPriest = function (_MonsterBase4) {
   _inherits(HighPriest, _MonsterBase4);
@@ -278,7 +278,7 @@ _defineProperty(HighPriest, "spd", () => .11);
 
 _defineProperty(HighPriest, "hth", lvl => 14400 + lvl * 8000);
 
-_defineProperty(HighPriest, "amr", () => 4);
+_defineProperty(HighPriest, "amr", () => 14);
 
 _defineProperty(HighPriest, "healingInterval", () => 5000);
 
@@ -339,6 +339,6 @@ _defineProperty(Devil, "spd", lvl => .14);
 
 _defineProperty(Devil, "hth", lvl => 15500 + lvl * 13000);
 
-_defineProperty(Devil, "amr", lvl => 32 + lvl * 8);
+_defineProperty(Devil, "amr", lvl => 32 + lvl);
 
 _defineProperty(Devil, "summonInterval", () => 7000);

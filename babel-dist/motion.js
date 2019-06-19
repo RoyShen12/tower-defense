@@ -69,12 +69,31 @@ let Position = function () {
         this.x = pos.x;
         this.y = pos.y;
       } else {
-        speedValue = Math.min(speedValue);
         const speedVec = Vector.unit(pos.x - this.x, pos.y - this.y).multiply(speedValue);
         this.x += speedVec.x;
         this.y += speedVec.y;
       }
 
+      return this;
+    }
+  }, {
+    key: "moveToWithAntiOverlap",
+    value: function moveToWithAntiOverlap(pos, speedValue, otherUnits) {
+      console.log(pos.toString(), speedValue, otherUnits);
+      const directionVec = Vector.unit(pos.x - this.x, pos.y - this.y);
+      let speedVec = directionVec.multiply(speedValue);
+      let idealPos = new Position(speedVec.x + this.x, speedVec.y + this.y);
+      let overlapUnit = otherUnits.find(ou => Position.distancePow2(ou.position, idealPos) < ou.radius * ou.radius * 4);
+
+      while (overlapUnit) {
+        const d = Math.floor(Position.distance(overlapUnit.position, this));
+        speedVec = directionVec.multiply(d);
+        idealPos = new Position(speedVec.x + this.x, speedVec.y + this.y);
+        overlapUnit = otherUnits.find(ou => Position.distancePow2(ou.position, idealPos) < ou.radius * ou.radius * 4);
+      }
+
+      this.x = idealPos.x;
+      this.y = idealPos.y;
       return this;
     }
   }, {
