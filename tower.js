@@ -981,7 +981,7 @@ class FrostTower extends TowerBase {
 
   render(ctx) {
     super.render(ctx)
-    super.renderRange(ctx, 'rgba(185,205,246,.1)')
+    // super.renderRange(ctx, 'rgba(185,205,246,.03)')
   }
 
   rapidRender(context) {
@@ -2068,23 +2068,20 @@ class CarrierTower extends TowerBase {
     autonomouslyRun(monsters) {
       // 当前目标失效
       if (!this.hasCurrentTarget) {
-
         this.reChooseMostThreateningTarget(monsters)
-
-        if (this.hasCurrentTarget) this.position.moveTo(this.target.position, this.Spd)
       }
-      // 当前目标在范围内
-      else if (this.inRange(this.target)) {
 
-        if (this.canShoot && this.target) {
-          this.shoot(monsters)
+      if (this.hasCurrentTarget) {
+        // 当前目标在范围内
+        if (this.inRange(this.target)) {
+          if (this.canShoot) {
+            this.shoot(monsters)
+          }
         }
-
-        // this.position.moveTo(this.position.copy().dithering(Game.callGridSideSize()), this.Spd)
-      }
-      // 当前目标超出范围
-      else {
-        this.position.moveTo(this.target.position, this.Spd)
+        // 当前目标超出范围
+        else {
+          this.position.moveTo(this.target.position, this.Spd)
+        }
       }
     }
 

@@ -442,7 +442,7 @@ class Game {
 
     if (this.__testMode) {
 
-      for (let i = 0; i < 99; i++) {
+      while (!tow.isMaxLevel && tow.price[tow.level + 1] <= this.money) {
         this.emitMoney(-1 * tow.levelUp(this.money))
       }
     }
