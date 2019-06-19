@@ -858,8 +858,6 @@ let FrostTower = function (_TowerBase4) {
     key: "render",
     value: function render(ctx) {
       _get(_getPrototypeOf(FrostTower.prototype), "render", this).call(this, ctx);
-
-      _get(_getPrototypeOf(FrostTower.prototype), "renderRange", this).call(this, ctx, 'rgba(185,205,246,.1)');
     }
   }, {
     key: "rapidRender",
@@ -1709,14 +1707,17 @@ _defineProperty(CarrierTower, "Jet", (_temp3 = _class3 = function (_TowerBase10)
     value: function autonomouslyRun(monsters) {
       if (!this.hasCurrentTarget) {
         this.reChooseMostThreateningTarget(monsters);
-        if (this.hasCurrentTarget) this.position.moveTo(this.target.position, this.Spd);
-      } else if (this.inRange(this.target)) {
-          if (this.canShoot && this.target) {
+      }
+
+      if (this.hasCurrentTarget) {
+        if (this.inRange(this.target)) {
+          if (this.canShoot) {
             this.shoot(monsters);
           }
         } else {
             this.position.moveTo(this.target.position, this.Spd);
           }
+      }
     }
   }, {
     key: "run",
