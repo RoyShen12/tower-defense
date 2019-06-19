@@ -3,11 +3,11 @@
     "target": "esnext"
   },
   "include": [
-    "*.js",
-    "index.html"
+    "*.js"
   ],
   "exclude": [
-    ".git"
+    ".git",
+    "babel-dist/*"
   ],
   "typeAcquisition": {
     "include": [

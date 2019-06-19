@@ -91,6 +91,11 @@ class Game {
   static callTowerList = null
 
   /**
+   * @type {() => TowerBase[]}
+   */
+  static callIndependentTowerList = null
+
+  /**
    * @type {() => MonsterBase[]}
    */
   static callMonsterList = null
@@ -104,6 +109,16 @@ class Game {
    * @type {() => Position}
    */
   static callDestinationPosition = null
+
+  /**
+   * @type {(val: boolean) => void}
+   */
+  static callChangeF1Mode = null
+
+  /**
+   * @type {(mode: number) => void}
+   */
+  static callChangeCarrierWeaponMode = null
 
   /**
    * - 右侧选择区的依赖注入
@@ -200,11 +215,22 @@ class Game {
     this.money = this.__testMode ? 1e15 : 5e2
     this.life = this.__testMode ? 8e4 : 20
 
-    /** @type {(ItemBase)[]} */
+    /**
+     * @type {(ItemBase)[]}
+     */
     this.towerForSelect = []
 
-    /** @type {ItemBase} */
+    /**
+     * 目前选中的将要建造的 ItemBase 代理的 TowerBase
+     * @type {ItemBase}
+     */
     this.selectedTowerTypeToBuild = null
+
+    /**
+     * 正在展示状态面板的 TowerBase
+     * @type {TowerBase}
+     */
+    this.statusBoardOnTower = null
 
     this.imageCtl = imageManager
     this.contextCtl = new CanvasManager()
@@ -214,10 +240,24 @@ class Game {
     this.bulletsCtl = new BulletManager()
 
     Game.callTowerFactory = this.towerCtl.Factory.bind(this.towerCtl)
-    Game.callTowerList = () => this.towerCtl.towers
-    Game.callMonsterList = () => this.monsterCtl.monsters
+    Game.callTowerList = () => [...this.towerCtl.towers]
+    Game.callIndependentTowerList = () => [...this.towerCtl.independentTowers]
+    Game.callMonsterList = () => [...this.monsterCtl.monsters]
+    Game.callChangeF1Mode = v => {
+      this.towerCtl.independentTowers.forEach(t => {
+        t.actMode = v ? CarrierTower.Jet.JetActMode.f1 : CarrierTower.Jet.JetActMode.autonomous
+      })
+    }
+    Game.callChangeCarrierWeaponMode = v => {
+      this.towerCtl.independentTowers.forEach(t => {
+        t.weaponMode = v
+      })
+    }
 
-    // 传奇宝石 升级点数
+    /**
+     * - 传奇宝石 升级点数
+     * @type {number}
+     */
     this.updateGemPoint = this.__testMode ? 1e14 : 0
 
     Object.defineProperty(Game, 'updateGemPoint', {
@@ -258,6 +298,9 @@ class Game {
 
     this.midSplitLineX = -1
 
+    /**
+     * @type {boolean}
+     */
     this.detailFunctionKeyDown = false
 
     Game.callMidSplitLineX = () => this.midSplitLineX
@@ -266,6 +309,9 @@ class Game {
 
     Game.callRemoveTower = t => this.removeTower(t)
 
+    /**
+     * @type {boolean}
+     */
     this.useClassicRenderStyle = 'OffscreenCanvas' in window ? false : true
 
     this.averageFrameInterval = 0
@@ -574,7 +620,7 @@ class Game {
       if (performance.now() - lastRightClick < 300) {
         if (!this.selectedTowerTypeToBuild) {
           const selectedT = this.towerCtl.towers.find(t => t.position.equal(mousePos, t.radius * 0.75))
-          if (selectedT && !TowerManager.independentCtors.includes(selectedT.constructor.name)) {
+          if (selectedT) {
             this.removeTower(selectedT)
           }
         }
@@ -600,7 +646,7 @@ class Game {
 
     const mousePos = new Position(e.offsetX, e.offsetY)
 
-    if (this.__testMode) console.log('mouse move : ' + mousePos)
+    // if (this.__testMode) console.log('mouse move : ' + mousePos)
 
     this.lastMouseMovePosition = mousePos
 
@@ -638,7 +684,13 @@ class Game {
     }
     // 左侧方格区域
     else {
-      const selectedT = this.towerCtl.towers.find(t => t.position.equal(mousePos, t.radius))
+      // 给可操纵单位注入新位置
+      this.towerCtl.independentTowers.forEach((t, idx) => {
+        if (idx === 0) t.destinationPosition = mousePos
+        else t.destinationPosition = this.towerCtl.independentTowers[idx - 1].position
+      })
+
+      const selectedT = this.towerCtl.towers.find(t => t.position.equal(mousePos, t.radius)) || this.towerCtl.independentTowers.find(t => t.position.equal(mousePos, t.radius))
       const selectedM = this.monsterCtl.monsters.find(m => m.position.equal(mousePos, m.radius))
       if (selectedT) {
         // @todo add delay
@@ -665,36 +717,42 @@ class Game {
    */
   keyDownHandler = e => {
     if (Tools.isNumberSafe(e.key)) {
-      
       this.selectedTowerTypeToBuild = this.towerForSelect[e.key - 1]
       this.leftClickHandler(this.lastMouseMovePosition)
       this.selectedTowerTypeToBuild = null
       return
     }
-    // console.log(e.key)
+    console.log('keyDownHandler: ' + e.key)
     switch (e.key) {
-    case 'c':
-      this.leftClickHandler(this.lastMouseMovePosition)
-      break
-    case ' ':
-      this.startAndPauseButton.onMouseclick()
-      break
-    // case 'ArrowUp':
-    //   break
-    // case 'ArrowDown':
-    //   break
-    // case 'a':
-    //   break
-    // case 'd':
-    //   break
-    case 'Control':
-      this.detailFunctionKeyDown = !this.detailFunctionKeyDown
-      if (this.statusBoardOnTower) {
-        this.statusBoardOnTower.renderStatusBoard(0, this.midSplitLineX, 0, innerHeight, true, this.detailFunctionKeyDown)
-      }
-      break
-    default:
-      break
+      case 'c':
+        this.leftClickHandler(this.lastMouseMovePosition)
+        break
+      case ' ':
+        this.startAndPauseButton.onMouseclick()
+        break
+      // case 'ArrowUp':
+      //   break
+      // case 'ArrowDown':
+      //   break
+      // case 'a':
+      //   break
+      // case 'd':
+      //   break
+      case 'q':
+        CarrierTower.WeaponMode = CarrierTower.WeaponMode === 1 ? 2 : 1
+        break
+      case 'F1':
+        CarrierTower.F1Mode = !CarrierTower.F1Mode
+        e.preventDefault()
+        break
+      case 'Control':
+        this.detailFunctionKeyDown = !this.detailFunctionKeyDown
+        if (this.statusBoardOnTower) {
+          this.statusBoardOnTower.renderStatusBoard(0, this.midSplitLineX, 0, innerHeight, true, this.detailFunctionKeyDown)
+        }
+        break
+      default:
+        break
     }
   }
 
@@ -704,15 +762,14 @@ class Game {
    */
   keyUpHandler = e => {
     switch (e.key) {
-
-    case 'Control':
-      this.detailFunctionKeyDown = false
-      if (this.statusBoardOnTower) {
-        this.statusBoardOnTower.renderStatusBoard(0, this.midSplitLineX, 0, innerHeight, true, this.detailFunctionKeyDown)
-      }
-      break
-    default:
-      break
+      case 'Control':
+        this.detailFunctionKeyDown = false
+        if (this.statusBoardOnTower) {
+          this.statusBoardOnTower.renderStatusBoard(0, this.midSplitLineX, 0, innerHeight, true, this.detailFunctionKeyDown)
+        }
+        break
+      default:
+        break
     }
   }
 
@@ -981,7 +1038,7 @@ class Game {
           ename: 'onmousedown',
           cb: e => {
             const mousePos = new Position(e.offsetX, e.offsetY)
-            if (this.__testMode) console.log('mouse down : ' + mousePos)
+            // if (this.__testMode) console.log('mouse down : ' + mousePos)
             switch (e.button) {
               // left click
               case 0:
@@ -1134,6 +1191,7 @@ class Game {
         else {
           this.renderStandardText(`[ Ft avg - ms ]`, 6, 100, 120)
         }
+        Tools.renderStatistic(this.contextCtl._get_bg, this.frameTimes, new Position(6, 130), this.frameTimes.length, 52)
       })
     }
     else {

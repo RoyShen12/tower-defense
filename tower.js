@@ -153,36 +153,36 @@ const TowerManager = new Proxy(
         ide: lvl => Math.min(lvl * 0.022 + 0.1, 10),
         idr: lvl => 10000 + 1000 * lvl
       },
-      {
-        dn: '激光塔',
-        c: 'LaserTower',
-        od: 7,
-        n: 'laser0',
-        n2: 'laser1',
-        n3: 'laser2',
-        n4: 'laser3',
-        n5: 'laser4',
-        p: new Proxy({}, {
-          get(t, p, r) {
-            if (p === 'length') return 150
-            else return Math.ceil(Math.pow(1.1, +p) * 500)
-          }
-        }),
-        r: lvl => lvl * 0.55 + 90,
-        a: lvl => Math.round(lvl * 3 + 10),
-        h: () => 0.8,
-        h2: () => 1,
-        s: () => 1,
-        s2: lvl => Math.floor(lvl / 30) + 1,
-        s3: lvl => Math.floor(lvl / 28) + 3,
-        lsd: lvl => 90, // laser swipe distance
-        fatk: lvl => Math.pow(lvl, 1.05) * 10 + 160,
-        fw: lvl => 40 + Math.floor(lvl / 8)
-      },
+      // {
+      //   dn: '激光塔',
+      //   c: 'LaserTower',
+      //   od: 7,
+      //   n: 'laser0',
+      //   n2: 'laser1',
+      //   n3: 'laser2',
+      //   n4: 'laser3',
+      //   n5: 'laser4',
+      //   p: new Proxy({}, {
+      //     get(t, p, r) {
+      //       if (p === 'length') return 150
+      //       else return Math.ceil(Math.pow(1.1, +p) * 500)
+      //     }
+      //   }),
+      //   r: lvl => lvl * 0.55 + 90,
+      //   a: lvl => Math.round(lvl * 3 + 10),
+      //   h: () => 0.8,
+      //   h2: () => 1,
+      //   s: () => 1,
+      //   s2: lvl => Math.floor(lvl / 30) + 1,
+      //   s3: lvl => Math.floor(lvl / 28) + 3,
+      //   lsd: lvl => 90, // laser swipe distance
+      //   fatk: lvl => Math.pow(lvl, 1.05) * 10 + 160,
+      //   fw: lvl => 40 + Math.floor(lvl / 8)
+      // },
       {
         dn: '航母',
         c: 'CarrierTower',
-        od: 8,
+        od: 7,
         n: 'carrier0',
         n1: 'carrier1',
         n2: 'carrier2',
@@ -195,11 +195,10 @@ const TowerManager = new Proxy(
         }),
         r: () => 150,
         a: lvl => 25 + lvl * 8,
-        h: lvl => 1.8 + lvl * 0.01,
-        s: () => 2,
+        h: lvl => 0.8 + lvl * 0.01,
+        s: () => 1,
         child: lvl => 1 + Math.floor(lvl / 20),
-        spd: () => 5,
-        bctor: 'CarrierTower.Jet.JetBullet'
+        spd: () => 5
       },
     ]
 
@@ -211,6 +210,9 @@ const TowerManager = new Proxy(
 
       /** @type {TowerBase[]} */
       this.towers = []
+
+      /** @type {TowerBase[]} */
+      this.independentTowers = []
 
       this.towerChangeHash = -1
 
@@ -228,7 +230,7 @@ const TowerManager = new Proxy(
     Factory(towerName, position, image, bulletImage, radius, ...extraArgs) {
 
       const nt = new (eval(towerName))(position, image, bulletImage, radius, ...extraArgs)
-      this.towers.push(nt)
+      this.constructor.independentCtors.includes(nt.constructor.name) ? this.independentTowers.push(nt) : this.towers.push(nt)
       return nt
     }
 
@@ -240,6 +242,9 @@ const TowerManager = new Proxy(
         if (t.gem) t.gem.tickHook(t, monsters)
         t.run(monsters)
       })
+      this.independentTowers.forEach(t => {
+        t.run(monsters)
+      })
     }
 
     render(ctx) {
@@ -248,6 +253,7 @@ const TowerManager = new Proxy(
 
     rapidRender(ctxRapid, monsters) {
       this.towers.forEach(t => t.rapidRender(ctxRapid, monsters))
+      this.independentTowers.forEach(t => t.rapidRender(ctxRapid, monsters))
     }
 
     makeHash() {
@@ -263,6 +269,14 @@ const TowerManager = new Proxy(
      */
     scanSwipe(emitCallback) {
       this.towers = this.towers.filter(t => {
+        if (t.isSold) {
+          emitCallback(t.sellingPrice)
+          t.destory()
+        }
+        return !t.isSold
+      })
+
+      this.independentTowers = this.independentTowers.filter(t => {
         if (t.isSold) {
           emitCallback(t.sellingPrice)
           t.destory()
@@ -389,88 +403,88 @@ class CannonShooter extends TowerBase {
 
     if (ret !== 0) {
       switch(this.level) {
-      case 5:
-        this.rankUp()
-        this.name = '榴弹塔'
-        this.image = Game.callImageBitMap(TowerManager.CannonShooter.n2)
-        this.description += CannonShooter.rankUpDesc1
-        this.borderStyle = 'rgba(206,43,12,.7)'
-        this.extraExplosionDamage = 100
-        this.extraExplosionRange = 10
-        this.extraBulletV = 2
-        this.levelBrnAtkFx = TowerManager.CannonShooter.bdatk2
-        break
-      case 10:
-        this.rankUp()
-        this.name = '导弹塔'
-        this.image = Game.callImageBitMap(TowerManager.CannonShooter.n3)
-        this.description += CannonShooter.rankUpDesc2
-        this.borderStyle = 'rgba(246,43,12,.9)'
-        this.extraExplosionDamage = 150
-        this.extraRange = 100
-        this.extraBulletV = 14
-        this.levelBrnAtkFx = TowerManager.CannonShooter.bdatk3
-        break
-      case 15:
-        this.rankUp()
-        this.name = '集束炸弹塔'
-        this.description += CannonShooter.rankUpDesc3
-        this.extraExplosionDamage = 200
-        this.extraRange = 150
-        this.extraExplosionRange = 20
-        this.bulletCtorName = TowerManager.CannonShooter.bctor2
-        this.levelBrnAtkFx = TowerManager.CannonShooter.bdatk4
-        break
-      case 30:
-        this.rankUp()
-        this.name = '云爆塔'
-        this.description += CannonShooter.rankUpDesc4
-        this.extraExplosionDamage = 250
-        this.extraRange = 200
-        this.extraExplosionRange = 30
-        this.bulletCtorName = TowerManager.CannonShooter.bctor3
-        this.levelBrnAtkFx = TowerManager.CannonShooter.bdatk5
-        break
-      case 40:
-        this.rankUp()
-        Object.defineProperty(this, 'extraExplosionDamage', {
-          enumerable: true,
-          get() {
-            return 250 + Math.floor((this.level - 40) * 30)
-          }
-        })
-        this.name += ` ${TowerManager.rankPostfixL1}I`
-        break
-      case 50:
-        this.rankUp()
-        this.name = this.name.replace('I', 'II')
-        break
-      case 60:
-        this.rankUp()
-        this.name = this.name.replace('II', 'III')
-        break
-      case 70:
-        this.rankUp()
-          this.name = this.name.replace('III', 'IV')
-        this.extraExplosionDamageRatio = 1.5
-        break
-      case 80:
-        this.rankUp()
-        this.name = this.name.replace('IV', 'V')
-        this.extraExplosionDamageRatio = 1.5 * 1.5
-        break
-      case 90:
-        this.rankUp()
-        this.name = this.name.replace(TowerManager.rankPostfixL1, TowerManager.rankPostfixL2).replace('V', 'I')
-        this.extraExplosionDamageRatio = 1.5 * 1.5 * 1.5
-        this.extraExplosionRangeRatio = 1.1
-        break
-      case 100:
-        this.rankUp()
-        this.name = this.name.replace('I', 'II')
-        this.extraExplosionDamageRatio = 1.5 * 1.5 * 1.5 * 1.5
-        this.extraExplosionRangeRatio = 1.2
-        break
+        case 5:
+          this.rankUp()
+          this.name = '榴弹塔'
+          this.image = Game.callImageBitMap(TowerManager.CannonShooter.n2)
+          this.description += CannonShooter.rankUpDesc1
+          this.borderStyle = 'rgba(206,43,12,.7)'
+          this.extraExplosionDamage = 100
+          this.extraExplosionRange = 10
+          this.extraBulletV = 2
+          this.levelBrnAtkFx = TowerManager.CannonShooter.bdatk2
+          break
+        case 10:
+          this.rankUp()
+          this.name = '导弹塔'
+          this.image = Game.callImageBitMap(TowerManager.CannonShooter.n3)
+          this.description += CannonShooter.rankUpDesc2
+          this.borderStyle = 'rgba(246,43,12,.9)'
+          this.extraExplosionDamage = 150
+          this.extraRange = 100
+          this.extraBulletV = 14
+          this.levelBrnAtkFx = TowerManager.CannonShooter.bdatk3
+          break
+        case 15:
+          this.rankUp()
+          this.name = '集束炸弹塔'
+          this.description += CannonShooter.rankUpDesc3
+          this.extraExplosionDamage = 200
+          this.extraRange = 150
+          this.extraExplosionRange = 20
+          this.bulletCtorName = TowerManager.CannonShooter.bctor2
+          this.levelBrnAtkFx = TowerManager.CannonShooter.bdatk4
+          break
+        case 30:
+          this.rankUp()
+          this.name = '云爆塔'
+          this.description += CannonShooter.rankUpDesc4
+          this.extraExplosionDamage = 250
+          this.extraRange = 200
+          this.extraExplosionRange = 30
+          this.bulletCtorName = TowerManager.CannonShooter.bctor3
+          this.levelBrnAtkFx = TowerManager.CannonShooter.bdatk5
+          break
+        case 40:
+          this.rankUp()
+          Object.defineProperty(this, 'extraExplosionDamage', {
+            enumerable: true,
+            get() {
+              return 250 + Math.floor((this.level - 40) * 30)
+            }
+          })
+          this.name += ` ${TowerManager.rankPostfixL1}I`
+          break
+        case 50:
+          this.rankUp()
+          this.name = this.name.replace('I', 'II')
+          break
+        case 60:
+          this.rankUp()
+          this.name = this.name.replace('II', 'III')
+          break
+        case 70:
+          this.rankUp()
+            this.name = this.name.replace('III', 'IV')
+          this.extraExplosionDamageRatio = 1.5
+          break
+        case 80:
+          this.rankUp()
+          this.name = this.name.replace('IV', 'V')
+          this.extraExplosionDamageRatio = 1.5 * 1.5
+          break
+        case 90:
+          this.rankUp()
+          this.name = this.name.replace(TowerManager.rankPostfixL1, TowerManager.rankPostfixL2).replace('V', 'I')
+          this.extraExplosionDamageRatio = 1.5 * 1.5 * 1.5
+          this.extraExplosionRangeRatio = 1.1
+          break
+        case 100:
+          this.rankUp()
+          this.name = this.name.replace('I', 'II')
+          this.extraExplosionDamageRatio = 1.5 * 1.5 * 1.5 * 1.5
+          this.extraExplosionRangeRatio = 1.2
+          break
       }
     }
 
@@ -572,7 +586,7 @@ class MaskManTower extends TowerBase {
 
     this.extraBulletV = 0
 
-    this.inner_desc_init = '每次向多个敌人射出箭矢\n+ 有几率暴击\n+ 拥有固定30%的护甲穿透'
+    this.inner_desc_init = '每次向多个敌人射出箭矢\n+ 有几率暴击\n+ 拥有固定 30%的护甲穿透'
     this.description = this.inner_desc_init
 
     this.critChance = 0.1
@@ -589,103 +603,103 @@ class MaskManTower extends TowerBase {
 
     if (ret !== 0) {
       switch (this.level) {
-      case 5:
-        this.rankUp()
-        this.name = '弩箭塔'
-        this.image = Game.callImageBitMap(TowerManager.MaskManTower.n2)
-        this.description += MaskManTower.rankUpDesc1
-        this.borderStyle = 'rgba(26,143,12,.5)'
-        this.extraRange = 160
-        this.extraPower = 10
-        this.extraBulletV = 2
-        break
-      case 10:
-        this.rankUp()
-        this.name = '火枪塔'
-        this.image = Game.callImageBitMap(TowerManager.MaskManTower.n3)
-        this.description += MaskManTower.rankUpDesc2
-        this.borderStyle = 'rgba(26,203,12,.7)'
-        this.enhanceCrit(0.15, 6)
-        this.extraPower = 20
-        this.extraBulletV = 4
-        // this.bulletImage = Game.callImageBitMap(TowerManager.MaskManTower.bn2)
-        break
-      case 15:
-        this.rankUp()
-        this.name = '精灵神射手塔'
-        this.description += MaskManTower.rankUpDesc3
-        this.image = Game.callImageBitMap(TowerManager.MaskManTower.n4)
-        this.borderStyle = 'rgba(26,255,12,.9)'
-        this.enhanceCrit(0.1, 5)
-        this.extraRange = 180
-        this.trapChance = 5 // 5%
-        this.trapDuration = 3000 // 3 second
-        this.extraBulletV = 8
-        Object.defineProperty(this, 'extraHaste', {
-          enumerable: true,
-          get() {
-            return 0.5 + (this.level - 15) * 0.004
-          }
-        })
-        // Object.defineProperty(this, 'extraArrow', {
-        //   enumerable: true,
-        //   get() {
-        //     return Math.round(10 + this.level / 4)
-        //   }
-        // })
-        this.extraArrow = 16
-        break
-      case 20:
-        this.rankUp()
-        this.name += ` ${TowerManager.rankPostfixL1}I`
-        this.enhanceCrit(0.05, 5)
-        break
-      case 30:
-        this.rankUp()
-        this.name = this.name.replace('I', 'II')
-        this.enhanceCrit()
-        this.trapChance = 6
-        this.trapDuration = 3500
-        break
-      case 40:
-        this.rankUp()
-        this.name = this.name.replace('II', 'III')
-        this.enhanceCrit()
-        this.trapChance = 7
-        this.trapDuration = 4000
-        break
-      case 50:
-        this.rankUp()
-        this.name = this.name.replace('III', 'IV')
-        this.enhanceCrit()
-        this.trapChance = 7.5
-        this.trapDuration = 4300
-        break
-      case 60:
-        this.rankUp()
-        this.name = this.name.replace('IV', 'V')
-        this.enhanceCrit()
-        this.trapChance = 8
-        this.trapDuration = 4400
-        break
-      case 70:
-        this.rankUp()
-        this.name = this.name.replace(TowerManager.rankPostfixL1, TowerManager.rankPostfixL2).replace('V', 'I')
-        this.enhanceCrit(0.05, 5)
-        this.trapChance = 9
-        this.trapDuration = 4500
-        break
-      case 80:
-        this.rankUp()
-        this.name = this.name.replace('I', 'II')
-        this.enhanceCrit()
-        this.trapChance = 10
-        break
-      case 90:
-        this.rankUp()
-        this.name = this.name.replace('II', 'III')
-        this.enhanceCrit()
-        break
+        case 5:
+          this.rankUp()
+          this.name = '弩箭塔'
+          this.image = Game.callImageBitMap(TowerManager.MaskManTower.n2)
+          this.description += MaskManTower.rankUpDesc1
+          this.borderStyle = 'rgba(26,143,12,.5)'
+          this.extraRange = 160
+          this.extraPower = 10
+          this.extraBulletV = 2
+          break
+        case 10:
+          this.rankUp()
+          this.name = '火枪塔'
+          this.image = Game.callImageBitMap(TowerManager.MaskManTower.n3)
+          this.description += MaskManTower.rankUpDesc2
+          this.borderStyle = 'rgba(26,203,12,.7)'
+          this.enhanceCrit(0.15, 6)
+          this.extraPower = 20
+          this.extraBulletV = 4
+          // this.bulletImage = Game.callImageBitMap(TowerManager.MaskManTower.bn2)
+          break
+        case 15:
+          this.rankUp()
+          this.name = '精灵神射手塔'
+          this.description += MaskManTower.rankUpDesc3
+          this.image = Game.callImageBitMap(TowerManager.MaskManTower.n4)
+          this.borderStyle = 'rgba(26,255,12,.9)'
+          this.enhanceCrit(0.1, 5)
+          this.extraRange = 180
+          this.trapChance = 5 // 5%
+          this.trapDuration = 3000 // 3 second
+          this.extraBulletV = 8
+          Object.defineProperty(this, 'extraHaste', {
+            enumerable: true,
+            get() {
+              return 0.5 + (this.level - 15) * 0.004
+            }
+          })
+          // Object.defineProperty(this, 'extraArrow', {
+          //   enumerable: true,
+          //   get() {
+          //     return Math.round(10 + this.level / 4)
+          //   }
+          // })
+          this.extraArrow = 16
+          break
+        case 20:
+          this.rankUp()
+          this.name += ` ${TowerManager.rankPostfixL1}I`
+          this.enhanceCrit(0.05, 5)
+          break
+        case 30:
+          this.rankUp()
+          this.name = this.name.replace('I', 'II')
+          this.enhanceCrit()
+          this.trapChance = 6
+          this.trapDuration = 3500
+          break
+        case 40:
+          this.rankUp()
+          this.name = this.name.replace('II', 'III')
+          this.enhanceCrit()
+          this.trapChance = 7
+          this.trapDuration = 4000
+          break
+        case 50:
+          this.rankUp()
+          this.name = this.name.replace('III', 'IV')
+          this.enhanceCrit()
+          this.trapChance = 7.5
+          this.trapDuration = 4300
+          break
+        case 60:
+          this.rankUp()
+          this.name = this.name.replace('IV', 'V')
+          this.enhanceCrit()
+          this.trapChance = 8
+          this.trapDuration = 4400
+          break
+        case 70:
+          this.rankUp()
+          this.name = this.name.replace(TowerManager.rankPostfixL1, TowerManager.rankPostfixL2).replace('V', 'I')
+          this.enhanceCrit(0.05, 5)
+          this.trapChance = 9
+          this.trapDuration = 4500
+          break
+        case 80:
+          this.rankUp()
+          this.name = this.name.replace('I', 'II')
+          this.enhanceCrit()
+          this.trapChance = 10
+          break
+        case 90:
+          this.rankUp()
+          this.name = this.name.replace('II', 'III')
+          this.enhanceCrit()
+          break
       }
     }
 
@@ -784,7 +798,7 @@ class MaskManTower extends TowerBase {
 class FrostTower extends TowerBase {
 
   static rankUpDesc1 = '\n+ 周期性造成范围冻结'
-  static rankUpDesc2 = '\n+ 冻结时能制造伤害并削减敌方护甲'
+  static rankUpDesc2 = '\n+ 冻结时能制造伤害并削减敌方 $% 护甲'
   static rankUpDesc3 = '\n+ 冻结能力加强'
 
   constructor(position, image,  bimg, radius) {
@@ -822,7 +836,7 @@ class FrostTower extends TowerBase {
     this.freezeDamage = 300
     this.lastFreezeTime = performance.now()
 
-    this.armorDecreasingStrength = .88
+    this.armorDecreasingStrength = 0.95
   }
 
   get canFreeze() {
@@ -852,87 +866,88 @@ class FrostTower extends TowerBase {
 
     if (ret !== 0) {
       switch (this.level) {
-      case 5:
-        this.rankUp()
-        this.name = '暴风雪I'
-        this.description += FrostTower.rankUpDesc1
-        this.freezeInterval = 1000
-        this.freezeDuration = 400
-        this.extraEffect = msts => {
-          if (this.canFreeze) {
-            msts.forEach(mst => {
+        case 5:
+          this.rankUp()
+          this.name = '暴风雪I'
+          this.description += FrostTower.rankUpDesc1
+          this.freezeInterval = 1000
+          this.freezeDuration = 400
+          this.extraEffect = msts => {
+            if (this.canFreeze) {
 
-              Game.callAnimation('icicle', new Position(mst.position.x - mst.radius, mst.position.y), mst.radius * 2, mst.radius * 2)
+              msts.forEach(mst => {
+                Game.callAnimation('icicle', new Position(mst.position.x - mst.radius, mst.position.y), mst.radius * 2, mst.radius * 2)
 
-              mst.registerFreeze(this.freezeDurationTick)
-            })
-            this.lastFreezeTime = performance.now()
+                mst.registerFreeze(this.freezeDurationTick)
+              })
+              this.lastFreezeTime = performance.now()
+            }
           }
-        }
-        break
-      case 10:
-        this.rankUp()
-        this.name = '暴风雪II'
-        this.description += FrostTower.rankUpDesc2
-        this.freezeInterval = 5000
-        this.freezeDuration = 600
-        this.extraEffect = msts => {
+          break
+        case 10:
+          this.rankUp()
+          this.name = '暴风雪II'
+          this.description += FrostTower.rankUpDesc2.replace('$', Math.round((1 - this.armorDecreasingStrength) * 100))
+          this.freezeInterval = 5000
+          this.freezeDuration = 600
+          this.extraEffect = msts => {
 
-          if (this.canFreeze) {
-            msts.forEach(mst => {
+            if (this.canFreeze) {
 
-              Game.callAnimation('icicle', new Position(mst.position.x - mst.radius, mst.position.y), mst.radius * 2, mst.radius * 2)
+              msts.forEach(mst => {
+                Game.callAnimation('icicle', new Position(mst.position.x - mst.radius, mst.position.y), mst.radius * 2, mst.radius * 2)
 
-              mst.registerFreeze(this.freezeDurationTick)
-              mst.inner_armor *= this.armorDecreasingStrength
-              mst.health -= this.freezeDamage * (1 - mst.armorResistance)
-              this.recordDamage(mst)
-            })
-            this.lastFreezeTime = performance.now()
+                mst.registerFreeze(this.freezeDurationTick)
+  
+                mst.inner_armor *= this.armorDecreasingStrength
+                mst.health -= this.freezeDamage * (1 - mst.armorResistance)
+                this.recordDamage(mst)
+              })
+              this.lastFreezeTime = performance.now()
+            }
           }
-        }
-        break
-      case 15:
-        this.rankUp()
-        this.name = '暴风雪III'
-        this.description += FrostTower.rankUpDesc3
-        this.freezeInterval = 4400
-        this.freezeDuration = 800
-        this.freezeDamage += 100
-        this.armorDecreasingStrength = .75
-        break
-      case 20:
-        this.rankUp()
-        this.name = '暴风雪IV'
-        this.freezeInterval = 4200
-        this.freezeDuration = 860
-        this.freezeDamage += 100
-        this.armorDecreasingStrength = .7
-        break
-      case 25:
-        this.rankUp()
-        this.name = '暴风雪V'
-        this.freezeInterval = 4000
-        this.freezeDuration = 880
-        this.freezeDamage += 100
-        this.armorDecreasingStrength = .65
-        break
-      case 30:
-        this.rankUp()
-        this.name = '暴风雪VI'
-        this.freezeInterval = 3800
-        this.freezeDuration = 900
-        this.freezeDamage += 100
-        this.armorDecreasingStrength = .6
-        break
-      case 35:
-        this.rankUp()
-        this.name = '暴风雪VII'
-        this.freezeInterval = 3600
-        this.freezeDuration = 920
-        this.freezeDamage += 100
-        this.armorDecreasingStrength = .575
-        break
+          break
+        case 15:
+          this.rankUp()
+          this.name = '暴风雪III'
+          this.description += FrostTower.rankUpDesc3
+          this.freezeInterval = 4400
+          this.freezeDuration = 800
+          this.freezeDamage += 100
+          this.armorDecreasingStrength = .75
+          break
+        case 20:
+          this.rankUp()
+          this.name = '暴风雪IV'
+          this.freezeInterval = 4200
+          this.freezeDuration = 860
+          this.freezeDamage += 100
+          this.armorDecreasingStrength = .7
+          break
+        case 25:
+          this.rankUp()
+          this.name = '暴风雪V'
+          this.freezeInterval = 4000
+          this.freezeDuration = 880
+          this.freezeDamage += 100
+          this.armorDecreasingStrength = .65
+          break
+        case 30:
+          this.rankUp()
+          this.name = '暴风雪VI'
+          this.freezeInterval = 3800
+          this.freezeDuration = 900
+          this.freezeDamage += 100
+          this.armorDecreasingStrength = .6
+          break
+        case 35:
+          this.rankUp()
+          this.name = '暴风雪VII'
+          this.freezeInterval = 3600
+          this.freezeDuration = 920
+          this.freezeDamage += 100
+          this.armorDecreasingStrength = .575
+          break
       }
     }
 
@@ -1025,7 +1040,7 @@ class PoisonTower extends TowerBase {
    * 中毒DOT伤害
    */
   get Patk() {
-    return this.levelPatkFx(this.level)
+    return this.levelPatkFx(this.level) * this.__atk_ratio * this.__anger_gem_atk_ratio
   }
 
   get DOTPS() {
@@ -1035,8 +1050,8 @@ class PoisonTower extends TowerBase {
   get informationSeq() {
     return super.informationSeq.concat([
       ['每跳毒素伤害', Math.round(this.Patk)],
-      ['毒素伤害频率', this.Pitv / 1000 + ' 秒'],
-      ['毒素持续', Tools.roundWithFixed(this.Pdur / 1000, 1) + ' 秒'],
+      ['毒素伤害频率', Tools.roundWithFixed(this.Pitv / 1000, 1) + ' 秒'],
+      ['毒素持续', Math.round(this.Pdur / 1000) + ' 秒'],
       // ['DOTPS', Tools.roundWithFixed(this.DOTPS, 2)]
     ])
   }
@@ -1210,31 +1225,31 @@ class TeslaTower extends TowerBase {
 
     if (ret !== 0) {
       switch (this.level) {
-      case 12:
-        this.rankUp()
-        this.name = '特斯拉塔'
-        this.image = Game.callImageBitMap(TowerManager.TeslaTower.n2)
-        this.description += TeslaTower.rankUpDesc1
-        this.borderStyle = 'rgba(222,201,34,.6)'
-        this.extraHaste = 0.75
-        this.shockChargingChance = .3
-        this.shockDuration = 8000
-        this.shockChargingPowerRatio = .75
-        this.shockLeakingChance = .05
-        break
-      case 24:
-        this.rankUp()
-        this.name = '闪电风暴塔'
-        this.image = Game.callImageBitMap(TowerManager.TeslaTower.n3)
-        this.description += TeslaTower.rankUpDesc2
-        this.borderStyle = 'rgba(162,161,34,.8)'
-        this.extraRange = 80
-        // this.extraEffect = mst => mst.position.moveTo(this.position, mst.speedValue * .25 * 60 / this.HstPS)
-        this.shockChargingChance = .4
-        this.shockDuration = 12000
-        this.shockChargingPowerRatio = 1.5
-        this.shockLeakingChance = .12
-        break
+        case 12:
+          this.rankUp()
+          this.name = '特斯拉塔'
+          this.image = Game.callImageBitMap(TowerManager.TeslaTower.n2)
+          this.description += TeslaTower.rankUpDesc1
+          this.borderStyle = 'rgba(222,201,34,.6)'
+          this.extraHaste = 0.75
+          this.shockChargingChance = .3
+          this.shockDuration = 8000
+          this.shockChargingPowerRatio = .75
+          this.shockLeakingChance = .05
+          break
+        case 24:
+          this.rankUp()
+          this.name = '闪电风暴塔'
+          this.image = Game.callImageBitMap(TowerManager.TeslaTower.n3)
+          this.description += TeslaTower.rankUpDesc2
+          this.borderStyle = 'rgba(162,161,34,.8)'
+          this.extraRange = 80
+          // this.extraEffect = mst => mst.position.moveTo(this.position, mst.speedValue * .25 * 60 / this.HstPS)
+          this.shockChargingChance = .4
+          this.shockDuration = 12000
+          this.shockChargingPowerRatio = 1.5
+          this.shockLeakingChance = .12
+          break
       }
     }
 
@@ -1246,9 +1261,15 @@ class TeslaTower extends TowerBase {
    * @param {MonsterBase} monster
    */
   shock(monster) {
-    monster.health -= this.Atk * (1 - monster.armorResistance) * this.calculateDamageRatio(monster)
+    const ratio = this.calculateDamageRatio(monster)
+
+    monster.health -= this.Atk * (1 - monster.armorResistance) * ratio
+
     this.recordDamage(monster)
-    if (this.canCharge) monster.registerShock(this.shockDurationTick, this.Atk * this.shockChargingPowerRatio, this, this.shockLeakingChance)
+
+    if (this.canCharge) {
+      monster.registerShock(this.shockDurationTick, this.Atk * ratio * this.shockChargingPowerRatio, this, this.shockLeakingChance)
+    }
     // this.extraEffect(monster)
   }
 
@@ -1424,34 +1445,34 @@ class BlackMagicTower extends TowerBase {
 
     if (ret !== 0) {
       switch (this.level) {
-      case 5:
-        this.rankUp()
-        this.name = '奥术魔法塔'
-        this.image = Game.callImageBitMap(TowerManager.BlackMagicTower.n2)
-        this.description = this.inner_desc_init + BlackMagicTower.rankUpDesc1
-        this.borderStyle = 'rgba(223,14,245,.4)'
-        this.extraPower = 666
-        this.levelAtkFx = TowerManager.BlackMagicTower.a2
-        break
-      case 10:
-        this.rankUp()
-        this.name = '黑魔法塔'
-        this.image = Game.callImageBitMap(TowerManager.BlackMagicTower.n3)
-        this.description = this.inner_desc_init + BlackMagicTower.rankUpDesc2
-        this.borderStyle = 'rgba(223,14,245,.6)'
-        this.extraPower = 2664
-        this.levelAtkFx = TowerManager.BlackMagicTower.a3
-        break
-      case 15:
-        this.rankUp()
-        this.name = '虚空塔'
-        this.image = Game.callImageBitMap(TowerManager.BlackMagicTower.n4)
-        this.description = this.inner_desc_init + BlackMagicTower.rankUpDesc3
-        this.borderStyle = 'rgba(223,14,245,.8)'
-        this.extraPower = 10654
-        this.levelAtkFx = TowerManager.BlackMagicTower.a4
-        this.POTCHD = .08
-        break
+        case 5:
+          this.rankUp()
+          this.name = '奥术魔法塔'
+          this.image = Game.callImageBitMap(TowerManager.BlackMagicTower.n2)
+          this.description = this.inner_desc_init + BlackMagicTower.rankUpDesc1
+          this.borderStyle = 'rgba(223,14,245,.4)'
+          this.extraPower = 666
+          this.levelAtkFx = TowerManager.BlackMagicTower.a2
+          break
+        case 10:
+          this.rankUp()
+          this.name = '黑魔法塔'
+          this.image = Game.callImageBitMap(TowerManager.BlackMagicTower.n3)
+          this.description = this.inner_desc_init + BlackMagicTower.rankUpDesc2
+          this.borderStyle = 'rgba(223,14,245,.6)'
+          this.extraPower = 2664
+          this.levelAtkFx = TowerManager.BlackMagicTower.a3
+          break
+        case 15:
+          this.rankUp()
+          this.name = '虚空塔'
+          this.image = Game.callImageBitMap(TowerManager.BlackMagicTower.n4)
+          this.description = this.inner_desc_init + BlackMagicTower.rankUpDesc3
+          this.borderStyle = 'rgba(223,14,245,.8)'
+          this.extraPower = 10654
+          this.levelAtkFx = TowerManager.BlackMagicTower.a4
+          this.POTCHD = .08
+          break
       }
     }
 
@@ -1507,7 +1528,7 @@ class LaserTower extends TowerBase {
    * 内部类 激光射线枪
    * 剥离出具体激光的渲染逻辑，外层无需关心
    */
-  static Laser = class ColossusLaser {
+  static Laser = class _ColossusLaser {
 
     static animationW = 36
     static animationH = 36
@@ -1545,7 +1566,7 @@ class LaserTower extends TowerBase {
 
       this.currentStep = 0
 
-      const maxAnimationCount = Math.floor(this.swipeVector.r / (Math.max(ColossusLaser.animationW, ColossusLaser.animationH) + 1))
+      const maxAnimationCount = Math.floor(this.swipeVector.r / (Math.max(_ColossusLaser.animationW, _ColossusLaser.animationH) + 1))
       this.animationStepInterval = maxAnimationCount >= updateCount ? 1 : Math.ceil(updateTime / maxAnimationCount)
 
       /**
@@ -1582,11 +1603,11 @@ class LaserTower extends TowerBase {
 
       if (this.canAnimate) {
         Game.callAnimation(
-          ColossusLaser.animationName,
+          _ColossusLaser.animationName,
           stepEndPos,
-          ColossusLaser.animationW,
-          ColossusLaser.animationH,
-          ColossusLaser.animationSpeed,
+          _ColossusLaser.animationW,
+          _ColossusLaser.animationH,
+          _ColossusLaser.animationSpeed,
           400
         )
       }
@@ -1716,45 +1737,45 @@ class LaserTower extends TowerBase {
 
     if (ret !== 0) {
       switch (this.level) {
-      case 8:
-        this.rankUp()
-        this.name = '高能激光塔'
-        this.image = Game.callImageBitMap(TowerManager.LaserTower.n2)
-        this.description += LaserTower.rankUpDesc1
-        this.borderStyle = 'rgba(17,54,245,.3)'
-        this.extraFlameDamage = 220
-        break
-      case 16:
-        this.rankUp()
-        this.name = '热能射线塔'
-        this.image = Game.callImageBitMap(TowerManager.LaserTower.n3)
-        this.description += LaserTower.rankUpDesc2
-        this.borderStyle = 'rgba(17,54,245,.4)'
-        this.extraLuminousDamage = 140
-        break
-      case 32:
-        this.rankUp()
-        this.name = '多重热能射线塔'
-        this.image = Game.callImageBitMap(TowerManager.LaserTower.n4)
-        this.description += LaserTower.rankUpDesc3
-        this.borderStyle = 'rgba(17,54,245,.5)'
-        this.levelSlcFx = TowerManager.LaserTower.s2
-        this.extraFlameDamage = 420
-        this.extraLuminousDamage = 220
-        break
-      case 64:
-        this.rankUp()
-        this.name = '巨像'
-        this.image = Game.callImageBitMap(TowerManager.LaserTower.n5)
-        this.description += LaserTower.rankUpDesc4
-        this.borderStyle = 'rgba(17,54,245,.8)'
-        this.extraFlameDamage = 640
-        this.extraLuminousDamage = 380
-        this.levelSlcFx = TowerManager.LaserTower.s3
-        this.levelHstFx = TowerManager.LaserTower.h2
-        this.extraRange = 50
-        this.extraFlameWidth = 40
-        break
+        case 8:
+          this.rankUp()
+          this.name = '高能激光塔'
+          this.image = Game.callImageBitMap(TowerManager.LaserTower.n2)
+          this.description += LaserTower.rankUpDesc1
+          this.borderStyle = 'rgba(17,54,245,.3)'
+          this.extraFlameDamage = 220
+          break
+        case 16:
+          this.rankUp()
+          this.name = '热能射线塔'
+          this.image = Game.callImageBitMap(TowerManager.LaserTower.n3)
+          this.description += LaserTower.rankUpDesc2
+          this.borderStyle = 'rgba(17,54,245,.4)'
+          this.extraLuminousDamage = 140
+          break
+        case 32:
+          this.rankUp()
+          this.name = '多重热能射线塔'
+          this.image = Game.callImageBitMap(TowerManager.LaserTower.n4)
+          this.description += LaserTower.rankUpDesc3
+          this.borderStyle = 'rgba(17,54,245,.5)'
+          this.levelSlcFx = TowerManager.LaserTower.s2
+          this.extraFlameDamage = 420
+          this.extraLuminousDamage = 220
+          break
+        case 64:
+          this.rankUp()
+          this.name = '巨像'
+          this.image = Game.callImageBitMap(TowerManager.LaserTower.n5)
+          this.description += LaserTower.rankUpDesc4
+          this.borderStyle = 'rgba(17,54,245,.8)'
+          this.extraFlameDamage = 640
+          this.extraLuminousDamage = 380
+          this.levelSlcFx = TowerManager.LaserTower.s3
+          this.levelHstFx = TowerManager.LaserTower.h2
+          this.extraRange = 50
+          this.extraFlameWidth = 40
+          break
       }
     }
 
@@ -1832,21 +1853,85 @@ class LaserTower extends TowerBase {
 
 class CarrierTower extends TowerBase {
 
+  static __inner_f1_mode = false
+  static __inner_wp_mode = 1
+
+  static set F1Mode(v) {
+    Game.callChangeF1Mode(v)
+    this.__inner_f1_mode = v
+  }
+
+  static get F1Mode() {
+    return this.__inner_f1_mode
+  }
+
+  static set WeaponMode(v) {
+    Game.callChangeCarrierWeaponMode(v)
+    this.__inner_wp_mode = v
+  }
+
+  static get WeaponMode() {
+    return this.__inner_wp_mode
+  }
+
   static deniedGems = [
     'ZeisStoneOfVengeance',
     'GemOfAnger'
   ]
 
+  // ---------------------------------------- child class ----------------------------------------
   static Jet = class _Jet extends TowerBase {
 
-    static JetBullet = class _JetBullet extends BulletBase {
-
-      constructor(position, atk, target) {
-        const bVelocity = 15
-
-        super(position, 1, 0, null, 'rgba(55,14,11,1)', atk, bVelocity, target)
+    static JetActMode = {
+      /**
+       * 自主模式
+       */
+      autonomous: 1,
+      /**
+       * F1模式（玩家控制）
+       */
+      f1: 2,
+      switch(oldMode) {
+        return oldMode === this.autonomous ? this.f1 : this.autonomous
       }
     }
+
+    static JetWeapons = {
+      getCtorName(mode) {
+        return mode === 1 ? 'CarrierTower.Jet.JetWeapons.MachineGun' : 'CarrierTower.Jet.JetWeapons.AutoCannons'
+      },
+      /**
+       * 10mm 高速机抢
+       */
+      MachineGun: class _MachineGun extends BulletBase {
+        /** 攻击速度增幅 */
+        static hasteSupplement(lvl) {
+          return 1 + lvl * 0.01
+        }
+        constructor(position, atk, target) {
+          const bVelocity = 15
+          super(position, 1, 0, null, 'rgba(55,14,11,1)', atk, bVelocity, target)
+        }
+      },
+      /**
+       * 30mm 机炮
+       */
+      AutoCannons: class _AutoCannons extends BulletBase {
+        /** 攻击力补正 */
+        static attackAddition(lvl) {
+          return (lvl + 2) * 3
+        }
+        constructor(position, atk, target) {
+          const bVelocity = 6
+          super(position, 3, 1, '#CC3333', '#99CC99', atk, bVelocity, target)
+        }
+        hit(monster, magnification = 1) {
+          monster.health -= this.Atk * magnification * (1 - monster.armorResistance * .5)
+          this.emitter(monster)
+        }
+      }
+    }
+
     /**
      * @param {CarrierTower} carrierTower
      */
@@ -1864,17 +1949,52 @@ class CarrierTower extends TowerBase {
         carrierTower.levelRngFx
       )
 
-      this.name = '航母载机'
+      this.controlable = true
 
-      this.bulletCtorName = carrierTower.bulletCtorName
+      this.name = '航母载机'
 
       this.carrierTower = carrierTower
 
       this.canInsertGem = false
+
+      this.actMode = _Jet.JetActMode.autonomous
+
+      /**
+       * 武器模式
+       * 1. 速射机枪
+       * 2. 30mm 机炮
+       */
+      this.weaponMode = 1
+
+      /**
+       * - 前进目的地
+       * - 仅在F1模式有效
+       */
+      this.destinationPosition = Position.O
+
+      this.inner_desc_init = '航母的载机\n+ 机动性极强\n+ 拥有 10mm 速射机枪和 30mm 反装甲机炮两种武器'
+      this.description = this.inner_desc_init
+    }
+
+    get bulletCtorName() {
+      return CarrierTower.Jet.JetWeapons.getCtorName(this.weaponMode)
+    }
+
+    set bulletCtorName(v) {}
+
+    /**
+     * 攻击补正
+     */
+    get attackSupplement() {
+      return this.weaponMode === 1 ? 0 : (Math.pow(this.level + 2, 1.536) * 3)
+    }
+
+    get hasteSupplementRate() {
+      return this.weaponMode === 1 ? (1 + this.level * 0.02) : 1
     }
 
     get Atk() {
-      return this.carrierTower.Atk
+      return this.carrierTower.Atk + this.attackSupplement
     }
 
     get Slc() {
@@ -1886,7 +2006,7 @@ class CarrierTower extends TowerBase {
     }
 
     get HstPS() {
-      return this.carrierTower.HstPS
+      return this.carrierTower.HstPS * this.hasteSupplementRate
     }
 
     get Spd() {
@@ -1936,7 +2056,7 @@ class CarrierTower extends TowerBase {
      * - 在怪物中找到威胁最大的(距离终点最近的)
      * @param {MonsterBase[]} targetList
      */
-    reChooseTarget(targetList) {
+    reChooseMostThreateningTarget(targetList) {
       this.target = _.minBy(targetList, mst => {
         return Position.distancePow2(Game.callDestinationPosition(), mst.position)
       })
@@ -1945,11 +2065,11 @@ class CarrierTower extends TowerBase {
     /**
      * @param {MonsterBase[]} monsters
      */
-    run(monsters) {
+    autonomouslyRun(monsters) {
       // 当前目标失效
       if (!this.hasCurrentTarget) {
 
-        this.reChooseTarget(monsters)
+        this.reChooseMostThreateningTarget(monsters)
 
         if (this.hasCurrentTarget) this.position.moveTo(this.target.position, this.Spd)
       }
@@ -1968,7 +2088,42 @@ class CarrierTower extends TowerBase {
       }
     }
 
+    /**
+     * @param {MonsterBase[]} monsters
+     */
+    run(monsters) {
+      switch(this.actMode) {
+
+        case _Jet.JetActMode.autonomous:
+          this.autonomouslyRun(monsters)
+          break
+
+        case _Jet.JetActMode.f1:
+          super.run(monsters)
+
+          if (Position.distance(this.position, this.destinationPosition) > this.radius * 2) {
+            this.position.moveTo(this.destinationPosition, this.Spd)
+            // const independentTowerList = Game.callIndependentTowerList()
+            // if (independentTowerList.indexOf(this) === 0) {
+            //   this.position.moveTo(this.destinationPosition, this.Spd)
+            // }
+            // else {
+            //   const futurePos = this.position.copy().moveTo(this.destinationPosition, this.Spd)
+            //   const others = independentTowerList.filter(jet => jet !== this)
+            //   const leaders = independentTowerList.slice(0, independentTowerList.indexOf(this) - 1)
+            //   if (leaders.every(jet => Position.distancePow2(jet.position, futurePos) < 4 * this.radius * this.radius)) {
+            //     this.position.x = futurePos.x
+            //     this.position.y = futurePos.y
+            //   }
+            // }
+          }
+          break
+      }
+    }
+
     render() {}
+
+    renderLevel() {}
 
     /**
      * @param {CanvasRenderingContext2D} ctx
@@ -1994,6 +2149,7 @@ class CarrierTower extends TowerBase {
       this.carrierTower.recordKill(...args)
     }
   }
+  // ---------------------------------------- child class end ----------------------------------------
 
   constructor(position, image, bimg, radius) {
     super(
@@ -2020,11 +2176,9 @@ class CarrierTower extends TowerBase {
      */
     this.levelKcFx = TowerManager.CarrierTower.child
 
-    this.bulletCtorName = TowerManager.CarrierTower.bctor
-
     this.name = TowerManager.CarrierTower.dn
 
-    this.inner_desc_init = '自身无法攻击，拥有多架载机\n+ 载机继承自身属性\n+ 可以对任意位置进行机动打击'
+    this.inner_desc_init = '自身无法攻击，释放搭载的载机进行战斗\n使用 [F1] 切换载机的自主/受控模式\n使用 [Q] 切换载机的武器\n+ 载机继承自身属性\n+ 可以对任意位置进行机动打击'
     this.description = this.inner_desc_init
   }
 
@@ -2061,6 +2215,6 @@ class CarrierTower extends TowerBase {
   destory() {
     super.destory()
 
-    Game.callTowerList().filter(tow => tow.carrierTower && tow.carrierTower === this).forEach(tow => tow.isSold = true)
+    Game.callIndependentTowerList().filter(tow => tow.carrierTower && tow.carrierTower === this).forEach(tow => tow.isSold = true)
   }
 }

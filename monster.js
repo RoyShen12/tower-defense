@@ -114,7 +114,7 @@ class Axeman extends MonsterBase {
   static rwd = lvl => 30 * lvl + 20
   static spd = lvl => Math.min(.25 + lvl / 80, 1)
   static hth = lvl => 300 + lvl * 100
-  static amr = lvl => 15 + lvl / 3
+  static amr = lvl => 5 + lvl / 6
 
   constructor(position, image, level) {
     super(
@@ -143,7 +143,7 @@ class LionMan extends MonsterBase {
   static rwd = lvl => 40 * lvl + 20
   static spd = lvl => Math.min(.38 + lvl / 70, 1.2)
   static hth = lvl => 580 + lvl * 122
-  static amr = lvl => 22 + lvl
+  static amr = lvl => 22 + lvl / 5
 
   constructor(position, image, level) {
     super(
@@ -171,7 +171,7 @@ class HighPriest extends MonsterBase {
   static rwd = lvl => 240 * lvl + 1320
   static spd = () => .11
   static hth = lvl => 14400 + lvl * 8000
-  static amr = () => 4
+  static amr = () => 14
 
   static healingInterval = () => 5000
   static healingPower = lvl => 40 * (Math.floor(lvl / 25) + 1)
@@ -294,7 +294,7 @@ class Devil extends MonsterBase {
   static rwd = lvl => 340 * lvl + 420
   static spd = lvl => .14
   static hth = lvl => 15500 + lvl * 13000
-  static amr = lvl => 32 + lvl * 8
+  static amr = lvl => 32 + lvl
 
   static summonInterval = () => 7000
 

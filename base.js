@@ -349,6 +349,52 @@ class Tools {
   }
 
   /**
+   * 
+   * @param {CanvasRenderingContext2D} ctx
+   * @param {Float64Array} dataArr
+   */
+  static renderStatistic(ctx, dataArr, positionTL, width, height, color) {
+    color = color || '#67C23A'
+    ctx.fillStyle = color
+
+    const maxV = 50
+    const horizonSpan = width / dataArr.length
+    const drawHeight = height - 2
+
+    if (!Tools.renderStatistic.onceWork) {
+      ctx.save()
+      ctx.textBaseline = 'middle'
+      ctx.font = '8px SourceCodePro'
+
+      ctx.fillStyle = 'rgb(255,0,0)'
+      ctx.fillRect(positionTL.x + width, positionTL.y - 2, 4, 1)
+      ctx.fillText(maxV + ' ms', positionTL.x + width + 6, positionTL.y)
+
+      ctx.fillStyle = 'rgb(1,251,124)'
+      ctx.fillRect(positionTL.x + width, positionTL.y + drawHeight / 3 * 2 - 2, 4, 1)
+      ctx.fillText('16.67 ms', positionTL.x + width + 6, positionTL.y + drawHeight / 3 * 2)
+
+      ctx.fillStyle = 'rgb(0,0,0)'
+      ctx.fillRect(positionTL.x + width, positionTL.y + drawHeight - 2, 4, 1)
+      ctx.fillText('0 ms', positionTL.x + width + 6, positionTL.y + drawHeight)
+      ctx.restore()
+      Tools.renderStatistic.onceWork = true
+    }
+
+    // ctx.beginPath()
+
+    ctx.clearRect(positionTL.x, positionTL.y, width, drawHeight)
+    dataArr.forEach((v, i) => {
+      const x = Math.floor(positionTL.x + i * horizonSpan)
+      const y = Math.floor(positionTL.y + drawHeight * (1 - v / maxV))
+      const h = Math.round(drawHeight * v / maxV)
+      // console.log(x, y, h)
+      ctx.fillRect(x, y, 1, h)
+    })
+    // ctx.fill()
+  }
+
+  /**
    * @reference https://github.com/gdsmith/jquery.easing/blob/master/jquery.easing.js
    */
   static EaseFx = class _Ease {
@@ -470,6 +516,9 @@ class Tools {
     if (target[dotDebuffName] || target.isDead) {
       return
     }
+    if (singleAttack === 0 || duration === 0) {
+      return
+    }
     else {
       let dotCount = 0
       // 目标标记debuff
@@ -507,6 +556,9 @@ class Tools {
       throw new Error('target has no debuff mark as name ' + dotDebuffName)
     }
     if (target.isDead) {
+      return
+    }
+    if (singleAttack === 0 || duration === 0) {
       return
     }
     else {
@@ -638,7 +690,7 @@ class CircleBase extends Base {
 }
 
 /**
- * 所有[物体]的基类
+ * 所有[单位]的基类
  */
 class ItemBase extends CircleBase {
 
@@ -676,6 +728,7 @@ class ItemBase extends CircleBase {
 
     this.intervalTimers = []
     this.timeoutTimers = []
+    this.controlable = false
   }
 
   /**
@@ -773,7 +826,7 @@ class ItemBase extends CircleBase {
 class TowerBase extends ItemBase {
 
   static informationDesc = new Map([
-    ['等级', '鼠标单击图标或按[C]键来消耗金币升级，等级影响很多属性，到达某个等级可以晋升'],
+    ['等级', '鼠标单击图标或按 [C] 键来消耗金币升级，等级影响很多属性，到达某个等级可以晋升'],
     ['下一级', '升级到下一级需要的金币数量'],
     ['售价', '出售此塔可以返还的金币数量'],
     // ['可用点数', '升级传奇宝石等级的点数，杀敌、制造伤害、升级均可获得点数'],
@@ -966,9 +1019,9 @@ class TowerBase extends ItemBase {
 
     /**
      * @virtual
-     * @type {string | undefined}
+     * @type {string}
      */
-    this.bulletCtorName = undefined
+    this.bulletCtorName = ''
 
     this.isSold = false
   }
@@ -1191,12 +1244,7 @@ class TowerBase extends ItemBase {
    * @param {MonsterBase[]} monsters
    */
   produceBullet(i, monsters) {
-    // if (!this.bulletCtorName || !this.target) {
-    //   throw new TypeError('null bulletCtorName or null target'.)
-    // }
-    
     const ratio = this.calculateDamageRatio(this.target)
-    
     this.bulletCtl.Factory(this.recordDamage.bind(this), this.bulletCtorName, this.position.copy().dithering(this.radius), this.Atk * ratio, this.target, this.bulletImage)
   }
 
@@ -2088,7 +2136,7 @@ class MonsterBase extends ItemBase {
     super.render(context)
     this.renderHealthBar(context)
     // this.renderHealthChange(context)
-    this.renderLevel(context)
+    // this.renderLevel(context)
     this.renderDebuffs(context, imgCtl)
 
     context.font = ftmp

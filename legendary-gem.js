@@ -119,6 +119,13 @@ class GemBase {
    * @param {MonsterBase[]} monsters
    */
   tickHook(thisTower, monsters) { }
+
+  /**
+   * @virtual
+   * @param {TowerBase} thisTower
+   * @param {MonsterBase} monster
+   */
+  damageHook(thisTower, monster, damage) { }
 }
 
 class PainEnhancer extends GemBase {
@@ -215,7 +222,7 @@ class GogokOfSwiftness extends GemBase {
   }
 
   static get maxLevel() {
-    return Infinity
+    return 2000
   }
 
   static get price() {
@@ -483,7 +490,7 @@ class BaneOfTheStricken extends GemBase {
   }
 
   static get maxLevel() {
-    return Infinity
+    return 1000
   }
 
   static get damageMakingRatioOnBoss() {
@@ -889,7 +896,7 @@ class EchoOfLight extends GemBase {
   }
 
   static get maxLevel() {
-    return Infinity
+    return 1000
   }
 
   static get imgSrc() {
@@ -975,7 +982,7 @@ class GemOfAnger extends GemBase {
   }
 
   static get maxLevel() {
-    return Infinity
+    return 2000
   }
 
   static get imgSrc() {
