@@ -163,7 +163,7 @@ let PainEnhancer = function (_GemBase) {
   }, {
     key: "bleedDamageRatioLevelMx",
     get: function () {
-      return 15;
+      return 25;
     }
   }, {
     key: "stasisDescription",
@@ -236,7 +236,7 @@ let GogokOfSwiftness = function (_GemBase2) {
   }, {
     key: "maxLevel",
     get: function () {
-      return 2000;
+      return 100;
     }
   }, {
     key: "price",
@@ -340,32 +340,32 @@ let MirinaeTeardropOfTheStarweaver = function (_GemBase3) {
   }, {
     key: "chance",
     get: function () {
-      return .15;
+      return .1;
     }
   }, {
     key: "baseChitDamageRatio",
     get: function () {
-      return 30;
+      return 50;
     }
   }, {
     key: "chitDamageRatioLevelMx",
     get: function () {
-      return 0.6;
+      return 1.2;
     }
   }, {
     key: "Hst",
     get: function () {
-      return 3000;
+      return 2000;
     }
   }, {
     key: "stasisDescription",
     get: function () {
-      return `击中时有 ${this.chance * 100}% 的几率[重击]附近的一名敌人，对其造成 ${Tools.roundWithFixed(this.baseChitDamageRatio * 100, 1)}%（+${Tools.roundWithFixed(this.chitDamageRatioLevelMx * 100, 1)}%/等级）攻击力的伤害，每 ${this.Hst / 1000} 秒[重击]一名随机敌人 (需要25级)`;
+      return `击中时有 ${this.chance * 100}% 的几率 [重击] 附近的一名敌人，对其造成 ${Tools.roundWithFixed(this.baseChitDamageRatio * 100, 1)}%（+${Tools.roundWithFixed(this.chitDamageRatioLevelMx * 100, 1)}%/等级）攻击力的伤害，每 ${this.Hst / 1000} 秒 [重击] 一名随机敌人 (需要25级)`;
     }
   }, {
     key: "__base_description",
     get: function () {
-      return `击中时有 ${this.chance * 100}% 的几率[重击]附近的一名敌人，对其造成 $% 攻击力的伤害，每 ${this.Hst / 1000} 秒[重击]一名随机敌人 (需要25级)`;
+      return `击中时有 ${this.chance * 100}% 的几率 [重击] 附近的一名敌人，对其造成 $% 攻击力的伤害，每 ${this.Hst / 1000} 秒 [重击] 一名随机敌人 (需要25级)`;
     }
   }]);
 
@@ -467,12 +467,12 @@ let SimplicitysStrength = function (_GemBase4) {
   }, {
     key: "baseAttackAddition",
     get: function () {
-      return 0.25;
+      return 0.5;
     }
   }, {
     key: "attackAdditionLevelMx",
     get: function () {
-      return 0.01;
+      return 0.1;
     }
   }, {
     key: "stasisDescription",
@@ -556,7 +556,7 @@ let BaneOfTheStricken = function (_GemBase5) {
   }, {
     key: "damageMakingRatioOnBoss",
     get: function () {
-      return .25;
+      return .75;
     }
   }, {
     key: "baseDamageMakingRatio",
@@ -566,7 +566,7 @@ let BaneOfTheStricken = function (_GemBase5) {
   }, {
     key: "damageMakingRatioLevelMx",
     get: function () {
-      return 0.0001;
+      return 0.0005;
     }
   }, {
     key: "stasisDescription",
@@ -835,12 +835,12 @@ let BaneOfTheTrapped = function (_GemBase8) {
   }, {
     key: "baseDamageMakingRatioOnTrapped",
     get: function () {
-      return 0.15;
+      return 0.75;
     }
   }, {
     key: "damageMakingRatioOnTrappedLevelMx",
     get: function () {
-      return 0.003;
+      return 0.02;
     }
   }, {
     key: "stasisDescription",
@@ -929,17 +929,17 @@ let ZeisStoneOfVengeance = function (_GemBase9) {
   }, {
     key: "baseDamageMakingRatioMax",
     get: function () {
-      return 0.2;
+      return 0.5;
     }
   }, {
     key: "damageMakingRatioLevelMxMin",
     get: function () {
-      return 0.004;
+      return 0.002;
     }
   }, {
     key: "damageMakingRatioLevelMxMax",
     get: function () {
-      return 0.008;
+      return 0.012;
     }
   }, {
     key: "chance",

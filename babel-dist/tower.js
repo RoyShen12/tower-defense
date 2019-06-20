@@ -117,7 +117,7 @@ const TowerManager = new Proxy((_temp = _class = function () {
   n4: 'archer3',
   p: new Proxy({}, {
     get(t, p, r) {
-      if (p === 'length') return 130;else return Math.ceil(Math.pow(1.1, +p) * 10);
+      if (p === 'length') return 180;else return Math.ceil(Math.pow(1.1, +p) * 10);
     }
 
   }),
@@ -137,7 +137,7 @@ const TowerManager = new Proxy((_temp = _class = function () {
   n3: 'cannon2',
   p: new Proxy({}, {
     get(t, p, r) {
-      if (p === 'length') return 150;else return Math.ceil(Math.pow(1.1, +p) * 15);
+      if (p === 'length') return 170;else return Math.ceil(Math.pow(1.1, +p) * 15);
     }
 
   }),
@@ -164,7 +164,7 @@ const TowerManager = new Proxy((_temp = _class = function () {
   n: 'ice',
   p: new Proxy({}, {
     get(t, p, r) {
-      if (p === 'length') return 50;else return Math.ceil(Math.pow(1.1, +p) * 320);
+      if (p === 'length') return 70;else return Math.ceil(Math.pow(1.1, +p) * 320);
     }
 
   }),
@@ -172,7 +172,7 @@ const TowerManager = new Proxy((_temp = _class = function () {
   a: () => 0,
   h: () => Infinity,
   s: () => 0,
-  sr: lvl => Math.min(Tools.MathFx.naturalLogFx(.1, .14)(lvl), 0.95)
+  sr: lvl => Tools.MathFx.naturalLogFx(.1, .12)(lvl)
 }, {
   dn: '毒气塔',
   c: 'PoisonTower',
@@ -189,8 +189,8 @@ const TowerManager = new Proxy((_temp = _class = function () {
   h: lvl => 2.1 + lvl * 0.1,
   s: () => 1,
   patk: lvl => lvl * 4 * Math.max(lvl / 25, 1) + 90,
-  pitv: lvl => Math.max(600 - lvl * 20, 100),
-  pdur: lvl => 4000 + lvl * 500,
+  pitv: lvl => Math.max(600 - lvl * 20, 50),
+  pdur: () => 5000,
   bctor: 'PoisonCan'
 }, {
   dn: '电能塔',
@@ -224,14 +224,14 @@ const TowerManager = new Proxy((_temp = _class = function () {
 
   }),
   r: lvl => lvl * 1 + 140,
-  a: lvl => 8800 + Math.round((lvl + 4) * (lvl + 4)),
-  a2: lvl => 8800 + Math.round((lvl + 5) * (lvl + 5)),
-  a3: lvl => 8800 + Math.round((lvl + 6) * (lvl + 6)),
-  a4: lvl => 8800 + Math.round((lvl + 7) * (lvl + 7)),
+  a: lvl => 5000 + Math.round((lvl + 4) * (lvl + 4)),
+  a2: lvl => 9000 + Math.round((lvl + 8) * (lvl + 8)),
+  a3: lvl => 15000 + Math.round((lvl + 16) * (lvl + 16)),
+  a4: lvl => 42000 + Math.round((lvl + 32) * (lvl + 32)),
   h: () => 0.125,
   s: () => 1,
   ide: lvl => Math.min(lvl * 0.022 + 0.1, 10),
-  idr: lvl => 10000 + 1000 * lvl
+  idr: lvl => 10000 + 100 * lvl
 }, {
   dn: '航母',
   c: 'CarrierTower',
@@ -507,6 +507,7 @@ let MaskManTower = function (_TowerBase3) {
     _this3.description = _this3.inner_desc_init;
     _this3.critChance = 0.1;
     _this3.critDamageRatio = 2;
+    _this3.secKillChance = 0;
     return _this3;
   }
 
@@ -538,7 +539,8 @@ let MaskManTower = function (_TowerBase3) {
             this.rankUp();
             this.name = '火枪塔';
             this.image = Game.callImageBitMap(TowerManager.MaskManTower.n3);
-            this.description += MaskManTower.rankUpDesc2;
+            this.secKillChance = 0.003;
+            this.description += MaskManTower.rankUpDesc2.replace('$', Math.round(this.secKillChance * 1000));
             this.borderStyle = 'rgba(26,203,12,.7)';
             this.enhanceCrit(0.15, 6);
             this.extraPower = 20;
@@ -551,7 +553,7 @@ let MaskManTower = function (_TowerBase3) {
             this.description += MaskManTower.rankUpDesc3;
             this.image = Game.callImageBitMap(TowerManager.MaskManTower.n4);
             this.borderStyle = 'rgba(26,255,12,.9)';
-            this.enhanceCrit(0.1, 5);
+            this.enhanceCrit(0.1);
             this.extraRange = 180;
             this.trapChance = 5;
             this.trapDuration = 3000;
@@ -570,7 +572,7 @@ let MaskManTower = function (_TowerBase3) {
           case 20:
             this.rankUp();
             this.name += ` ${TowerManager.rankPostfixL1}I`;
-            this.enhanceCrit(0.05, 5);
+            this.enhanceCrit(0.05, 2);
             break;
 
           case 30:
@@ -608,7 +610,7 @@ let MaskManTower = function (_TowerBase3) {
           case 70:
             this.rankUp();
             this.name = this.name.replace(TowerManager.rankPostfixL1, TowerManager.rankPostfixL2).replace('V', 'I');
-            this.enhanceCrit(0.05, 5);
+            this.enhanceCrit(0.05, 2);
             this.trapChance = 9;
             this.trapDuration = 4500;
             break;
@@ -652,7 +654,7 @@ let MaskManTower = function (_TowerBase3) {
     value: function produceBullet(idx) {
       if (this.multipleTarget[idx]) {
         const ratio = this.calculateDamageRatio(this.multipleTarget[idx]);
-        this.bulletCtl.Factory(this.recordDamage.bind(this), this.bulletCtorName, this.position.copy().dithering(this.radius), this.Atk * ratio, this.multipleTarget[idx], this.bulletImage, this.critChance, this.critDamageRatio, this.trapChance, this.trapDuration, this.extraBulletV);
+        this.bulletCtl.Factory(this.recordDamage.bind(this), this.bulletCtorName, this.position.copy().dithering(this.radius), this.Atk * ratio, this.multipleTarget[idx], this.bulletImage, this.critChance, this.critDamageRatio, this.trapChance, this.trapDuration, this.extraBulletV, Math.random() < this.secKillChance);
       }
     }
   }, {
@@ -712,7 +714,7 @@ let MaskManTower = function (_TowerBase3) {
 
 _defineProperty(MaskManTower, "rankUpDesc1", '\n+ 射程和攻击力得到加强');
 
-_defineProperty(MaskManTower, "rankUpDesc2", '\n+ 暴击能力得到大幅加强');
+_defineProperty(MaskManTower, "rankUpDesc2", '\n+ 暴击能力得到大幅加强\n+ 有 $‰ 的几率直接杀死目标');
 
 _defineProperty(MaskManTower, "rankUpDesc3", '\n+ 命中的箭矢将有几率束缚敌人');
 
@@ -734,9 +736,8 @@ let FrostTower = function (_TowerBase4) {
 
     _this4.extraEffect = () => {};
 
-    _this4.freezeDamage = 300;
     _this4.lastFreezeTime = performance.now();
-    _this4.armorDecreasingStrength = 0.95;
+    _this4.armorDecreasingStrength = 0.9;
     return _this4;
   }
 
@@ -779,8 +780,6 @@ let FrostTower = function (_TowerBase4) {
                   Game.callAnimation('icicle', new Position(mst.position.x - mst.radius, mst.position.y), mst.radius * 2, mst.radius * 2);
                   mst.registerFreeze(this.freezeDurationTick);
                   mst.inner_armor *= this.armorDecreasingStrength;
-                  mst.health -= this.freezeDamage * (1 - mst.armorResistance);
-                  this.recordDamage(mst);
                 });
                 this.lastFreezeTime = performance.now();
               }
@@ -794,8 +793,6 @@ let FrostTower = function (_TowerBase4) {
             this.description += FrostTower.rankUpDesc3;
             this.freezeInterval = 4400;
             this.freezeDuration = 800;
-            this.freezeDamage += 100;
-            this.armorDecreasingStrength = .75;
             break;
 
           case 20:
@@ -803,8 +800,6 @@ let FrostTower = function (_TowerBase4) {
             this.name = '暴风雪IV';
             this.freezeInterval = 4200;
             this.freezeDuration = 860;
-            this.freezeDamage += 100;
-            this.armorDecreasingStrength = .7;
             break;
 
           case 25:
@@ -812,8 +807,6 @@ let FrostTower = function (_TowerBase4) {
             this.name = '暴风雪V';
             this.freezeInterval = 4000;
             this.freezeDuration = 880;
-            this.freezeDamage += 100;
-            this.armorDecreasingStrength = .65;
             break;
 
           case 30:
@@ -821,8 +814,6 @@ let FrostTower = function (_TowerBase4) {
             this.name = '暴风雪VI';
             this.freezeInterval = 3800;
             this.freezeDuration = 900;
-            this.freezeDamage += 100;
-            this.armorDecreasingStrength = .6;
             break;
 
           case 35:
@@ -830,8 +821,6 @@ let FrostTower = function (_TowerBase4) {
             this.name = '暴风雪VII';
             this.freezeInterval = 3600;
             this.freezeDuration = 920;
-            this.freezeDamage += 100;
-            this.armorDecreasingStrength = .575;
             break;
         }
       }
@@ -894,7 +883,7 @@ let FrostTower = function (_TowerBase4) {
 
 _defineProperty(FrostTower, "rankUpDesc1", '\n+ 周期性造成范围冻结');
 
-_defineProperty(FrostTower, "rankUpDesc2", '\n+ 冻结时能制造伤害并削减敌方 $% 护甲');
+_defineProperty(FrostTower, "rankUpDesc2", '\n+ 每次冻结都能削减敌方 $% 护甲');
 
 _defineProperty(FrostTower, "rankUpDesc3", '\n+ 冻结能力加强');
 
@@ -1014,7 +1003,7 @@ let TeslaTower = function (_TowerBase6) {
   }, {
     key: "shockRenderFrames",
     get: function () {
-      return 3;
+      return 2;
     }
   }, {
     key: "curveDetail",
@@ -1220,7 +1209,7 @@ let BlackMagicTower = function (_TowerBase7) {
     _this7.extraPower = 0;
     _this7.voidSummonChance = 3;
     _this7.POTCHD = 0;
-    _this7.inner_desc_init = '释放强力魔法，总会瞄准最强的敌人\n- 准备时间非常长\n+ 附加诅咒效果，使目标受到的伤害提高\n+ 无视防御\n+ 每次击杀将增加 10 攻击力并提高 1% 攻击速度（最多提高 150%）';
+    _this7.inner_desc_init = '释放强力魔法\n- 准备时间非常长\n+ 附加诅咒，使目标受到的伤害提高\n+ 每次击杀增加 10 攻击力并提高 5% 攻击速度（最多提高 1600%）';
     _this7.description = _this7.inner_desc_init;
     return _this7;
   }
@@ -1284,17 +1273,10 @@ let BlackMagicTower = function (_TowerBase7) {
 
       if (this.target.isDead) {
         this.imprecationPower += 10;
-        if (this.imprecationHaste * 100 - 100 < 150) this.imprecationHaste += 0.01;
-      } else if (!this.target.beImprecated) {
-          this.target.beImprecated = true;
-          this.target.imprecatedRatio = this.Ide;
-          setTimeout(() => {
-            if (this.target && !this.target.isDead) {
-              this.target.beImprecated = false;
-              this.target.imprecatedRatio = 1;
-            }
-          }, this.Idr);
-        }
+        if (this.imprecationHaste * 100 - 100 < 1600) this.imprecationHaste += 0.05;
+      }
+
+      this.target.registerImprecate(this.Idr / 1000 * 60, this.Ide);
     }
   }, {
     key: "rapidRender",
@@ -1673,7 +1655,7 @@ _defineProperty(CarrierTower, "Jet", (_temp3 = _class3 = function (_TowerBase10)
     _this10.actMode = _Jet.JetActMode.autonomous;
     _this10.weaponMode = 1;
     _this10.destinationPosition = Position.O;
-    _this10.inner_desc_init = '航母的载机\n+ 机动性极强\n+ 拥有 10mm 速射机枪和 30mm 反装甲机炮两种武器';
+    _this10.inner_desc_init = '航母的载机\n+ 机动性极强\n+ 拥有 15mm 速射机枪和 30mm 反装甲机炮两种武器';
     _this10.description = _this10.inner_desc_init;
     return _this10;
   }
@@ -1776,12 +1758,12 @@ _defineProperty(CarrierTower, "Jet", (_temp3 = _class3 = function (_TowerBase10)
   }, {
     key: "attackSupplement",
     get: function () {
-      return this.weaponMode === 1 ? 0 : Math.pow(this.level + 2, 1.536) * 3;
+      return this.weaponMode === 1 ? this.carrierTower.Atk * -0.2 : Math.pow(this.level + 2, 1.566) * 3;
     }
   }, {
     key: "hasteSupplementRate",
     get: function () {
-      return this.weaponMode === 1 ? 1 + this.level * 0.02 : 1;
+      return this.weaponMode === 1 ? 1 + this.level * 0.015 : 1 - this.level * 0.0025;
     }
   }, {
     key: "Atk",
@@ -1791,7 +1773,7 @@ _defineProperty(CarrierTower, "Jet", (_temp3 = _class3 = function (_TowerBase10)
   }, {
     key: "Slc",
     get: function () {
-      return this.carrierTower.Slc;
+      return this.carrierTower.Slc + (this.weaponMode === 1 ? 1 : 0);
     }
   }, {
     key: "Rng",
@@ -1854,43 +1836,37 @@ _defineProperty(CarrierTower, "Jet", (_temp3 = _class3 = function (_TowerBase10)
   MachineGun: function (_BulletBase2) {
     _inherits(_MachineGun, _BulletBase2);
 
-    _createClass(_MachineGun, null, [{
-      key: "hasteSupplement",
-      value: function hasteSupplement(lvl) {
-        return 1 + lvl * 0.01;
-      }
-    }]);
-
     function _MachineGun(position, atk, target) {
       _classCallCheck(this, _MachineGun);
 
-      const bVelocity = 15;
-      return _possibleConstructorReturn(this, _getPrototypeOf(_MachineGun).call(this, position, 1, 0, null, 'rgba(55,14,11,1)', atk, bVelocity, target));
+      const bVelocity = 18;
+      return _possibleConstructorReturn(this, _getPrototypeOf(_MachineGun).call(this, position, 1, 0, null, 'rgb(55,14,11)', atk, bVelocity, target));
     }
+
+    _createClass(_MachineGun, [{
+      key: "hit",
+      value: function hit(monster, magnification = 1) {
+        monster.health -= this.Atk * magnification * (1 - monster.armorResistance * 0.85);
+        this.emitter(monster);
+      }
+    }]);
 
     return _MachineGun;
   }(BulletBase),
   AutoCannons: function (_BulletBase3) {
     _inherits(_AutoCannons, _BulletBase3);
 
-    _createClass(_AutoCannons, null, [{
-      key: "attackAddition",
-      value: function attackAddition(lvl) {
-        return (lvl + 2) * 3;
-      }
-    }]);
-
     function _AutoCannons(position, atk, target) {
       _classCallCheck(this, _AutoCannons);
 
       const bVelocity = 6;
-      return _possibleConstructorReturn(this, _getPrototypeOf(_AutoCannons).call(this, position, 3, 1, '#CC3333', '#99CC99', atk, bVelocity, target));
+      return _possibleConstructorReturn(this, _getPrototypeOf(_AutoCannons).call(this, position, 2, 1, '#CC3333', '#99CC99', atk, bVelocity, target));
     }
 
     _createClass(_AutoCannons, [{
       key: "hit",
       value: function hit(monster, magnification = 1) {
-        monster.health -= this.Atk * magnification * (1 - monster.armorResistance * .5);
+        monster.health -= this.Atk * magnification * (1 - monster.armorResistance * .75) + monster.inner_armor * .75;
         this.emitter(monster);
       }
     }]);

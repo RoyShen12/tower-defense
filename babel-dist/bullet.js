@@ -275,9 +275,7 @@ let NormalArrow = function (_BulletBase2) {
         return;
       }
 
-      const lottery = Math.random();
-      const isCrit = lottery < this.critChance;
-      const critMagnification = isCrit ? this.critRatio : 1;
+      const critMagnification = Math.random() < this.critChance ? this.critRatio : 1;
       monster.health -= this.Atk * critMagnification * (1 - monster.armorResistance * .7);
       this.emitter(monster);
 

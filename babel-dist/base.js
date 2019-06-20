@@ -183,9 +183,10 @@ let Tools = function () {
 
       ctx.clearRect(positionTL.x, positionTL.y, width, drawHeight);
       dataArr.forEach((v, i) => {
-        const x = Math.floor(positionTL.x + i * horizonSpan);
-        const y = Math.floor(positionTL.y + drawHeight * (1 - v / maxV));
         const h = Math.round(drawHeight * v / maxV);
+        if (h === 0) return;
+        const x = Math.round(positionTL.x + i * horizonSpan);
+        const y = Math.round(positionTL.y + drawHeight * (1 - v / maxV));
         ctx.fillRect(x, y, 1, h);
       });
     }
@@ -439,8 +440,10 @@ _defineProperty(Tools, "MathFx", (_temp3 = _class3 = function _Math() {
 let Base = function Base() {
   _classCallCheck(this, Base);
 
-  this.id = Math.round(Math.random() * Number.MAX_SAFE_INTEGER);
+  this.id = Base.__id++;
 };
+
+_defineProperty(Base, "__id", 0);
 
 let RectangleBase = function (_Base) {
   _inherits(RectangleBase, _Base);
@@ -563,10 +566,15 @@ let ItemBase = function (_CircleBase) {
     key: "renderFilled",
     value: function renderFilled(context) {
       context.fillStyle = this.fill;
-      context.beginPath();
-      context.arc(this.position.x, this.position.y, this.radius, 0, Math.PI * 2, true);
-      context.closePath();
-      context.fill();
+
+      if (this.radius > 1) {
+        context.beginPath();
+        context.arc(this.position.x, this.position.y, this.radius, 0, Math.PI * 2, true);
+        context.closePath();
+        context.fill();
+      } else {
+          context.fillRect(Math.floor(this.position.x), Math.floor(this.position.y), 1, 1);
+        }
     }
   }, {
     key: "render",
@@ -1341,8 +1349,7 @@ let MonsterBase = function (_ItemBase2) {
     _this5.beFrozen = false;
     _this5.freezeDurationTick = 0;
     _this5.beConfused = false;
-    _this5.beImprecated = false;
-    _this5.imprecatedRatio = 1;
+    _this5.imprecatedRatio = [];
     _this5.lastAbsDmg = 0;
     _this5.isBoss = false;
     _this5.isDead = false;
@@ -1378,6 +1385,8 @@ let MonsterBase = function (_ItemBase2) {
         this.beFrozen = true;
         if (--this.freezeDurationTick === 0) this.beFrozen = false;
       }
+
+      this.imprecatedRatio = this.imprecatedRatio.filter(imp => --imp.durTick !== 0);
     }
   }, {
     key: "registerShock",
@@ -1409,6 +1418,14 @@ let MonsterBase = function (_ItemBase2) {
       if (durationTick > this.freezeDurationTick) {
         this.freezeDurationTick = Math.round(durationTick);
       }
+    }
+  }, {
+    key: "registerImprecate",
+    value: function registerImprecate(durationTick, imprecationRatio) {
+      this.imprecatedRatio.push({
+        pow: imprecationRatio,
+        durTick: durationTick
+      });
     }
   }, {
     key: "runShock",
@@ -1535,6 +1552,11 @@ let MonsterBase = function (_ItemBase2) {
       context.font = ftmp;
     }
   }, {
+    key: "beImprecated",
+    get: function () {
+      return this.imprecatedRatio.length > 0;
+    }
+  }, {
     key: "armorResistance",
     get: function () {
       return this.inner_armor / (100 + this.inner_armor);
@@ -1556,7 +1578,7 @@ let MonsterBase = function (_ItemBase2) {
       if (delta === 0) return;
 
       if (delta < 0) {
-        const actualDmg = -Math.round(delta * (this.beImprecated ? this.imprecatedRatio : 1));
+        const actualDmg = -Math.round(delta * this.imprecatedRatio.reduce((p, v) => p * v.pow, 1));
         this.lastAbsDmg = Math.min(actualDmg, this.__inner_current_health);
         this.__inner_current_health -= this.lastAbsDmg;
 

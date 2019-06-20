@@ -4,18 +4,34 @@ function _defineProperties(target, props) { for (var i = 0; i < props.length; i+
 
 function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
 
-let AnimationSprite = function () {
+function _possibleConstructorReturn(self, call) { if (call && (typeof call === "object" || typeof call === "function")) { return call; } return _assertThisInitialized(self); }
+
+function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
+
+function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
+
+function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
+
+let AnimationSprite = function (_Base) {
+  _inherits(AnimationSprite, _Base);
+
   function AnimationSprite(img, xc, yc, frameRepetition) {
+    var _this;
+
     _classCallCheck(this, AnimationSprite);
 
-    this.frameRepetition = frameRepetition || 1;
-    this.img = img;
-    this.xcount = xc;
-    this.ycount = yc;
-    this.totalFrame = xc * yc;
-    this.nextFrameIndex = 0;
-    this.lastRAF = null;
-    this.isDead = false;
+    _this = _possibleConstructorReturn(this, _getPrototypeOf(AnimationSprite).call(this));
+    _this.frameRepetition = frameRepetition || 1;
+    _this.img = img;
+    _this.xcount = xc;
+    _this.ycount = yc;
+    _this.totalFrame = xc * yc;
+    _this.nextFrameIndex = 0;
+    _this.lastRAF = null;
+    _this.isDead = false;
+    return _this;
   }
 
   _createClass(AnimationSprite, [{
@@ -97,7 +113,7 @@ let AnimationSprite = function () {
   }]);
 
   return AnimationSprite;
-}();
+}(Base);
 
 let HostedAnimationSprite = function HostedAnimationSprite(sp, pos, w, h, delay, endless, waitFrame) {
   _classCallCheck(this, HostedAnimationSprite);
