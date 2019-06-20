@@ -155,7 +155,7 @@ class PainEnhancer extends GemBase {
   }
 
   static get bleedDamageRatioLevelMx() {
-    return 15
+    return 25
   }
 
   static get stasisDescription() {
@@ -222,7 +222,7 @@ class GogokOfSwiftness extends GemBase {
   }
 
   static get maxLevel() {
-    return 2000
+    return 100
   }
 
   static get price() {
@@ -306,27 +306,27 @@ class MirinaeTeardropOfTheStarweaver extends GemBase {
   }
 
   static get chance() {
-    return .15
+    return .1
   }
 
   static get baseChitDamageRatio() {
-    return 30
+    return 50
   }
 
   static get chitDamageRatioLevelMx() {
-    return 0.6
+    return 1.2
   }
 
   static get Hst() {
-    return 3000
+    return 2000
   }
 
   static get stasisDescription() {
-    return `击中时有 ${this.chance * 100}% 的几率[重击]附近的一名敌人，对其造成 ${Tools.roundWithFixed(this.baseChitDamageRatio * 100, 1)}%（+${Tools.roundWithFixed(this.chitDamageRatioLevelMx * 100, 1)}%/等级）攻击力的伤害，每 ${this.Hst / 1000} 秒[重击]一名随机敌人 (需要25级)`
+    return `击中时有 ${this.chance * 100}% 的几率 [重击] 附近的一名敌人，对其造成 ${Tools.roundWithFixed(this.baseChitDamageRatio * 100, 1)}%（+${Tools.roundWithFixed(this.chitDamageRatioLevelMx * 100, 1)}%/等级）攻击力的伤害，每 ${this.Hst / 1000} 秒 [重击] 一名随机敌人 (需要25级)`
   }
 
   static get __base_description() {
-    return `击中时有 ${this.chance * 100}% 的几率[重击]附近的一名敌人，对其造成 $% 攻击力的伤害，每 ${this.Hst / 1000} 秒[重击]一名随机敌人 (需要25级)`
+    return `击中时有 ${this.chance * 100}% 的几率 [重击] 附近的一名敌人，对其造成 $% 攻击力的伤害，每 ${this.Hst / 1000} 秒 [重击] 一名随机敌人 (需要25级)`
   }
 
   constructor() {
@@ -422,11 +422,11 @@ class SimplicitysStrength extends GemBase {
   }
 
   static get baseAttackAddition() {
-    return 0.25
+    return 0.5
   }
 
   static get attackAdditionLevelMx() {
-    return 0.01
+    return 0.1
   }
 
   static get stasisDescription() {
@@ -494,7 +494,7 @@ class BaneOfTheStricken extends GemBase {
   }
 
   static get damageMakingRatioOnBoss() {
-    return .25
+    return .75
   }
 
   static get baseDamageMakingRatio() {
@@ -502,7 +502,7 @@ class BaneOfTheStricken extends GemBase {
   }
 
   static get damageMakingRatioLevelMx() {
-    return 0.0001
+    return 0.0005
   }
 
   static get stasisDescription() {
@@ -724,11 +724,11 @@ class BaneOfTheTrapped extends GemBase {
   }
 
   static get baseDamageMakingRatioOnTrapped() {
-    return 0.15
+    return 0.75
   }
 
   static get damageMakingRatioOnTrappedLevelMx() {
-    return 0.003
+    return 0.02
   }
 
   static get stasisDescription() {
@@ -800,15 +800,15 @@ class ZeisStoneOfVengeance extends GemBase {
   }
 
   static get baseDamageMakingRatioMax() {
-    return 0.2
+    return 0.5
   }
 
   static get damageMakingRatioLevelMxMin() {
-    return 0.004
+    return 0.002
   }
 
   static get damageMakingRatioLevelMxMax() {
-    return 0.008
+    return 0.012
   }
 
   static get chance() {

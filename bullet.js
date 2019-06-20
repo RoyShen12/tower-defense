@@ -149,27 +149,6 @@ class CannonBullet extends BulletBase {
           false,
           this.emitter.bind(this)
         )
-        // if (!m.beBurned && !m.isDead) {
-        //   let dotCount = 0
-        //   // 目标标记灼烧
-        //   m.beBurned = true
-        //   const itv = setInterval(() => {
-        //     if (++dotCount > this.burnDotCount) {
-        //       // 效果结束、移除灼烧状态、结束计时器
-        //       m.beBurned = false
-        //       clearInterval(itv)
-        //       return
-        //     }
-        //     if (m.health > 0) {
-        //       // 跳DOT
-        //       m.health -= this.burnDotDamage * (1 - m.armorResistance) * this.ratioCalc(m)
-        //       this.emitter(m)
-        //     }
-        //     if (m.health <= 0) {
-        //       clearInterval(itv)
-        //     }
-        //   }, this.burnDotInterval)
-        // }
       }
     })
   }
@@ -226,27 +205,6 @@ class ClusterBomb extends CannonBullet {
             false,
             this.emitter.bind(this)
           )
-          // if (!m.beBurned && !m.isDead) {
-          //   let dotCount = 0
-          //   // 目标标记灼烧
-          //   m.beBurned = true
-          //   const itv = setInterval(() => {
-          //     if (++dotCount > this.burnDotCount) {
-          //       // 效果结束、移除灼烧状态、结束计时器
-          //       m.beBurned = false
-          //       clearInterval(itv)
-          //       return
-          //     }
-          //     if (m.health > 0) {
-          //       // 跳DOT
-          //       m.health -= this.burnDotDamage * (1 - m.armorResistance) * this.ratioCalc(m)
-          //       this.emitter(m)
-          //     }
-          //     if (m.health <= 0) {
-          //       clearInterval(itv)
-          //     }
-          //   }, this.burnDotInterval)
-          // }
         })
     })
   }
@@ -318,9 +276,7 @@ class NormalArrow extends BulletBase {
     }
 
     // 摇骰子，确定本次是否暴击
-    const lottery = Math.random()
-    const isCrit = lottery < this.critChance
-    const critMagnification = isCrit ? this.critRatio : 1
+    const critMagnification = Math.random() < this.critChance ? this.critRatio : 1
     // console.log(critMagnification + ' X')
 
     // 穿甲
@@ -359,8 +315,6 @@ class PoisonCan extends BulletBase {
   hit(monster) {
     super.hit(monster)
 
-    // 毒罐的dot伤害
-    // 无法对已中毒或死亡的目标施毒
     Tools.installDot(
       monster,
       'bePoisoned',
@@ -370,30 +324,5 @@ class PoisonCan extends BulletBase {
       true,
       this.emitter.bind(this)
     )
-    // if (monster.bePoisoned || monster.isDead) {
-    //   return
-    // }
-    // else {
-    //   let dotCount = 0
-    //   // 目标标记中毒
-    //   monster.bePoisoned = true
-    //   const itv = setInterval(() => {
-    //     if (++dotCount > this.poisonDur / this.poisonItv) {
-    //       // 效果结束、移除中毒状态、结束计时器
-    //       monster.bePoisoned = false
-    //       clearInterval(itv)
-    //       return
-    //     }
-    //     if (monster.health > 0) {
-    //       // 跳DOT
-    //       // 无视防御
-    //       monster.health -= this.poisonAtk
-    //       this.emitter(monster)
-    //     }
-    //     if (monster.health <= 0) {
-    //       clearInterval(itv)
-    //     }
-    //   }, this.poisonItv)
-    // }
   }
 }

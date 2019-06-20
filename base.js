@@ -381,17 +381,15 @@ class Tools {
       Tools.renderStatistic.onceWork = true
     }
 
-    // ctx.beginPath()
-
     ctx.clearRect(positionTL.x, positionTL.y, width, drawHeight)
     dataArr.forEach((v, i) => {
-      const x = Math.floor(positionTL.x + i * horizonSpan)
-      const y = Math.floor(positionTL.y + drawHeight * (1 - v / maxV))
       const h = Math.round(drawHeight * v / maxV)
+      if (h === 0) return
+      const x = Math.round(positionTL.x + i * horizonSpan)
+      const y = Math.round(positionTL.y + drawHeight * (1 - v / maxV))
       // console.log(x, y, h)
       ctx.fillRect(x, y, 1, h)
     })
-    // ctx.fill()
   }
 
   /**
@@ -590,8 +588,9 @@ class Tools {
  * 所有[物体]的基类
  */
 class Base {
+  static __id = 0
   constructor() {
-    this.id = Math.round(Math.random() * Number.MAX_SAFE_INTEGER)
+    this.id = Base.__id++
   }
 }
 
@@ -737,7 +736,6 @@ class ItemBase extends CircleBase {
    * @param {number} y
    */
   renderSpriteFrame(context, x, y) {
-    
     this.image.renderOneFrame(context, new Position(x, y), this.inscribedSquareSideLength, this.inscribedSquareSideLength, 0, true, true, false)
   }
 
@@ -768,10 +766,17 @@ class ItemBase extends CircleBase {
   /** @param {CanvasRenderingContext2D} context */
   renderFilled(context) {
     context.fillStyle = this.fill
-    context.beginPath()
-    context.arc(this.position.x, this.position.y, this.radius, 0, Math.PI * 2, true)
-    context.closePath()
-    context.fill()
+
+    if (this.radius > 1) {
+      context.beginPath()
+      context.arc(this.position.x, this.position.y, this.radius, 0, Math.PI * 2, true)
+      context.closePath()
+      context.fill()
+    }
+    // 半径<=1, 回退为矩形
+    else {
+      context.fillRect(Math.floor(this.position.x), Math.floor(this.position.y), 1, 1)
+    }
   }
 
   /** @param {CanvasRenderingContext2D} context */
@@ -1777,33 +1782,63 @@ class MonsterBase extends ItemBase {
     this.healthChangeHintQueue = []
 
     // DOT
-    this.bePoisoned = false // 中毒 outside process
-    this.beBloodied = false // 流血 outside process
-    this.beBurned = false // 灼烧 outside process
-    this.beOnLightEcho = [] // 圣光 outside process
+    /**
+     * 中毒 outside process
+     */
+    this.bePoisoned = false
+    /**
+     * 流血 outside process
+     */
+    this.beBloodied = false
+    /**
+     * 灼烧 outside process
+     */
+    this.beBurned = false
+    /**
+     * 圣光 outside process
+     */
+    this.beOnLightEcho = []
     // DEBUFF
     // 负面效果的计算，移除由承受单位进行计算
     // 单位若受到前后两个束缚效果，前一个结束后会移除单位的束缚效果，导致后一个效果提前结束
-    this.beShocked = false // 电麻 微小机率向最靠近的单位放电
+    /**
+     * 电麻 微小机率向最靠近的单位放电
+     */
+    this.beShocked = false
     this.shockDurationTick = 0
     this.shockChargeAmount = 0
     /** @type {TeslaTower} */
     this.shockSource = null
     this.shockLeakChance = 0
 
-    this.beTransformed = false // 变形
+    /**
+     * 变形
+     */
+    this.beTransformed = false
     this.transformDurationTick = 0
 
-    this.beImprisoned = false // 禁锢(速度=0)
+    /**
+     * 禁锢(速度=0)
+     */
+    this.beImprisoned = false
     this.imprisonDurationTick = 0
 
-    this.beFrozen = false // 冻结(速度=0)
+    /**
+     * 冻结(速度=0)
+     */
+    this.beFrozen = false
     this.freezeDurationTick = 0
 
-    this.beConfused = false // 混乱(速度=P<速度*0.5,random(0,360)>)
+    /**
+     * 混乱(速度=P<速度*0.5,random(0,360)>)
+     */
+    this.beConfused = false
 
-    this.beImprecated = false // 诅咒
-    this.imprecatedRatio = 1 // 诅咒的易伤系数
+    /**
+     * 诅咒的易伤系数
+     * @type {{ pow: number, id: number, durTick: number }[]}
+     */
+    this.imprecatedRatio = []
 
     this.lastAbsDmg = 0
 
@@ -1820,6 +1855,13 @@ class MonsterBase extends ItemBase {
     ]
 
     this.type = '普通怪物'
+  }
+
+  /**
+   * 诅咒
+   */
+  get beImprecated() {
+    return this.imprecatedRatio.length > 0
   }
 
   get armorResistance() {
@@ -1847,7 +1889,7 @@ class MonsterBase extends ItemBase {
 
     if (delta === 0) return
     if (delta < 0) {
-      const actualDmg = -Math.round(delta * (this.beImprecated ? this.imprecatedRatio : 1))
+      const actualDmg = -Math.round(delta * this.imprecatedRatio.reduce((p, v) => p * v.pow, 1))
       this.lastAbsDmg = Math.min(actualDmg, this.__inner_current_health)
       // console.log(`ih ${this.__inner_current_health}, actual ${actualDmg}, absolute ${this.lastAbsDmg}`)
       // this.healthChangeHintQueue.push(this.lastAbsDmg)
@@ -1946,6 +1988,8 @@ class MonsterBase extends ItemBase {
       this.beFrozen = true
       if (--this.freezeDurationTick === 0) this.beFrozen = false
     }
+
+    this.imprecatedRatio = this.imprecatedRatio.filter(imp => --imp.durTick !== 0)
   }
 
   registerShock(durationTick, chargeAmount, source, leakChance) {
@@ -1973,6 +2017,10 @@ class MonsterBase extends ItemBase {
     if (durationTick > this.freezeDurationTick) {
       this.freezeDurationTick = Math.round(durationTick)
     }
+  }
+
+  registerImprecate(durationTick, imprecationRatio) {
+    this.imprecatedRatio.push({ pow: imprecationRatio, durTick: durationTick })
   }
 
   // registerConfuse(durationTick) {
@@ -2177,7 +2225,6 @@ class BulletBase extends ItemBase {
       this.target = null
     }
     else if (this.isReaching) {
-      
       this.hit(this.target, 1, monsters)
       this.fulfilled = true
       this.target = null

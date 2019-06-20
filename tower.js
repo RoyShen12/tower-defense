@@ -31,7 +31,7 @@ const TowerManager = new Proxy(
         n4: 'archer3',
         p: new Proxy({}, {
           get(t, p, r) {
-            if (p === 'length') return 130
+            if (p === 'length') return 180
             else return Math.ceil(Math.pow(1.1, +p) * 10)
           }
         }),
@@ -52,7 +52,7 @@ const TowerManager = new Proxy(
         n3: 'cannon2',
         p: new Proxy({}, {
           get(t, p, r) {
-            if (p === 'length') return 150
+            if (p === 'length') return 170
             else return Math.ceil(Math.pow(1.1, +p) * 15)
           }
         }),
@@ -80,7 +80,7 @@ const TowerManager = new Proxy(
         n: 'ice',
         p: new Proxy({}, {
           get(t, p, r) {
-            if (p === 'length') return 50
+            if (p === 'length') return 70
             else return Math.ceil(Math.pow(1.1, +p) * 320)
           }
         }),
@@ -89,7 +89,7 @@ const TowerManager = new Proxy(
         h: () => Infinity,
         s: () => 0,
         // speed reduction
-        sr: lvl => Math.min(Tools.MathFx.naturalLogFx(.1, .14)(lvl), 0.95)
+        sr: lvl => Tools.MathFx.naturalLogFx(.1, .12)(lvl)
       },
       {
         dn: '毒气塔',
@@ -107,8 +107,8 @@ const TowerManager = new Proxy(
         h: lvl => 2.1 + lvl * 0.1,
         s: () => 1,
         patk: lvl => lvl * 4 * Math.max(lvl / 25, 1) + 90,
-        pitv: lvl => Math.max(600 - lvl * 20, 100),
-        pdur: lvl => 4000 + lvl * 500,
+        pitv: lvl => Math.max(600 - lvl * 20, 50),
+        pdur: () => 5000,
         bctor: 'PoisonCan'
       },
       {
@@ -144,14 +144,14 @@ const TowerManager = new Proxy(
           }
         }),
         r: lvl => lvl * 1 + 140,
-        a: lvl => 8800 + Math.round((lvl + 4) * (lvl + 4)),
-        a2: lvl => 8800 + Math.round((lvl + 5) * (lvl + 5)),
-        a3: lvl => 8800 + Math.round((lvl + 6) * (lvl + 6)),
-        a4: lvl => 8800 + Math.round((lvl + 7) * (lvl + 7)),
+        a: lvl => 5000 + Math.round((lvl + 4) * (lvl + 4)),
+        a2: lvl => 9000 + Math.round((lvl + 8) * (lvl + 8)),
+        a3: lvl => 15000 + Math.round((lvl + 16) * (lvl + 16)),
+        a4: lvl => 42000 + Math.round((lvl + 32) * (lvl + 32)),
         h: () => 0.125,
         s: () => 1,
         ide: lvl => Math.min(lvl * 0.022 + 0.1, 10),
-        idr: lvl => 10000 + 1000 * lvl
+        idr: lvl => 10000 + 100 * lvl
       },
       // {
       //   dn: '激光塔',
@@ -551,7 +551,7 @@ class CannonShooter extends TowerBase {
 class MaskManTower extends TowerBase {
 
   static rankUpDesc1 = '\n+ 射程和攻击力得到加强'
-  static rankUpDesc2 = '\n+ 暴击能力得到大幅加强'
+  static rankUpDesc2 = '\n+ 暴击能力得到大幅加强\n+ 有 $‰ 的几率直接杀死目标'
   static rankUpDesc3 = '\n+ 命中的箭矢将有几率束缚敌人'
 
   constructor(position, image, bimage, radius) {
@@ -591,6 +591,8 @@ class MaskManTower extends TowerBase {
 
     this.critChance = 0.1
     this.critDamageRatio = 2
+
+    this.secKillChance = 0
   }
 
   enhanceCrit(chanceDelta = .05, ratioDelta = 1) {
@@ -617,12 +619,12 @@ class MaskManTower extends TowerBase {
           this.rankUp()
           this.name = '火枪塔'
           this.image = Game.callImageBitMap(TowerManager.MaskManTower.n3)
-          this.description += MaskManTower.rankUpDesc2
+          this.secKillChance = 0.003
+          this.description += MaskManTower.rankUpDesc2.replace('$', Math.round(this.secKillChance * 1000))
           this.borderStyle = 'rgba(26,203,12,.7)'
           this.enhanceCrit(0.15, 6)
           this.extraPower = 20
           this.extraBulletV = 4
-          // this.bulletImage = Game.callImageBitMap(TowerManager.MaskManTower.bn2)
           break
         case 15:
           this.rankUp()
@@ -630,7 +632,7 @@ class MaskManTower extends TowerBase {
           this.description += MaskManTower.rankUpDesc3
           this.image = Game.callImageBitMap(TowerManager.MaskManTower.n4)
           this.borderStyle = 'rgba(26,255,12,.9)'
-          this.enhanceCrit(0.1, 5)
+          this.enhanceCrit(0.1)
           this.extraRange = 180
           this.trapChance = 5 // 5%
           this.trapDuration = 3000 // 3 second
@@ -652,7 +654,7 @@ class MaskManTower extends TowerBase {
         case 20:
           this.rankUp()
           this.name += ` ${TowerManager.rankPostfixL1}I`
-          this.enhanceCrit(0.05, 5)
+          this.enhanceCrit(0.05, 2)
           break
         case 30:
           this.rankUp()
@@ -685,7 +687,7 @@ class MaskManTower extends TowerBase {
         case 70:
           this.rankUp()
           this.name = this.name.replace(TowerManager.rankPostfixL1, TowerManager.rankPostfixL2).replace('V', 'I')
-          this.enhanceCrit(0.05, 5)
+          this.enhanceCrit(0.05, 2)
           this.trapChance = 9
           this.trapDuration = 4500
           break
@@ -761,10 +763,10 @@ class MaskManTower extends TowerBase {
    * @override
    */
   produceBullet(idx) {
-
     if (this.multipleTarget[idx]) {
+
       const ratio = this.calculateDamageRatio(this.multipleTarget[idx])
-      this.bulletCtl.Factory(this.recordDamage.bind(this), this.bulletCtorName, this.position.copy().dithering(this.radius), this.Atk * ratio, this.multipleTarget[idx], this.bulletImage, this.critChance, this.critDamageRatio, this.trapChance, this.trapDuration, this.extraBulletV)
+      this.bulletCtl.Factory(this.recordDamage.bind(this), this.bulletCtorName, this.position.copy().dithering(this.radius), this.Atk * ratio, this.multipleTarget[idx], this.bulletImage, this.critChance, this.critDamageRatio, this.trapChance, this.trapDuration, this.extraBulletV, Math.random() < this.secKillChance)
     }
   }
 
@@ -798,7 +800,7 @@ class MaskManTower extends TowerBase {
 class FrostTower extends TowerBase {
 
   static rankUpDesc1 = '\n+ 周期性造成范围冻结'
-  static rankUpDesc2 = '\n+ 冻结时能制造伤害并削减敌方 $% 护甲'
+  static rankUpDesc2 = '\n+ 每次冻结都能削减敌方 $% 护甲'
   static rankUpDesc3 = '\n+ 冻结能力加强'
 
   constructor(position, image,  bimg, radius) {
@@ -833,10 +835,9 @@ class FrostTower extends TowerBase {
     /** @type {(ms: MonsterBase[]) => void} */
     this.extraEffect = () => {}
 
-    this.freezeDamage = 300
     this.lastFreezeTime = performance.now()
 
-    this.armorDecreasingStrength = 0.95
+    this.armorDecreasingStrength = 0.9
   }
 
   get canFreeze() {
@@ -900,8 +901,6 @@ class FrostTower extends TowerBase {
                 mst.registerFreeze(this.freezeDurationTick)
   
                 mst.inner_armor *= this.armorDecreasingStrength
-                mst.health -= this.freezeDamage * (1 - mst.armorResistance)
-                this.recordDamage(mst)
               })
               this.lastFreezeTime = performance.now()
             }
@@ -913,40 +912,30 @@ class FrostTower extends TowerBase {
           this.description += FrostTower.rankUpDesc3
           this.freezeInterval = 4400
           this.freezeDuration = 800
-          this.freezeDamage += 100
-          this.armorDecreasingStrength = .75
           break
         case 20:
           this.rankUp()
           this.name = '暴风雪IV'
           this.freezeInterval = 4200
           this.freezeDuration = 860
-          this.freezeDamage += 100
-          this.armorDecreasingStrength = .7
           break
         case 25:
           this.rankUp()
           this.name = '暴风雪V'
           this.freezeInterval = 4000
           this.freezeDuration = 880
-          this.freezeDamage += 100
-          this.armorDecreasingStrength = .65
           break
         case 30:
           this.rankUp()
           this.name = '暴风雪VI'
           this.freezeInterval = 3800
           this.freezeDuration = 900
-          this.freezeDamage += 100
-          this.armorDecreasingStrength = .6
           break
         case 35:
           this.rankUp()
           this.name = '暴风雪VII'
           this.freezeInterval = 3600
           this.freezeDuration = 920
-          this.freezeDamage += 100
-          this.armorDecreasingStrength = .575
           break
       }
     }
@@ -965,7 +954,6 @@ class FrostTower extends TowerBase {
       const i = this.inRange(mst)
 
       if (i) {
-
         if (mst.speedRatio === 1 || 1 - this.SPR < mst.speedRatio) mst.speedRatio = 1 - this.SPR
       }
       else {
@@ -1139,7 +1127,7 @@ class TeslaTower extends TowerBase {
    * 闪电绘制帧数
    */
   static get shockRenderFrames() {
-    return 3
+    return 2
   }
 
   /**
@@ -1185,8 +1173,8 @@ class TeslaTower extends TowerBase {
     this.shockLeakingChance = .02
 
     /**
-     * 带电的怪物向周围漏电的动画队列
-     * 由放电的怪物主动注册
+     * - 带电的怪物向周围漏电的动画队列
+     * - 由放电的怪物主动注册
      * @type {{time: number, args: number[]}[]}
      */
     this.monsterShockingRenderingQueue = []
@@ -1405,7 +1393,7 @@ class BlackMagicTower extends TowerBase {
      */
     this.POTCHD = 0
 
-    this.inner_desc_init = '释放强力魔法，总会瞄准最强的敌人\n- 准备时间非常长\n+ 附加诅咒效果，使目标受到的伤害提高\n+ 无视防御\n+ 每次击杀将增加 10 攻击力并提高 1% 攻击速度（最多提高 150%）'
+    this.inner_desc_init = '释放强力魔法\n- 准备时间非常长\n+ 附加诅咒，使目标受到的伤害提高\n+ 每次击杀增加 10 攻击力并提高 5% 攻击速度（最多提高 1600%）'
     this.description = this.inner_desc_init
   }
 
@@ -1502,19 +1490,10 @@ class BlackMagicTower extends TowerBase {
     // 杀死了目标
     if (this.target.isDead) {
       this.imprecationPower += 10
-      if (this.imprecationHaste * 100 - 100 < 150) this.imprecationHaste += 0.01
+      if (this.imprecationHaste * 100 - 100 < 1600) this.imprecationHaste += 0.05
     }
     // 诅咒目标
-    else if (!this.target.beImprecated) {
-      this.target.beImprecated = true
-      this.target.imprecatedRatio = this.Ide
-      setTimeout(() => {
-        if (this.target && !this.target.isDead) {
-          this.target.beImprecated = false
-          this.target.imprecatedRatio = 1
-        }
-      }, this.Idr)
-    }
+    this.target.registerImprecate(this.Idr / 1000 * 60, this.Ide)
   }
 
   rapidRender(ctx) {
@@ -1901,32 +1880,28 @@ class CarrierTower extends TowerBase {
         return mode === 1 ? 'CarrierTower.Jet.JetWeapons.MachineGun' : 'CarrierTower.Jet.JetWeapons.AutoCannons'
       },
       /**
-       * 10mm 高速机抢
+       * 15mm 高速机抢
        */
       MachineGun: class _MachineGun extends BulletBase {
-        /** 攻击速度增幅 */
-        static hasteSupplement(lvl) {
-          return 1 + lvl * 0.01
-        }
         constructor(position, atk, target) {
-          const bVelocity = 15
-          super(position, 1, 0, null, 'rgba(55,14,11,1)', atk, bVelocity, target)
+          const bVelocity = 18
+          super(position, 1, 0, null, 'rgb(55,14,11)', atk, bVelocity, target)
+        }
+        hit(monster, magnification = 1) {
+          monster.health -= this.Atk * magnification * (1 - monster.armorResistance * 0.85)
+          this.emitter(monster)
         }
       },
       /**
        * 30mm 机炮
        */
       AutoCannons: class _AutoCannons extends BulletBase {
-        /** 攻击力补正 */
-        static attackAddition(lvl) {
-          return (lvl + 2) * 3
-        }
         constructor(position, atk, target) {
           const bVelocity = 6
-          super(position, 3, 1, '#CC3333', '#99CC99', atk, bVelocity, target)
+          super(position, 2, 1, '#CC3333', '#99CC99', atk, bVelocity, target)
         }
         hit(monster, magnification = 1) {
-          monster.health -= this.Atk * magnification * (1 - monster.armorResistance * .5)
+          monster.health -= this.Atk * magnification * (1 - monster.armorResistance * .75) + monster.inner_armor * .75
           this.emitter(monster)
         }
       }
@@ -1972,7 +1947,7 @@ class CarrierTower extends TowerBase {
        */
       this.destinationPosition = Position.O
 
-      this.inner_desc_init = '航母的载机\n+ 机动性极强\n+ 拥有 10mm 速射机枪和 30mm 反装甲机炮两种武器'
+      this.inner_desc_init = '航母的载机\n+ 机动性极强\n+ 拥有 15mm 速射机枪和 30mm 反装甲机炮两种武器'
       this.description = this.inner_desc_init
     }
 
@@ -1986,11 +1961,11 @@ class CarrierTower extends TowerBase {
      * 攻击补正
      */
     get attackSupplement() {
-      return this.weaponMode === 1 ? 0 : (Math.pow(this.level + 2, 1.536) * 3)
+      return this.weaponMode === 1 ? this.carrierTower.Atk * -0.2 : (Math.pow(this.level + 2, 1.566) * 3)
     }
 
     get hasteSupplementRate() {
-      return this.weaponMode === 1 ? (1 + this.level * 0.02) : 1
+      return this.weaponMode === 1 ? (1 + this.level * 0.015) : (1 - this.level * 0.0025)
     }
 
     get Atk() {
@@ -1998,7 +1973,7 @@ class CarrierTower extends TowerBase {
     }
 
     get Slc() {
-      return this.carrierTower.Slc
+      return this.carrierTower.Slc + (this.weaponMode === 1 ? 1 : 0)
     }
 
     get Rng() {

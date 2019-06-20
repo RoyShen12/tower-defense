@@ -1,10 +1,11 @@
-class AnimationSprite {
+class AnimationSprite extends Base {
 
   /**
    * @param {ImageBitmap} img
    * @param {number} frameRepetition 表明每一帧序列元素的重复次数，增大这个数值会在视觉上减缓动画速度 默认: 1
    */
   constructor(img, xc, yc, frameRepetition) {
+    super()
 
     this.frameRepetition = frameRepetition || 1
 

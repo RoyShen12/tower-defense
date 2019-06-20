@@ -686,8 +686,9 @@ class Game {
     else {
       // 给可操纵单位注入新位置
       this.towerCtl.independentTowers.forEach((t, idx) => {
-        if (idx === 0) t.destinationPosition = mousePos
-        else t.destinationPosition = this.towerCtl.independentTowers[idx - 1].position
+        t.destinationPosition = mousePos
+        // if (idx === 0) t.destinationPosition = mousePos
+        // else t.destinationPosition = this.towerCtl.independentTowers[idx - 1].position
       })
 
       const selectedT = this.towerCtl.towers.find(t => t.position.equal(mousePos, t.radius)) || this.towerCtl.independentTowers.find(t => t.position.equal(mousePos, t.radius))
@@ -897,16 +898,16 @@ class Game {
           }),
           Tools.Dom.__installOptionOnNode(document.createElement('button'), {
             type: 'button',
-            textContent: '+1000',
+            textContent: '+1万',
             onclick: () => {
-              this.count += 1000
+              this.count += 1e4
             }
           }),
           Tools.Dom.__installOptionOnNode(document.createElement('button'), {
             type: 'button',
-            textContent: '+1万',
+            textContent: '+100万',
             onclick: () => {
-              this.count += 10000
+              this.count += 1e6
             }
           }),
           Tools.Dom.__installOptionOnNode(document.createElement('button'), {
@@ -1299,7 +1300,7 @@ class Game {
         this.averageFrameInterval = (now - this.renderTimeStamps[actualLength - 20]) / 20
       }
 
-      this.renderStandardText(`[ Fps ${(1000 / this.averageFrameInterval).toFixed(1)} ]`, 6, 60, 120)
+      this.renderStandardText(`[ Fps ${(1000 / this.averageFrameInterval).toFixed(1)} ]`, 6, 60, 120, this.averageFrameInterval > 20 ? '#F56C6C' : 'rgb(2,2,2)')
     }
     // -------------------------------------------------- end ftp meter --------------------------------------------------
   }
@@ -1307,19 +1308,19 @@ class Game {
   renderMoney() {
     const ax = innerWidth - 160
     const ay = innerHeight - 10
-    this.contextCtl.refreshText(Tools.formatterUs.format(this.money), null, new Position(ax, ay), new Position(ax - 4, ay - 20), 160, 26, 'rgba(24,24,24,1)', true, '14px Game')
+    this.contextCtl.refreshText(Tools.formatterUs.format(this.money), null, new Position(ax, ay), new Position(ax - 4, ay - 20), 160, 26, 'rgb(24,24,24)', true, '14px Game')
   }
 
   renderLife() {
     const ax = innerWidth - 160
     const ay = innerHeight - 40
-    this.contextCtl.refreshText(this.life, null, new Position(ax, ay), new Position(ax - 4, ay - 20), 160, 26, 'rgba(24,24,24,1)', true, '14px Game')
+    this.contextCtl.refreshText(this.life, null, new Position(ax, ay), new Position(ax - 4, ay - 20), 160, 26, 'rgb(24,24,24)', true, '14px Game')
   }
 
   renderGemPoint() {
     const ax = innerWidth - 160
     const ay = innerHeight - 70
-    this.contextCtl.refreshText(Tools.formatterUs.format(this.updateGemPoint), null, new Position(ax, ay), new Position(ax - 4, ay - 20), 160, 26, 'rgba(24,24,24,1)', true, '14px Game')
+    this.contextCtl.refreshText(Tools.formatterUs.format(this.updateGemPoint), null, new Position(ax, ay), new Position(ax - 4, ay - 20), 160, 26, 'rgb(24,24,24)', true, '14px Game')
   }
 
   renderInformation() {
@@ -1329,12 +1330,12 @@ class Game {
     const ay3 = ay2 - 30
     // const ay4 = ay3 - 30
 
-    // this.contextCtl.refreshText(`CH: ${Tools.chineseFormatter(this.monsterCtl.totalCurrentHealth, 2, ' ')}`, null, new Position(ax, ay1), new Position(ax - 4, ay1 - 20), 190, 26, 'rgba(24,24,24,1)', true, '14px Game')
+    // this.contextCtl.refreshText(`CH: ${Tools.chineseFormatter(this.monsterCtl.totalCurrentHealth, 2, ' ')}`, null, new Position(ax, ay1), new Position(ax - 4, ay1 - 20), 190, 26, 'rgb(24,24,24)', true, '14px Game')
 
-    this.contextCtl.refreshText(`总伤害    ${Tools.chineseFormatter(this.towerCtl.totalDamage, 2, ' ')}`, null, new Position(ax, ay2), new Position(ax - 4, ay2 - 20), 190, 26, 'rgba(24,24,24,1)', true, '14px Game')
+    this.contextCtl.refreshText(`总伤害    ${Tools.chineseFormatter(this.towerCtl.totalDamage, 2, ' ')}`, null, new Position(ax, ay2), new Position(ax - 4, ay2 - 20), 190, 26, 'rgb(24,24,24)', true, '14px Game')
 
-    this.contextCtl.refreshText(`总击杀    ${Tools.chineseFormatter(this.towerCtl.totalKill, 2, ' ')}`, null, new Position(ax, ay3), new Position(ax - 4, ay3 - 20), 190, 26, 'rgba(24,24,24,1)', true, '14px Game')
-    // this.contextCtl.refreshText(`CH: ${Tools.chineseFormatter(this.monsterCtl.totalCurrentHealth, 2, ' ')}`, null, new Position(ax, ay4), new Position(ax - 4, ay4 - 20), 190, 26, 'rgba(24,24,24,1)', true, '14px Game')
+    this.contextCtl.refreshText(`总击杀    ${Tools.chineseFormatter(this.towerCtl.totalKill, 2, ' ')}`, null, new Position(ax, ay3), new Position(ax - 4, ay3 - 20), 190, 26, 'rgb(24,24,24)', true, '14px Game')
+    // this.contextCtl.refreshText(`CH: ${Tools.chineseFormatter(this.monsterCtl.totalCurrentHealth, 2, ' ')}`, null, new Position(ax, ay4), new Position(ax - 4, ay4 - 20), 190, 26, 'rgb(24,24,24)', true, '14px Game')
   }
 
   /**
@@ -1346,7 +1347,7 @@ class Game {
    * @param {number} fsize
    */
   renderStandardText(text, bx, by, maxWidth, color, fsize) {
-    color = color || 'rgba(2,2,2,1)'
+    color = color || 'rgb(2,2,2)'
     fsize = fsize || 10
 
     this.contextCtl.refreshText(
