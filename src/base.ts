@@ -162,7 +162,7 @@ class Tools {
      * - 为源对象添加属性
      * - 此属性不可覆写，不可删除
      */
-    static addFinalProperty<T, K extends keyof T>(Source: T, Key: K, Value: T[K]): T {
+    static addFinalProperty<T, K extends string>(Source: T, Key: K, Value: any): T {
       return Object.defineProperty(Source, Key, {
         configurable: false,
         enumerable: true,
@@ -175,7 +175,7 @@ class Tools {
      * - 为源对象添加属性
      * - 此属性不可覆写，不可删除，不可修改
      */
-    static addFinalReadonlyProperty<T, K extends keyof T>(Source: T, Key: K, Value: T[K]): T {
+    static addFinalReadonlyProperty<T, K extends string>(Source: T, Key: K, Value: any): T {
       return Object.defineProperty(Source, Key, {
         configurable: false,
         enumerable: true,
@@ -188,7 +188,7 @@ class Tools {
      * - 为源对象添加Getter属性
      * - 此属性不可覆写，不可删除，不可修改
      */
-    static addFinalGetterProperty<T, K extends keyof T>(Source: T, Key: K, Getter: () => T[K]): T {
+    static addFinalGetterProperty<T, K extends string>(Source: T, Key: K, Getter: () => any): T {
       return Object.defineProperty(Source, Key, {
         configurable: false,
         enumerable: true,
@@ -894,6 +894,18 @@ abstract class TowerBase extends ItemBase {
   public __grid_ix: number
   public __grid_iy: number
 
+  /** @final */
+  private recordKill: () => void
+
+  /** @final */
+  public recordDamage: ({ lastAbsDmg, isDead, isBoss }: MonsterBase) => void
+
+  /** @final */
+  public inRange: (target: MonsterBase) => boolean
+
+  /** @final */
+  public calculateDamageRatio: (mst: MonsterBase) => number
+
   constructor(position: Position, radius: number, borderWidth: number, borderStyle: string, image: string | ImageBitmap | AnimationSprite, price: ArrayLike<number>, levelAtkFx: (lvl: number) => number, levelHstFx: (lvl: number) => number, levelSlcFx: (lvl: number) => number, levelRngFx: (lvl: number) => number) {
     super(position, radius, borderWidth, borderStyle, image)
 
@@ -918,6 +930,45 @@ abstract class TowerBase extends ItemBase {
         .forEach(([k]) => this.__each_monster_damage_ratio.delete(k))
       // console.timeEnd('clean')
     }, 60000))
+
+    Tools.ObjectFx.addFinalReadonlyProperty(this, 'recordKill', () => {
+
+      this.__kill_count++
+      Game.callMoney()[1](this.__kill_extra_gold)
+    })
+
+    Tools.ObjectFx.addFinalReadonlyProperty(this, 'recordDamage', ({ lastAbsDmg, isDead, isBoss }: MonsterBase) => {
+
+      this.__total_damage += lastAbsDmg
+      Game.updateGemPoint += TowerBase.damageToPoint(lastAbsDmg)
+
+      if (isDead) {
+        this.recordKill()
+        Game.updateGemPoint += ((isBoss ? TowerBase.killBossPointEarnings : TowerBase.killNormalPointEarnings) + this.__kill_extra_point)
+
+        if (this.gem) {
+          this.gem.killHook(this, arguments[0])
+        }
+      }
+    })
+
+    Tools.ObjectFx.addFinalReadonlyProperty(this, 'inRange', (target: MonsterBase) => {
+
+      const t = this.Rng + target.radius
+      return Position.distancePow2(target.position, this.position) < t * t
+    })
+
+    Tools.ObjectFx.addFinalProperty(this, 'calculateDamageRatio', (mst: MonsterBase) => {
+
+      const bossR = mst.isBoss ? this.__on_boss_atk_ratio : 1
+      const particularR = this.__each_monster_damage_ratio.get(mst.id) || 1
+      const trapR = mst.isTrapped ? this.__on_trapped_atk_ratio : 1
+      const R = Position.distance(this.position, mst.position) / this.Rng
+      const rangeR = this.__min_rng_atk_ratio * (1 - R) + this.__max_rng_atk_ratio * R
+
+      // console.log(bossR, particularR, trapR, rangeR)
+      return bossR * particularR * trapR * rangeR
+    })
   }
 
   get descriptionChuned() {
@@ -1061,45 +1112,6 @@ abstract class TowerBase extends ItemBase {
   }
 
   /**
-   * @final
-   * @do_not_override
-   */
-  recordDamage({ lastAbsDmg, isDead, isBoss }: MonsterBase) {
-
-    this.__total_damage += lastAbsDmg
-
-    Game.updateGemPoint += TowerBase.damageToPoint(lastAbsDmg)
-
-    if (isDead) {
-      this.recordKill()
-      Game.updateGemPoint += ((isBoss ? TowerBase.killBossPointEarnings : TowerBase.killNormalPointEarnings) + this.__kill_extra_point)
-
-      if (this.gem) {
-        this.gem.killHook(this, arguments[0])
-      }
-    }
-  }
-
-  /**
-   * @final
-   * @do_not_override
-   * @do_not_call_outside
-   */
-  protected recordKill() {
-    this.__kill_count++
-    Game.callMoney()[1](this.__kill_extra_gold)
-  }
-
-  /**
-   * @final
-   * @do_not_override
-   */
-  inRange(target: MonsterBase) {
-    const t = this.Rng + target.radius
-    return Position.distancePow2(target.position, this.position) < t * t
-  }
-
-  /**
    * - 在怪物中重选目标
    * - 在乱序的怪物中找到首个在攻击范围内的
    */
@@ -1111,21 +1123,6 @@ abstract class TowerBase extends ItemBase {
       }
     }
     this.target = null
-  }
-
-  /**
-   * @final
-   * @do_not_override
-   */
-  calculateDamageRatio(mst: MonsterBase) {
-    const bossR = mst.isBoss ? this.__on_boss_atk_ratio : 1
-    const particularR = this.__each_monster_damage_ratio.get(mst.id) || 1
-    const trapR = mst.isTrapped ? this.__on_trapped_atk_ratio : 1
-    const R = Position.distance(this.position, mst.position) / this.Rng
-    const rangeR = this.__min_rng_atk_ratio * (1 - R) + this.__max_rng_atk_ratio * R
-
-    // console.log(bossR, particularR, trapR, rangeR)
-    return bossR * particularR * trapR * rangeR
   }
 
   produceBullet(_i: number, _monsters: MonsterBase[]) {

@@ -1379,6 +1379,33 @@ class TowerBase extends ItemBase {
                 .filter(([k]) => msts.every(mst => mst.id !== k))
                 .forEach(([k]) => this.__each_monster_damage_ratio.delete(k));
         }, 60000));
+        Tools.ObjectFx.addFinalReadonlyProperty(this, 'recordKill', () => {
+            this.__kill_count++;
+            Game.callMoney()[1](this.__kill_extra_gold);
+        });
+        Tools.ObjectFx.addFinalReadonlyProperty(this, 'recordDamage', ({ lastAbsDmg, isDead, isBoss }) => {
+            this.__total_damage += lastAbsDmg;
+            Game.updateGemPoint += TowerBase.damageToPoint(lastAbsDmg);
+            if (isDead) {
+                this.recordKill();
+                Game.updateGemPoint += ((isBoss ? TowerBase.killBossPointEarnings : TowerBase.killNormalPointEarnings) + this.__kill_extra_point);
+                if (this.gem) {
+                    this.gem.killHook(this, arguments[0]);
+                }
+            }
+        });
+        Tools.ObjectFx.addFinalReadonlyProperty(this, 'inRange', (target) => {
+            const t = this.Rng + target.radius;
+            return Position.distancePow2(target.position, this.position) < t * t;
+        });
+        Tools.ObjectFx.addFinalProperty(this, 'calculateDamageRatio', (mst) => {
+            const bossR = mst.isBoss ? this.__on_boss_atk_ratio : 1;
+            const particularR = this.__each_monster_damage_ratio.get(mst.id) || 1;
+            const trapR = mst.isTrapped ? this.__on_trapped_atk_ratio : 1;
+            const R = Position.distance(this.position, mst.position) / this.Rng;
+            const rangeR = this.__min_rng_atk_ratio * (1 - R) + this.__max_rng_atk_ratio * R;
+            return bossR * particularR * trapR * rangeR;
+        });
     }
     static GemNameToGemCtor(gn) {
         return this.Gems.find(g => g.name === gn).ctor;
@@ -1483,25 +1510,6 @@ class TowerBase extends ItemBase {
         this.gem = new (TowerBase.GemNameToGemCtor(gemCtorName))();
         this.gem.initEffect(this);
     }
-    recordDamage({ lastAbsDmg, isDead, isBoss }) {
-        this.__total_damage += lastAbsDmg;
-        Game.updateGemPoint += TowerBase.damageToPoint(lastAbsDmg);
-        if (isDead) {
-            this.recordKill();
-            Game.updateGemPoint += ((isBoss ? TowerBase.killBossPointEarnings : TowerBase.killNormalPointEarnings) + this.__kill_extra_point);
-            if (this.gem) {
-                this.gem.killHook(this, arguments[0]);
-            }
-        }
-    }
-    recordKill() {
-        this.__kill_count++;
-        Game.callMoney()[1](this.__kill_extra_gold);
-    }
-    inRange(target) {
-        const t = this.Rng + target.radius;
-        return Position.distancePow2(target.position, this.position) < t * t;
-    }
     reChooseTarget(targetList, _index) {
         for (const t of _.shuffle(targetList)) {
             if (this.inRange(t)) {
@@ -1510,14 +1518,6 @@ class TowerBase extends ItemBase {
             }
         }
         this.target = null;
-    }
-    calculateDamageRatio(mst) {
-        const bossR = mst.isBoss ? this.__on_boss_atk_ratio : 1;
-        const particularR = this.__each_monster_damage_ratio.get(mst.id) || 1;
-        const trapR = mst.isTrapped ? this.__on_trapped_atk_ratio : 1;
-        const R = Position.distance(this.position, mst.position) / this.Rng;
-        const rangeR = this.__min_rng_atk_ratio * (1 - R) + this.__max_rng_atk_ratio * R;
-        return bossR * particularR * trapR * rangeR;
     }
     produceBullet(_i, _monsters) {
         const ratio = this.calculateDamageRatio(this.target);
@@ -3950,6 +3950,7 @@ class _Jet extends TowerBase {
         this.description = this.inner_desc_init;
         Tools.ObjectFx.addFinalGetterProperty(this, 'bulletCtorName', () => CarrierTower.Jet.JetWeapons.getCtorName(this.weaponMode));
         Tools.ObjectFx.addFinalGetterProperty(this, 'level', () => this.carrierTower.level);
+        this.calculateDamageRatio = mst => this.carrierTower.calculateDamageRatio(mst);
     }
     get attackSupplement() {
         return this.weaponMode === 1 ? this.carrierTower.Atk * -0.2 : (Math.pow(this.level + 2, 1.566) * 3);
@@ -3991,10 +3992,6 @@ class _Jet extends TowerBase {
     gemHitHook() {
         this.carrierTower.target = this.target;
         this.carrierTower.gemHitHook(...arguments);
-    }
-    calculateDamageRatio() {
-        const ratio = this.carrierTower.calculateDamageRatio(...arguments);
-        return ratio;
     }
     reChooseMostThreateningTarget(targetList) {
         this.target = _.minBy(targetList, mst => {

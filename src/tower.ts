@@ -343,10 +343,10 @@ class CannonShooter extends TowerBase {
   //   ['爆炸半径', '炮弹发生爆炸的伤害范围，单位是像素'],
   // ]))
 
-  static rankUpDesc1 = '\n+ 爆炸范围和伤害得到加强'
-  static rankUpDesc2 = '\n+ 射程得到大幅加强'
-  static rankUpDesc3 = '\n+ 命中后向四周抛出小型炸弹'
-  static rankUpDesc4 = '\n+ 小型炸弹将分裂两次'
+  private static rankUpDesc1 = '\n+ 爆炸范围和伤害得到加强'
+  private static rankUpDesc2 = '\n+ 射程得到大幅加强'
+  private static rankUpDesc3 = '\n+ 命中后向四周抛出小型炸弹'
+  private static rankUpDesc4 = '\n+ 小型炸弹将分裂两次'
 
   private levelEpdRngFx = TowerManager.CannonShooter.expr
   private levelEpdAtkFx = TowerManager.CannonShooter.expatk
@@ -537,9 +537,9 @@ class CannonShooter extends TowerBase {
 class MaskManTower extends TowerBase {
   rapidRender(): void {}
 
-  static rankUpDesc1 = '\n+ 射程和攻击力得到加强'
-  static rankUpDesc2 = '\n+ 暴击能力得到大幅加强\n+ 有 $‰ 的几率直接杀死目标'
-  static rankUpDesc3 = '\n+ 命中的箭矢将有几率束缚敌人'
+  private static rankUpDesc1 = '\n+ 射程和攻击力得到加强'
+  private static rankUpDesc2 = '\n+ 暴击能力得到大幅加强\n+ 有 $‰ 的几率直接杀死目标'
+  private static rankUpDesc3 = '\n+ 命中的箭矢将有几率束缚敌人'
 
   private multipleTarget: MonsterBase[] = []
   private extraRange = 0
@@ -765,9 +765,9 @@ class MaskManTower extends TowerBase {
 
 class FrostTower extends TowerBase {
 
-  static rankUpDesc1 = '\n+ 周期性造成范围冻结'
-  static rankUpDesc2 = '\n+ 每次冻结都能削减敌方 $% 护甲'
-  static rankUpDesc3 = '\n+ 冻结能力加强'
+  private static rankUpDesc1 = '\n+ 周期性造成范围冻结'
+  private static rankUpDesc2 = '\n+ 每次冻结都能削减敌方 $% 护甲'
+  private static rankUpDesc3 = '\n+ 冻结能力加强'
 
   public canInsertGem = false
   private levelSprFx = TowerManager.FrostTower.sr
@@ -1057,7 +1057,7 @@ class TeslaTower extends TowerBase {
   /**
    * 闪电绘制函数
    */
-  static renderLighteningCop(ctx: CanvasRenderingContext2D, x1: number, y1: number, x2: number, y2: number, displace: number) {
+  private static renderLighteningCop(ctx: CanvasRenderingContext2D, x1: number, y1: number, x2: number, y2: number, displace: number) {
     if (displace < TeslaTower.curveDetail) {
       ctx.moveTo(x1, y1)
       ctx.lineTo(x2, y2)
@@ -1282,9 +1282,9 @@ class TeslaTower extends TowerBase {
 
 class BlackMagicTower extends TowerBase {
 
-  static rankUpDesc1 = '\n+ 伤害得到加强'
-  static rankUpDesc2 = '\n+ 伤害得到大幅加强'
-  static rankUpDesc3 = '\n+ 伤害得到大幅加强，附加目标当前生命值 8% 的额外伤害'
+  private static rankUpDesc1 = '\n+ 伤害得到加强'
+  private static rankUpDesc2 = '\n+ 伤害得到大幅加强'
+  private static rankUpDesc3 = '\n+ 伤害得到大幅加强，附加目标当前生命值 8% 的额外伤害'
 
   static deniedGems = [
     'GogokOfSwiftness'
@@ -1430,10 +1430,10 @@ class BlackMagicTower extends TowerBase {
  */
 class _ColossusLaser {
 
-  static animationW = 36
-  static animationH = 36
-  static animationName = 'explo_3'
-  static animationSpeed = .5
+  private static animationW = 36
+  private static animationH = 36
+  private static animationName = 'explo_3'
+  private static animationSpeed = .5
 
   private sx: number
   private sy: number
@@ -1532,7 +1532,7 @@ class _ColossusLaser {
 class LaserTower extends TowerBase {
 
   
-  static Laser = _ColossusLaser
+  private static Laser = _ColossusLaser
 
   static rankUpDesc1 = '\n+ 伤害得到加强'
   static rankUpDesc2 = '\n+ 造成额外电浆伤害(无视防御)'
@@ -1838,6 +1838,8 @@ class _Jet extends TowerBase {
     Tools.ObjectFx.addFinalGetterProperty(this, 'bulletCtorName', () => CarrierTower.Jet.JetWeapons.getCtorName(this.weaponMode))
 
     Tools.ObjectFx.addFinalGetterProperty(this, 'level', () => this.carrierTower.level)
+
+    this.calculateDamageRatio = mst => this.carrierTower.calculateDamageRatio(mst)
   }
 
   /**
@@ -1897,13 +1899,6 @@ class _Jet extends TowerBase {
     this.carrierTower.target = this.target
     //@ts-ignore
     this.carrierTower.gemHitHook(...arguments)
-  }
-
-  calculateDamageRatio() {
-    //@ts-ignore
-    const ratio = this.carrierTower.calculateDamageRatio(...arguments)
-    // console.log(ratio.toFixed(3).padEnd(12) + ' X')
-    return ratio
   }
 
   /**
@@ -2020,7 +2015,7 @@ class CarrierTower extends TowerBase {
     'GemOfAnger'
   ]
 
-  static Jet = _Jet
+  public static Jet = _Jet
   private jetCountMap: Map<number, (TowerBase & { carrierTower: CarrierTower })[]> = new Map()
   public jets = 0
   private levelSpdFx = TowerManager.CarrierTower.spd

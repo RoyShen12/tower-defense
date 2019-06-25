@@ -65,7 +65,7 @@ class Game extends Base {
   /**
    * 获取金钱，提交变化
    */
-  static callMoney: () => [number, (change: number) => void] = null
+  static callMoney: () => [number, typeof Game.prototype.emitMoney] = null
 
   static callRemoveTower: (t: TowerBase) => void = null
 
