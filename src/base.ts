@@ -1,35 +1,6 @@
+/// <reference path="./typedef.ts" />
 /// <reference path="./motion.ts" />
 /// <reference path="./legendary-gem.ts" />
-
-type TypedArray =
-  | Int8Array
-  | Uint8Array
-  | Uint8ClampedArray
-  | Int16Array
-  | Uint16Array
-  | Int32Array
-  | Uint32Array
-  | Float32Array
-  | Float64Array
-
-type efx = (x: number) => number
-
-interface PlainObject {
-  [s: string]: number
-}
-
-type BorderPosition = 'tr' | 'tl' | 'br' | 'bl'
-
-type BorderRadius = {
-  [x in BorderPosition]: number
-}
-
-type RecursivePartial<T> = {
-  [P in keyof T]?:
-  T[P] extends (infer U)[] ? RecursivePartial<U>[] :
-  T[P] extends object ? RecursivePartial<T[P]> :
-  T[P]
-}
 
 class Tools {
 
@@ -532,7 +503,7 @@ class Tools {
 
 class ButtonOnDom {
 
-  public ele: HTMLButtonElement
+  public readonly ele: HTMLButtonElement
 
   constructor(domOptions: RecursivePartial<HTMLButtonElement>, hookOnToDom = true) {
 
@@ -547,8 +518,6 @@ class ButtonOnDom {
     this.ele.click()
   }
 }
-
-type IBase = new (...args: any[]) => Base
 
 /**
  * 所有[物体]的基类
@@ -621,7 +590,6 @@ abstract class CircleBase extends Base {
   public borderWidth: number
   public borderStyle: string
   /**
-   * @final
    * - Circle的内切正方形边长
    */
   public readonly inscribedSquareSideLength: number
@@ -651,8 +619,6 @@ abstract class CircleBase extends Base {
   }
 }
 
-type IItemBase = new (...args: any[]) => ItemBase
-
 /**
  * 所有[单位]的基类
  */
@@ -669,7 +635,7 @@ abstract class ItemBase extends CircleBase {
   public fill: string
   public readonly intervalTimers: number[] = []
   public readonly timeoutTimers: number[] = []
-  public controlable: boolean = false
+  public controlable = false
 
   constructor(position: Position, radius: number, borderWidth: number, borderStyle: string, image: string | ImageBitmap | AnimationSprite) {
     super(position, radius, borderWidth, borderStyle)
@@ -779,8 +745,6 @@ abstract class ItemBase extends CircleBase {
   }
 }
 
-type ITowerBase = new (...args: any[]) => TowerBase
-
 abstract class TowerBase extends ItemBase {
 
   static informationDesc = new Map([
@@ -884,36 +848,48 @@ abstract class TowerBase extends ItemBase {
   }
 
   protected readonly bornStamp: number
+
   public readonly bulletCtl = new BulletManager()
   public bulletImage: ImageBitmap = null
-  public bulletCtorName: string = ''
-  public level: number = 0
-  public readonly price: ArrayLike<number>
-  protected rank: number = 0
+  public bulletCtorName = ''
+
+  public level = 0
+  protected rank = 0
+
+  private readonly price: ArrayLike<number>
+
   public levelAtkFx: (lvl: number) => number
   public levelHstFx: (lvl: number) => number
   public levelSlcFx: (lvl: number) => number
   public levelRngFx: (lvl: number) => number
-  public armorPenetratingRate: number = 0
+
+  // private armorPenetratingRate = 0
+
   public target: MonsterBase = null
-  public lastShootTime: number
-  public __kill_count: number = 0
-  public __total_damage: number = 0
+
+  private lastShootTime: number
+
+  public __kill_count = 0
+  public __total_damage = 0
+
   public gem: GemBase = null
-  public canInsertGem: boolean = true
-  public __hst_ps_ratio: number = 1
-  public __atk_ratio: number = 1
-  public __kill_extra_gold: number = 0
-  public __kill_extra_point: number = 0
-  public __on_boss_atk_ratio: number = 1
-  public __on_trapped_atk_ratio: number = 1
-  public __anger_gem_atk_ratio: number = 1
-  public __max_rng_atk_ratio: number = 1
-  public __min_rng_atk_ratio: number = 1
+  public canInsertGem = true
+
+  public __hst_ps_ratio = 1
+  public __atk_ratio = 1
+  public __kill_extra_gold = 0
+  public __kill_extra_point = 0
+  public __on_boss_atk_ratio = 1
+  public __on_trapped_atk_ratio = 1
+  public __anger_gem_atk_ratio = 1
+  public __max_rng_atk_ratio = 1
+  public __min_rng_atk_ratio = 1
   public __each_monster_damage_ratio: Map<number, number> = new Map()
+
   public description: string = null
   public name: string = null
-  public isSold: boolean = false
+
+  public isSold = false
 
   public __grid_ix: number
   public __grid_iy: number
@@ -1112,10 +1088,6 @@ abstract class TowerBase extends ItemBase {
   protected recordKill() {
     this.__kill_count++
     Game.callMoney()[1](this.__kill_extra_gold)
-  }
-
-  get exposedRecordKillFx() {
-    return this.recordKill.bind(this)
   }
 
   /**
@@ -1629,8 +1601,6 @@ abstract class TowerBase extends ItemBase {
   }
 }
 
-type IMonsterBase = new (...args: any[]) => MonsterBase
-
 abstract class MonsterBase extends ItemBase {
 
   static informationDesc = new Map<string, string>()
@@ -1644,13 +1614,13 @@ abstract class MonsterBase extends ItemBase {
   public readonly __base_speed: number
   public speedRatio: number = 1
   public readonly reward: number
-  public readonly damage: number = 1
+  public readonly damage = 1
   // DOT
   // 负面效果的计算，移除由承受单位进行计算
   // 单位若受到前后两个束缚效果，前一个结束后会移除单位的束缚效果，导致后一个效果提前结束
-  public bePoisoned: boolean = false
-  public beBloodied: boolean = false
-  public beBurned: boolean = false
+  public bePoisoned = false
+  public beBloodied = false
+  public beBurned = false
   /**
    * - 一个dot id组成的数组
    */
@@ -1658,26 +1628,26 @@ abstract class MonsterBase extends ItemBase {
   /**
    * 电麻 微小机率向最靠近的单位放电
    */
-  public beShocked: boolean = false
-  public shockDurationTick: number = 0
-  public shockChargeAmount: number = 0
-  public shockLeakChance: number = 0
+  public beShocked = false
+  public shockDurationTick = 0
+  public shockChargeAmount = 0
+  public shockLeakChance = 0
   public shockSource: TeslaTower = null
-  public beTransformed: boolean = false
-  public transformDurationTick: number = 0
-  public beImprisoned: boolean = false
-  public imprisonDurationTick: number = 0
-  public beFrozen: boolean = false
-  public freezeDurationTick: number = 0
-  public beConfused: boolean = false
+  public beTransformed = false
+  public transformDurationTick = 0
+  public beImprisoned = false
+  public imprisonDurationTick = 0
+  public beFrozen = false
+  public freezeDurationTick = 0
+  public beConfused = false
   public imprecatedRatio: { pow: number, durTick: number }[] = []
-  public lastAbsDmg: number = 0
-  public isBoss: boolean = false
-  public isDead: boolean = false
+  public lastAbsDmg = 0
+  public isBoss = false
+  public isDead = false
   public name: string = null
   public description: string = null
   public exploitsSeq: string[][]
-  public type: string = '普通怪物'
+  public type = '普通怪物'
 
   constructor(position: Position, radius: number, borderWidth: number, borderStyle: string, image: string | ImageBitmap | AnimationSprite, level: number, levelRwdFx: (lvl: number) => number, levelSpdFx: (lvl: number) => number, levelHthFx: (lvl: number) => number, levelAmrFx: (lvl: number) => number, levelShdFx?: (lvl: number) => number) {
     super(position, radius, borderWidth, borderStyle, image)
@@ -1896,7 +1866,7 @@ abstract class MonsterBase extends ItemBase {
     })
   }
 
-  run(path: PositionLike[], lifeTokenEmitter: (changing: number) => void, towers: TowerBase[], monsters: MonsterBase[]) {
+  run(path: PositionLike[], lifeTokenEmitter: typeof Game.prototype.emitLife, towers: TowerBase[], monsters: MonsterBase[]) {
 
     this.runDebuffs()
     if (this.beShocked) this.runShock(monsters)
@@ -2011,15 +1981,13 @@ abstract class MonsterBase extends ItemBase {
   }
 }
 
-type IBulletBase = new (...args: any) => BulletBase
-
 abstract class BulletBase extends ItemBase {
 
   protected Atk: number
   protected speed: number
   public target: MonsterBase
-  public fulfilled: boolean = false
-  emitter: (mst: MonsterBase) => void
+  public fulfilled = false
+  emitter: typeof TowerBase.prototype.recordDamage
 
   constructor(position: Position, radius: number, borderWidth: number, borderStyle: string, image: string | ImageBitmap, atk: number, speed: number, target: MonsterBase) {
     super(position, radius, borderWidth, borderStyle, image)
@@ -2030,7 +1998,7 @@ abstract class BulletBase extends ItemBase {
     this.target = target
   }
 
-  setDamageEmitter(emitter: (mst: MonsterBase) => void) {
+  setDamageEmitter(emitter: typeof TowerBase.prototype.recordDamage) {
     this.emitter = emitter
   }
 

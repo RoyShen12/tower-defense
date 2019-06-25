@@ -29,7 +29,7 @@ class MonsterManager {
     return nm
   }
 
-  run(pathGetter: (pos: Position) => PositionLike[], lifeToken: (changing: number) => void, towers: TowerBase[], monsters: MonsterBase[]) {
+  run(pathGetter: typeof Game.prototype.getPathToEnd, lifeToken: typeof Game.prototype.emitLife, towers: TowerBase[], monsters: MonsterBase[]) {
     this.monsters.forEach(m => {
       m.run(pathGetter(m.position), lifeToken, towers, monsters)
     })
@@ -39,7 +39,7 @@ class MonsterManager {
     this.monsters.forEach(m => m.render(ctx as CanvasRenderingContext2D, imgCtl))
   }
 
-  scanSwipe(emitCallback: (rwd: number) => void) {
+  scanSwipe(emitCallback: typeof Game.prototype.emitMoney) {
     this.monsters = this.monsters.filter(m => {
       if (m.isDead) {
         emitCallback(m.reward)

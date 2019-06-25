@@ -5,48 +5,6 @@
 /// <reference path="./canvas.ts" />
 /// <reference path="./event.ts" />
 
-declare interface GridNode extends PositionLike {
-  closed: boolean
-  f: number
-  g: number
-  h: number
-  parent: GridNode
-  visited: boolean
-  weight: number
-  x: number
-  y: number
-}
-
-declare namespace Astar {
-
-  class Graph {
-    grid: GridNode[][]
-    constructor(g: number[][])
-  }
-
-  namespace astar {
-    function search(graph: Astar.Graph, start: GridNode, end: GridNode): GridNode[]
-  }
-}
-
-interface IocExtras {
-  __rerender_text: (p?: number) => void
-  rerender: (width?: number) => void
-  __dn: string
-  __od: number
-  __inner_img_u: string
-  __inner_b_img_u?: string
-  __init_price: ArrayLike<number>
-  __ctor_name: string
-  __rng_lv0: number
-  __tlx: number
-  __tly: number
-}
-
-type IocItem = ItemBase & IocExtras
-
-type EleWithRF<T> = T & { refresh: () => void }
-
 class Game extends Base {
 
   static updateGemPoint: number
@@ -84,7 +42,7 @@ class Game extends Base {
   /**
    * 根据id获取DOM元素的便捷函数
    */
-  static callElement = (id: string) => {
+  static callElement = (id: string): Node | Node[] => {
     const key = 'by_id_' + id
     if (Tools.Dom._cache.has(key)) {
       return Tools.Dom._cache.get(key)
@@ -187,7 +145,8 @@ class Game extends Base {
   private money: number;
   private life: number;
   private towerForSelect: IocItem[] = []
-  private onMouseTower: IocItem
+  // /** 正处于鼠标位置的 Item */
+  // private onMouseTower: IocItem = null
   /**
    * 目前选中的将要建造的 ItemBase 代理的 TowerBase
    */
@@ -429,7 +388,7 @@ class Game extends Base {
     tow.__grid_iy = wg[1]
 
     if (this.__testMode) {
-
+      //@ts-ignore
       while (!tow.isMaxLevel && tow.price[tow.level + 1] <= this.money) {
         this.emitMoney(-1 * tow.levelUp(this.money))
       }
@@ -636,7 +595,7 @@ class Game extends Base {
       // 鼠标进入建筑
       if (selectedT) {
 
-        this.onMouseTower = selectedT
+        // this.onMouseTower = selectedT
         let virtualTow = new (eval(selectedT.__ctor_name))
         const descriptionChuned = _.cloneDeep(virtualTow.descriptionChuned)
         virtualTow.destory()
@@ -656,7 +615,7 @@ class Game extends Base {
       }
       else {
         Game.callHideStatusBlock()
-        this.onMouseTower = null
+        // this.onMouseTower = null
       }
     }
     // 左侧方格区域

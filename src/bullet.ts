@@ -19,7 +19,7 @@ class BulletManager {
     return BulletManager.instance
   }
 
-  Factory(emitter: (mst: MonsterBase) => void, bulletName: string, position: Position, atk: number, target: MonsterBase, image: ImageBitmap | string, ...extraArgs: any[]): BulletBase {
+  Factory(emitter: typeof TowerBase.prototype.recordDamage, bulletName: string, position: Position, atk: number, target: MonsterBase, image: ImageBitmap | string, ...extraArgs: any[]): BulletBase {
 
     let ctor: IBulletBase = null
 

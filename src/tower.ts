@@ -219,7 +219,7 @@ class _TowerManager {
 
   public towers: TowerBase[] = []
   public independentTowers: TowerBase[] = []
-  public towerChangeHash: number = -1
+  public towerChangeHash = -1
 
   Factory(towerName: string, position: Position, image: string | ImageBitmap | AnimationSprite, bulletImage: ImageBitmap, radius: number, ...extraArgs: any[]) {
     const nt = new (eval(towerName))(position, image, bulletImage, radius, ...extraArgs) as TowerBase
@@ -253,10 +253,10 @@ class _TowerManager {
   }
 
   /**
-   * 塔自身很少需要重绘，所以仅在必要时重绘塔图层
-   * 此函数检测塔是否存在数量或登记的变化，并通知上层框架重绘
+   * - 塔自身很少需要重绘，所以仅在必要时重绘塔图层
+   * - 此函数检测塔是否存在数量或登记的变化，并通知上层框架重绘
    */
-  scanSwipe(emitCallback: (fb: number) => void) {
+  scanSwipe(emitCallback: typeof Game.prototype.emitMoney) {
     this.towers = this.towers.filter(t => {
       if (t.isSold) {
         emitCallback(t.sellingPrice)
@@ -284,11 +284,11 @@ class _TowerManager {
   }
 
   get totalDamage() {
-    return this.towers.reduce((cv, pv) => cv + pv.__total_damage, 0)
+    return this.towers.concat(this.independentTowers).reduce((cv, pv) => cv + pv.__total_damage, 0)
   }
 
   get totalKill() {
-    return this.towers.reduce((cv, pv) => cv + pv.__kill_count, 0)
+    return this.towers.concat(this.independentTowers).reduce((cv, pv) => cv + pv.__kill_count, 0)
   }
 }
 
@@ -477,7 +477,6 @@ class CannonShooter extends TowerBase {
           break
       }
     }
-
     return ret
   }
 
@@ -801,6 +800,8 @@ class FrostTower extends TowerBase {
     this.description = this.inner_desc_init
 
     this.armorDecreasingStrength = 0.9
+
+    Tools.ObjectFx.addFinalReadonlyProperty(this, 'exploitsSeq', [])
   }
 
   get canFreeze() {
@@ -947,10 +948,6 @@ class PoisonTower extends TowerBase {
   private levelPdurFx = TowerManager.PoisonTower.pdur
   private extraBulletV = 0
   private inner_desc_init = '发射毒气弹持续杀伤，总是积极切换目标\n+ 攻击速度很快\n+ 附加中毒效果\n+ 无视防御的伤害'
-  /**
-   * 毒罐塔会积极地切换目标，以尽可能让所有范围内敌人中毒
-   */
-  protected isCurrentTargetAvailable = false
 
   constructor(position: Position, image: string | AnimationSprite | ImageBitmap, _bimg: any, radius: number) {
     super(
@@ -971,6 +968,13 @@ class PoisonTower extends TowerBase {
     this.name = TowerManager.PoisonTower.dn
 
     this.description = this.inner_desc_init
+  }
+
+  /**
+   * 毒罐塔会积极地切换目标，以尽可能让所有范围内敌人中毒
+   */
+  get isCurrentTargetAvailable() {
+    return false
   }
 
   /**
@@ -1736,6 +1740,10 @@ class LaserTower extends TowerBase {
 
 class _Jet extends TowerBase {
 
+  // static JetActMode2 = enum _JetActMode2 {
+
+  // }
+
   static JetActMode = {
     /**
      * 自主模式
@@ -1817,20 +1825,20 @@ class _Jet extends TowerBase {
 
     this.carrierTower = carrierTower
 
-    this.recordKill = carrierTower.exposedRecordKillFx
+    // this.recordKill = carrierTower.exposedRecordKillFx
+
+    // this.recordDamage = carrierTower.exposedRecordDamageFx
 
     this.canInsertGem = false
 
     this.destinationPosition = Position.O
 
     this.description = this.inner_desc_init
-  }
 
-  get bulletCtorName(): string {
-    return CarrierTower.Jet.JetWeapons.getCtorName(this.weaponMode)
-  }
+    Tools.ObjectFx.addFinalGetterProperty(this, 'bulletCtorName', () => CarrierTower.Jet.JetWeapons.getCtorName(this.weaponMode))
 
-  set bulletCtorName(_v: string) { }
+    Tools.ObjectFx.addFinalGetterProperty(this, 'level', () => this.carrierTower.level)
+  }
 
   /**
    * 攻击补正
@@ -1862,12 +1870,6 @@ class _Jet extends TowerBase {
   get Spd() {
     return this.carrierTower.Spd
   }
-
-  get level() {
-    return this.carrierTower.level
-  }
-
-  set level(_v: number) { }
 
   get exploitsSeq(): string[][] {
     return []
@@ -1964,9 +1966,9 @@ class _Jet extends TowerBase {
     }
   }
 
-  render() { }
+  render() {}
 
-  renderLevel() { }
+  renderLevel() {}
 
   renderImage(ctx: CanvasRenderingContext2D) {
     if (this.target) {
@@ -1980,12 +1982,14 @@ class _Jet extends TowerBase {
   rapidRender(ctxRapid: CanvasRenderingContext2D) {
     super.render(ctxRapid)
   }
-
-  recordDamage() {
-    //@ts-ignore
-    this.carrierTower.recordDamage(...arguments)
-  }
 }
+
+// namespace _Jet {
+//   enum JetActMode {
+//     autonomous,
+//     f1
+//   }
+// }
 
 class CarrierTower extends TowerBase {
   rapidRender(): void {}
@@ -2016,10 +2020,8 @@ class CarrierTower extends TowerBase {
     'GemOfAnger'
   ]
 
-  // ---------------------------------------- child class ----------------------------------------
   static Jet = _Jet
-  // ---------------------------------------- child class end ----------------------------------------
-
+  private jetCountMap: Map<number, (TowerBase & { carrierTower: CarrierTower })[]> = new Map()
   public jets = 0
   private levelSpdFx = TowerManager.CarrierTower.spd
   private levelKcFx = TowerManager.CarrierTower.child
@@ -2042,6 +2044,9 @@ class CarrierTower extends TowerBase {
     this.name = TowerManager.CarrierTower.dn
 
     this.description = this.inner_desc_init
+
+    Tools.ObjectFx.addFinalGetterProperty(this, '__kill_count', () => _.sumBy(this.shipBoardAircraft, '__kill_count'))
+    Tools.ObjectFx.addFinalGetterProperty(this, '__total_damage', () => _.sumBy(this.shipBoardAircraft, '__total_damage'))
   }
 
   get informationSeq() {
@@ -2056,6 +2061,18 @@ class CarrierTower extends TowerBase {
 
   get Spd() {
     return this.levelSpdFx(this.level)
+  }
+
+  get shipBoardAircraft() {
+    if (this.jetCountMap.has(this.jets)) {
+      return this.jetCountMap.get(this.jets)
+    }
+    else {
+      this.jetCountMap.clear()
+      const newJets = Game.callIndependentTowerList().filter(tow => tow.carrierTower && tow.carrierTower === this)
+      this.jetCountMap.set(this.jets, newJets)
+      return newJets
+    }
   }
 
   run() {
@@ -2077,6 +2094,6 @@ class CarrierTower extends TowerBase {
   destory() {
     super.destory()
 
-    Game.callIndependentTowerList().filter(tow => tow.carrierTower && tow.carrierTower === this).forEach(tow => tow.isSold = true)
+    this.shipBoardAircraft.forEach(tow => tow.isSold = true)
   }
 }

@@ -1,8 +1,4 @@
-type CanvasEle = HTMLCanvasElement | OffscreenCanvas
-type WrappedAllCanvasRenderingContext = Partial<CanvasRenderingContext2D & OffscreenCanvasRenderingContext2D & ImageBitmapRenderingContext & { _off_screen_paint?: () => void, manager: CanvasManager, dom: CanvasEle }>
-type WrappedCanvasRenderingContext = (CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D | ImageBitmapRenderingContext) & { _off_screen_paint?: () => void, manager: CanvasManager, dom: CanvasEle }
-type WrappedCanvasRenderingContext2D = (CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D) & { _off_screen_paint?: () => void, manager: CanvasManager, dom: CanvasEle }
-type WrappedCanvasRenderingContextBitmap = ImageBitmapRenderingContext & { _off_screen_paint?: () => void, manager: CanvasManager, dom: CanvasEle }
+/// <reference path="./typedef.ts" />
 
 class CanvasManager {
 

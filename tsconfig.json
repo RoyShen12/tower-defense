@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "outFile": "./dist/main.js",
-    "target": "es2016",
+    "target": "es6",
     "lib": [
       "dom",
       "es6",

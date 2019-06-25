@@ -1,5 +1,3 @@
-type IGemBase = new () => GemBase
-
 abstract class GemBase {
 
   static get gemName() {

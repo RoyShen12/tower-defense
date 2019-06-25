@@ -12,7 +12,7 @@ class Position {
         this.y = y;
     }
     static distancePow2(a, b) {
-        return (a.x - b.x) ** 2 + (a.y - b.y) ** 2;
+        return Math.pow((a.x - b.x), 2) + Math.pow((a.y - b.y), 2);
     }
     static distance(a, b) {
         return Math.sqrt(this.distancePow2(a, b));
@@ -891,7 +891,7 @@ class Tools {
         return actualLength;
     }
     static roundWithFixed(num, fractionDigits) {
-        const t = 10 ** fractionDigits;
+        const t = Math.pow(10, fractionDigits);
         return Math.round(num * t) / t;
     }
     static randomStr(bits) {
@@ -1348,7 +1348,6 @@ class TowerBase extends ItemBase {
         this.bulletCtorName = '';
         this.level = 0;
         this.rank = 0;
-        this.armorPenetratingRate = 0;
         this.target = null;
         this.__kill_count = 0;
         this.__total_damage = 0;
@@ -1498,9 +1497,6 @@ class TowerBase extends ItemBase {
     recordKill() {
         this.__kill_count++;
         Game.callMoney()[1](this.__kill_extra_gold);
-    }
-    get exposedRecordKillFx() {
-        return this.recordKill.bind(this);
     }
     inRange(target) {
         const t = this.Rng + target.radius;
@@ -2935,10 +2931,10 @@ class _TowerManager {
         return needRender;
     }
     get totalDamage() {
-        return this.towers.reduce((cv, pv) => cv + pv.__total_damage, 0);
+        return this.towers.concat(this.independentTowers).reduce((cv, pv) => cv + pv.__total_damage, 0);
     }
     get totalKill() {
-        return this.towers.reduce((cv, pv) => cv + pv.__kill_count, 0);
+        return this.towers.concat(this.independentTowers).reduce((cv, pv) => cv + pv.__kill_count, 0);
     }
 }
 _TowerManager.independentCtors = [
@@ -3318,6 +3314,7 @@ class FrostTower extends TowerBase {
         this.name = TowerManager.FrostTower.dn;
         this.description = this.inner_desc_init;
         this.armorDecreasingStrength = 0.9;
+        Tools.ObjectFx.addFinalReadonlyProperty(this, 'exploitsSeq', []);
     }
     get canFreeze() {
         return performance.now() - this.lastFreezeTime > this.freezeInterval;
@@ -3441,12 +3438,14 @@ class PoisonTower extends TowerBase {
         this.levelPdurFx = TowerManager.PoisonTower.pdur;
         this.extraBulletV = 0;
         this.inner_desc_init = '发射毒气弹持续杀伤，总是积极切换目标\n+ 攻击速度很快\n+ 附加中毒效果\n+ 无视防御的伤害';
-        this.isCurrentTargetAvailable = false;
         this.bulletCtorName = TowerManager.PoisonTower.bctor;
         this.name = TowerManager.PoisonTower.dn;
         this.description = this.inner_desc_init;
     }
     rapidRender() { }
+    get isCurrentTargetAvailable() {
+        return false;
+    }
     get Pitv() {
         return this.levelPitvFx(this.level);
     }
@@ -3946,15 +3945,12 @@ class _Jet extends TowerBase {
         this.controlable = true;
         this.name = '航母载机';
         this.carrierTower = carrierTower;
-        this.recordKill = carrierTower.exposedRecordKillFx;
         this.canInsertGem = false;
         this.destinationPosition = Position.O;
         this.description = this.inner_desc_init;
+        Tools.ObjectFx.addFinalGetterProperty(this, 'bulletCtorName', () => CarrierTower.Jet.JetWeapons.getCtorName(this.weaponMode));
+        Tools.ObjectFx.addFinalGetterProperty(this, 'level', () => this.carrierTower.level);
     }
-    get bulletCtorName() {
-        return CarrierTower.Jet.JetWeapons.getCtorName(this.weaponMode);
-    }
-    set bulletCtorName(_v) { }
     get attackSupplement() {
         return this.weaponMode === 1 ? this.carrierTower.Atk * -0.2 : (Math.pow(this.level + 2, 1.566) * 3);
     }
@@ -3976,10 +3972,6 @@ class _Jet extends TowerBase {
     get Spd() {
         return this.carrierTower.Spd;
     }
-    get level() {
-        return this.carrierTower.level;
-    }
-    set level(_v) { }
     get exploitsSeq() {
         return [];
     }
@@ -4050,9 +4042,6 @@ class _Jet extends TowerBase {
     rapidRender(ctxRapid) {
         super.render(ctxRapid);
     }
-    recordDamage() {
-        this.carrierTower.recordDamage(...arguments);
-    }
 }
 _Jet.JetActMode = {
     autonomous: 1,
@@ -4089,12 +4078,15 @@ _Jet.JetWeapons = {
 class CarrierTower extends TowerBase {
     constructor(position, image, _bimg, radius) {
         super(position, radius, 1, 'rgba(56,243,12,.5)', image, TowerManager.CarrierTower.p, TowerManager.CarrierTower.a, TowerManager.CarrierTower.h, TowerManager.CarrierTower.s, TowerManager.CarrierTower.r);
+        this.jetCountMap = new Map();
         this.jets = 0;
         this.levelSpdFx = TowerManager.CarrierTower.spd;
         this.levelKcFx = TowerManager.CarrierTower.child;
         this.inner_desc_init = '自身无法攻击，释放搭载的载机进行战斗\n使用 [F1] 切换载机的自主/受控模式\n使用 [Q] 切换载机的武器\n+ 载机继承自身属性\n+ 可以对任意位置进行机动打击';
         this.name = TowerManager.CarrierTower.dn;
         this.description = this.inner_desc_init;
+        Tools.ObjectFx.addFinalGetterProperty(this, '__kill_count', () => _.sumBy(this.shipBoardAircraft, '__kill_count'));
+        Tools.ObjectFx.addFinalGetterProperty(this, '__total_damage', () => _.sumBy(this.shipBoardAircraft, '__total_damage'));
     }
     rapidRender() { }
     static set F1Mode(v) {
@@ -4122,6 +4114,17 @@ class CarrierTower extends TowerBase {
     get Spd() {
         return this.levelSpdFx(this.level);
     }
+    get shipBoardAircraft() {
+        if (this.jetCountMap.has(this.jets)) {
+            return this.jetCountMap.get(this.jets);
+        }
+        else {
+            this.jetCountMap.clear();
+            const newJets = Game.callIndependentTowerList().filter(tow => tow.carrierTower && tow.carrierTower === this);
+            this.jetCountMap.set(this.jets, newJets);
+            return newJets;
+        }
+    }
     run() {
         if (this.canShoot && this.jets < this.KidCount) {
             Game.callTowerFactory()('CarrierTower.Jet', this.position.copy().dithering(this.radius * 2, this.radius), Game.callImageBitMap(TowerManager.CarrierTower.cn), null, Game.callGridSideSize() / 4, this);
@@ -4131,7 +4134,7 @@ class CarrierTower extends TowerBase {
     renderRange() { }
     destory() {
         super.destory();
-        Game.callIndependentTowerList().filter(tow => tow.carrierTower && tow.carrierTower === this).forEach(tow => tow.isSold = true);
+        this.shipBoardAircraft.forEach(tow => tow.isSold = true);
     }
 }
 CarrierTower.__inner_f1_mode = false;
@@ -4469,7 +4472,6 @@ class Game extends Base {
             if (e.offsetX > this.midSplitLineX) {
                 const selectedT = this.towerForSelect.find(tfs => tfs.position.equal(mousePos, tfs.radius));
                 if (selectedT) {
-                    this.onMouseTower = selectedT;
                     let virtualTow = new (eval(selectedT.__ctor_name));
                     const descriptionChuned = _.cloneDeep(virtualTow.descriptionChuned);
                     virtualTow.destory();
@@ -4484,7 +4486,6 @@ class Game extends Base {
                 }
                 else {
                     Game.callHideStatusBlock();
-                    this.onMouseTower = null;
                 }
             }
             else {
