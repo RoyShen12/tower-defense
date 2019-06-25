@@ -1,0 +1,30 @@
+{
+  "compilerOptions": {
+    "outFile": "./dist/main.js",
+    "target": "es2016",
+    "lib": [
+      "dom",
+      "es6",
+      "dom.iterable",
+      "scripthost",
+      "es7"
+    ],
+    "allowJs": false,
+    "allowUmdGlobalAccess": true,
+    "noImplicitAny": true,
+    "noImplicitReturns": true,
+    "noImplicitThis": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "strictBindCallApply": true,
+    "strictFunctionTypes": true,
+    "removeComments": true
+  },
+  "include": [
+    "./src/*"
+  ],
+  "exclude": [
+    "./src/stage.ts"
+  ],
+  "compileOnSave": true
+}
