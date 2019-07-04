@@ -163,7 +163,7 @@ class HighPriest extends MonsterBase {
   static amr = () => 14
 
   static healingInterval = (_lvl?: number) => 5000
-  static healingPower = (lvl: number) => 40 * (Math.floor(lvl / 25) + 1)
+  static healingPower = (lvl: number) => 40 * (Math.floor(lvl / 2) + 1)
   static healingRange = (_lvl?: number) => 30
 
   private lastHealTime: number = performance.now()

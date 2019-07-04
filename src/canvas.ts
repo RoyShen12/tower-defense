@@ -124,7 +124,7 @@ class CanvasManager {
     context.clearRect(outerBoxPositionTL.x, outerBoxPositionTL.y, width, height)
 
     //@ts-ignore
-    if (window.__debug_show_refresh_rect) {
+    if (__debug_show_refresh_rect) {
       context.save()
       context.lineWidth = 1
       context.strokeStyle = 'rgba(255,0,0,.5)'

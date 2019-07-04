@@ -314,3 +314,58 @@ class PoisonCan extends BulletBase {
     )
   }
 }
+
+class Blade extends BulletBase {
+
+  static bulletVelocity = 12
+
+  private bounceTime: number
+  private damageFadePerBounce: number
+
+  constructor(position: Position, atk: number, target: MonsterBase, image: string | ImageBitmap, bounceTime: number, damageFadePerBounce: number) {
+    super(position, 4, 0, null, image, atk, Blade.bulletVelocity, target)
+
+    this.bounceTime = bounceTime
+    this.damageFadePerBounce = damageFadePerBounce
+  }
+
+  run(monsters: MonsterBase[]) {
+    this.position.moveTo(this.target.position, this.speed)
+
+    if (this.target.isDead) {
+      this.fulfilled = true
+      this.target = null
+    }
+    else if (this.isReaching) {
+      this.hit(this.target, 1, monsters)
+
+      if (this.bounceTime > 0 && monsters.length > 1) {
+        this.bounceToNext(monsters)
+      }
+      else {
+        this.fulfilled = true
+        this.target = null
+      }
+    }
+    else if (this.position.outOfBoundary(Position.O, Game.callBoundaryPosition(), 50)) {
+      console.log('a bullet has run out of the bound, and will be swipe by system.')
+      console.log(this)
+      this.fulfilled = true
+      this.target = null
+    }
+  }
+
+  bounceToNext(monsters: MonsterBase[]) {
+    // const newTarget = _.minBy(monsters, mst => {
+    //   if (mst === this.target) return Infinity
+    //   const dist = Position.distancePow2(mst.position, this.position)
+    //   return dist
+    // })
+    const newTarget = _.shuffle(monsters.filter(m => m !== this.target))[0]
+    this.speed += 1
+
+    this.target = newTarget
+    this.Atk *= this.damageFadePerBounce
+    this.bounceTime--
+  }
+}

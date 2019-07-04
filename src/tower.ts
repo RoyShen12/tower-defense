@@ -1,7 +1,5 @@
 /// <reference path="./base.ts" />
 
-const __testMode = localStorage.getItem('debug_mode') === '1'
-
 const towerCtors = [
   // {
   //   dn: 'Test_Tower',
@@ -54,15 +52,15 @@ const towerCtors = [
     a: (lvl: number) => lvl * 2 + 2,
     h: (lvl: number) => 0.7 + lvl * 0.004,
     s: (_lvl?: number) => 1,
-    expr: (lvl: number) => Math.min(20 + lvl * 2, 90),
-    expatk: (atk: number) => atk * 3.8 + 120,
-    bdatk: (atk: number) => atk / 12,
-    bdatk2: (atk: number) => atk / 10,
-    bdatk3: (atk: number) => atk / 8,
-    bdatk4: (atk: number) => atk / 6,
-    bdatk5: (atk: number) => atk / 4,
-    bditv: (_lvl?: number) => 500,
-    bddur: (_lvl?: number) => 8000,
+    expr: (lvl: number) => Math.min(20 + lvl, 80),
+    expatk: (atk: number) => atk * 4.4 + 120,
+    bdatk: (atk: number) => atk * 1.1,
+    bdatk2: (atk: number) => atk * 1.6,
+    bdatk3: (atk: number) => atk * 2.1,
+    bdatk4: (atk: number) => atk * 2.6,
+    bdatk5: (atk: number) => atk * 3.1,
+    bditv: (_lvl?: number) => 80,
+    bddur: (_lvl?: number) => 15000,
     bctor: 'CannonBullet',
     bctor2: 'ClusterBomb',
     bctor3: 'ClusterBombEx'
@@ -176,7 +174,7 @@ const towerCtors = [
   {
     dn: '航母',
     c: 'CarrierTower',
-    od: 7,
+    od: 8,
     n: 'carrier0',
     n1: 'carrier1',
     n2: 'carrier2',
@@ -194,6 +192,26 @@ const towerCtors = [
     child: (lvl: number) => 1 + Math.floor(lvl / 20),
     spd: (_lvl?: number) => 5
   },
+  {
+    dn: '飞刃塔',
+    c: 'EjectBlade',
+    od: 9,
+    n: 'knife0',
+    p: new Proxy({}, {
+      get(_t, p: string, _r) {
+        if (p === 'length') return 200
+        else return Math.ceil(Math.pow(1.1, +p) * 2000)
+      }
+    }) as ArrayLike<number>,
+    r: (lvl: number) => lvl * 0.8 + 160,
+    a: (lvl: number) => lvl * 5.5 + 20,
+    h: (lvl: number) => 0.5 + lvl * 0.0225,
+    s: (_lvl?: number) => 1,
+    bt: (_lvl?: number) => 6,
+    dfpb: (lvl: number) => 0.5 + lvl * 0.0075,
+    bctor: 'Blade',
+    bn: 'blade_gear'
+  }
 ]
 
 class _TowerManager {
@@ -216,6 +234,7 @@ class _TowerManager {
   static BlackMagicTower: typeof towerCtors[0]
   static LaserTower: typeof towerCtors[0]
   static CarrierTower: typeof towerCtors[0]
+  static EjectBlade: typeof towerCtors[0]
 
   public towers: TowerBase[] = []
   public independentTowers: TowerBase[] = []
@@ -484,7 +503,7 @@ class CannonShooter extends TowerBase {
    * 爆炸范围
    */
   get EpdRng() {
-    return (this.levelEpdRngFx(this.level) + this.extraExplosionRange) * this.extraExplosionRangeRatio
+    return this.reviceRange((this.levelEpdRngFx(this.level) + this.extraExplosionRange) * this.extraExplosionRangeRatio)
   }
 
   /**
@@ -865,7 +884,12 @@ class FrostTower extends TowerBase {
 
                 mst.registerFreeze(this.freezeDurationTick)
   
-                mst.inner_armor *= this.armorDecreasingStrength
+                if (mst.inner_armor > 1) {
+                  mst.inner_armor *= this.armorDecreasingStrength
+                }
+                else {
+                  mst.inner_armor = 0
+                }
               })
               this.lastFreezeTime = performance.now()
             }
@@ -1284,7 +1308,7 @@ class BlackMagicTower extends TowerBase {
 
   private static rankUpDesc1 = '\n+ 伤害得到加强'
   private static rankUpDesc2 = '\n+ 伤害得到大幅加强'
-  private static rankUpDesc3 = '\n+ 伤害得到大幅加强，附加目标当前生命值 8% 的额外伤害'
+  private static rankUpDesc3 = '\n+ 伤害得到大幅加强，每次攻击附加目标当前生命值 4% 的额外伤害'
 
   static deniedGems = [
     'GogokOfSwiftness'
@@ -1389,7 +1413,7 @@ class BlackMagicTower extends TowerBase {
           this.borderStyle = 'rgba(223,14,245,.8)'
           this.extraPower = 10654
           this.levelAtkFx = TowerManager.BlackMagicTower.a4
-          this.POTCHD = .08
+          this.POTCHD = .04
           break
       }
     }
@@ -1401,14 +1425,14 @@ class BlackMagicTower extends TowerBase {
   }
 
   produceBullet() {
-    const w = 82
-    const h = 50
+    const w = Game.callGridSideSize() * 2
+    const h = Game.callGridSideSize() * 1.25
     const position = new Position(this.target.position.x - w / 2, this.target.position.y - h / 2)
 
     Game.callAnimation('magic_2', position, w, h, 1, 2)
 
     // console.log(`基础伤害 ${this.Atk} 额外伤害 ${this.target.__inner_current_health * this.POTCHD}`)
-    this.target.health -= (this.Atk * this.calculateDamageRatio(this.target) + this.target.level * this.POTCHD)
+    this.target.health -= (this.Atk * this.calculateDamageRatio(this.target) + this.target.health * this.POTCHD)
     this.recordDamage(this.target)
     // 杀死了目标
     if (this.target.isDead) {
@@ -1588,7 +1612,7 @@ class LaserTower extends TowerBase {
    * Laser Swipe Distance
    */
   get Lsd() {
-    return this.levelLaserSwipeDistanceFx(this.level)
+    return this.reviceRange(this.levelLaserSwipeDistanceFx(this.level))
   }
 
   /**
@@ -1602,14 +1626,14 @@ class LaserTower extends TowerBase {
    * Flame Width
    */
   get Fwd() {
-    return this.levelFlameWidthFx(this.level) + this.extraFlameWidth
+    return this.reviceRange(this.levelFlameWidthFx(this.level) + this.extraFlameWidth)
   }
 
   /**
    * 激光渲染宽度
    */
   get LlW() {
-    return 3 + Math.floor(this.rank / 2)
+    return Math.ceil(this.reviceRange(3 + Math.floor(this.rank / 2)))
   }
 
   get informationSeq() {
@@ -1890,15 +1914,32 @@ class _Jet extends TowerBase {
     return 0
   }
 
-  gemAttackHook() {
-    //@ts-ignore
-    this.carrierTower.gemAttackHook(...arguments)
+  gemHitHook(_idx: number, msts: MonsterBase[]) {
+    if (this.carrierTower.gem) {
+      this.carrierTower.gem.hitHook(this, this.target, msts)
+    }
   }
 
-  gemHitHook() {
-    this.carrierTower.target = this.target
-    //@ts-ignore
-    this.carrierTower.gemHitHook(...arguments)
+  gemAttackHook(msts: MonsterBase[]) {
+    if (this.carrierTower.gem) {
+      this.carrierTower.gem.attackHook(this, msts)
+    }
+  }
+
+  get __total_damage() {
+    return 0
+  }
+
+  set __total_damage(v) {
+    this.carrierTower ? this.carrierTower.__total_damage += v : void 0
+  }
+
+  get __kill_count() {
+    return 0
+  }
+
+  set __kill_count(v) {
+    this.carrierTower ? this.carrierTower.__kill_count += v : void 0
   }
 
   /**
@@ -2040,8 +2081,8 @@ class CarrierTower extends TowerBase {
 
     this.description = this.inner_desc_init
 
-    Tools.ObjectFx.addFinalGetterProperty(this, '__kill_count', () => _.sumBy(this.shipBoardAircraft, '__kill_count'))
-    Tools.ObjectFx.addFinalGetterProperty(this, '__total_damage', () => _.sumBy(this.shipBoardAircraft, '__total_damage'))
+    // Tools.ObjectFx.addFinalGetterProperty(this, '__kill_count', () => _.sumBy(this.shipBoardAircraft, '__kill_count'))
+    // Tools.ObjectFx.addFinalGetterProperty(this, '__total_damage', () => _.sumBy(this.shipBoardAircraft, '__total_damage'))
   }
 
   get informationSeq() {
@@ -2090,5 +2131,59 @@ class CarrierTower extends TowerBase {
     super.destory()
 
     this.shipBoardAircraft.forEach(tow => tow.isSold = true)
+  }
+}
+
+class EjectBlade extends TowerBase {
+  rapidRender(): void { }
+
+  private inner_desc_init = `发射可以在敌人之间弹射的飞刃\n+ 每次弹射将使伤害衰减，升级可以衰减的程度`
+  private levelBtFxFx = TowerManager.EjectBlade.bt
+  private levelDfpbFx = TowerManager.EjectBlade.dfpb
+
+  constructor(position: Position, image: string | AnimationSprite | ImageBitmap, bimage: ImageBitmap, radius: number) {
+    super(
+      position,
+      radius,
+      1,
+      'rgba(26,13,112,.3)',
+      image,
+      TowerManager.EjectBlade.p,
+      TowerManager.EjectBlade.a,
+      TowerManager.EjectBlade.h,
+      TowerManager.EjectBlade.s,
+      TowerManager.EjectBlade.r
+    )
+
+    this.bulletCtorName = TowerManager.EjectBlade.bctor
+    this.bulletImage = bimage
+
+    this.name = TowerManager.EjectBlade.dn
+    this.description = this.inner_desc_init
+  }
+
+  get informationSeq() {
+    return super.informationSeq.concat([
+      ['弹射次数', this.bounceTime + ''],
+      ['弹射伤害系数', Tools.roundWithFixed(this.damageFadePerBounce * 100, 2) + ' %']
+    ])
+  }
+
+  /**
+   * 弹射次数
+   */
+  private get bounceTime() {
+    return this.levelBtFxFx(this.level)
+  }
+
+  /**
+   * 每次弹射后伤害衰减的乘数
+   */
+  private get damageFadePerBounce() {
+    return this.levelDfpbFx(this.level)
+  }
+
+  produceBullet() {
+    this.bulletCtl.Factory(this.recordDamage.bind(this), this.bulletCtorName, this.position.copy().dithering(this.radius), this.Atk, this.target, this.bulletImage, this.bounceTime, this.damageFadePerBounce)
   }
 }

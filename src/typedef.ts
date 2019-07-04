@@ -1,3 +1,7 @@
+const __global_test_mode = localStorage.getItem('debug_mode') === '1'
+let g: Game = null
+let __debug_show_refresh_rect: boolean = false
+
 type CanvasEle = HTMLCanvasElement | OffscreenCanvas
 type WrappedAllCanvasRenderingContext = Partial<CanvasRenderingContext2D & OffscreenCanvasRenderingContext2D & ImageBitmapRenderingContext & { _off_screen_paint?: () => void, manager: CanvasManager, dom: CanvasEle }>
 type WrappedCanvasRenderingContext = (CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D | ImageBitmapRenderingContext) & { _off_screen_paint?: () => void, manager: CanvasManager, dom: CanvasEle }

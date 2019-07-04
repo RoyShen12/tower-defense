@@ -117,6 +117,8 @@ class Game extends Base {
     }
   }
 
+  private bornStamp: number
+
   private __testMode: boolean
   /**
    * 控制怪物升级的参数
@@ -198,11 +200,10 @@ class Game extends Base {
   constructor(imageManager: ImageManger, GX = 36, GY = 24) {
     super()
 
+    this.bornStamp = performance.now()
+
     // debug only
-    //@ts-ignore
-    window.g = this
-    //@ts-ignore
-    window.__debug_show_refresh_rect = false
+    g = this
 
     this.__testMode = localStorage.getItem('debug_mode') === '1'
     this.count = this.__testMode ? 50 : 0
@@ -876,7 +877,7 @@ class Game extends Base {
             type: 'checkbox',
             value: 'on',
             //@ts-ignore
-            onchange: (e) => { window.__debug_show_refresh_rect = e.target.checked }
+            onchange: (e) => { __debug_show_refresh_rect = e.target.checked }
           })
         ]
       )
@@ -1143,8 +1144,7 @@ class Game extends Base {
     this.updateTick++
 
     // ------------------ debug ---------------------
-    //@ts-ignore
-    if (!this.isPausing && !window.__d_stop_ms) {
+    if (!this.isPausing && !Reflect.get(window, '__d_stop_ms')) {
       // if (this.updateTick === 101) {
       //   this.placeMonster(
       //     40000,
@@ -1166,6 +1166,7 @@ class Game extends Base {
           _.shuffle(['Devil', 'HighPriest'])[0]
         )
       }
+      // if (this.updateTick > 1000) Reflect.set(window, '__d_stop_ms', true)
     }
     // ------------------ end debug ---------------------
 
@@ -1263,13 +1264,14 @@ class Game extends Base {
   }
 
   renderInformation() {
-    const ax = innerWidth - 220
-    const ay1 = innerHeight - 100
+    const ax = innerWidth - 190
+    const ay1 = innerHeight - 120
     const ay2 = ay1 - 30
     const ay3 = ay2 - 30
     // const ay4 = ay3 - 30
 
     // this.contextCtl.refreshText(`CH: ${Tools.chineseFormatter(this.monsterCtl.totalCurrentHealth, 2, ' ')}`, null, new Position(ax, ay1), new Position(ax - 4, ay1 - 20), 190, 26, 'rgb(24,24,24)', true, '14px Game')
+    this.contextCtl.refreshText(`DPS    ${Tools.chineseFormatter(this.towerCtl.totalDamage / (performance.now() - this.bornStamp) * 1000, 3, ' ')}`, null, new Position(ax, ay1), new Position(ax - 4, ay1 - 20), 190, 26, 'rgb(24,24,24)', true, '14px Game')
 
     this.contextCtl.refreshText(`总伤害    ${Tools.chineseFormatter(this.towerCtl.totalDamage, 2, ' ')}`, null, new Position(ax, ay2), new Position(ax - 4, ay2 - 20), 190, 26, 'rgb(24,24,24)', true, '14px Game')
 

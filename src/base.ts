@@ -607,6 +607,14 @@ abstract class CircleBase extends Base {
     Tools.ObjectFx.addFinalGetterProperty(this, 'inscribedSquareSideLength', () => 2 * this.radius / Math.SQRT2)
   }
 
+  /**
+   * - 对设计稿的度量值进行修正，得到正确的相对度量
+   * @param r 基于设计稿的距离值 px
+   */
+  reviceRange(r: number) {
+    return r * Game.callGridSideSize() / 39
+  }
+
   renderBorder(context: CanvasRenderingContext2D) {
     if (this.borderWidth > 0) {
       context.strokeStyle = this.borderStyle
@@ -802,6 +810,10 @@ abstract class TowerBase extends ItemBase {
     {
       ctor: GemOfAnger,
       name: 'GemOfAnger'
+    },
+    {
+      ctor: BrokenPieces,
+      name: 'BrokenPieces'
     }
   ]
 
@@ -1095,20 +1107,18 @@ abstract class TowerBase extends ItemBase {
   }
 
   /**
-   * - 对设计稿的距离值进行修正，得到正确的相对距离
-   * @param r 基于设计稿的距离值 px
-   */
-  reviceRange(r: number) {
-    return r * Game.callGridSideSize() / 39
-  }
-
-  /**
    * - 插入 Legendary Gem
    * @param gemCtorName
    */
   inlayGem(gemCtorName: string) {
     this.gem = new (TowerBase.GemNameToGemCtor(gemCtorName))()
     this.gem.initEffect(this)
+
+    if (__global_test_mode) {
+      while (!this.gem.isMaxLevel || this.gem.level > 1e6) {
+        Game.updateGemPoint -= this.gem.levelUp(Game.updateGemPoint)
+      }
+    }
   }
 
   /**
