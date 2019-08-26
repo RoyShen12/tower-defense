@@ -362,7 +362,7 @@ class Blade extends BulletBase {
     //   return dist
     // })
     const newTarget = _.shuffle(monsters.filter(m => m !== this.target))[0]
-    this.speed += 1
+    if (this.speed < 22) this.speed += 1
 
     this.target = newTarget
     this.Atk *= this.damageFadePerBounce

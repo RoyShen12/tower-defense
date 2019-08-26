@@ -16,8 +16,11 @@ class CanvasManager {
    */
   createCanvasInstance(id: string, style: CSSStyleDeclaration | {} = {}, height?: number, width?: number, offDocument?: boolean, wiredEvent: (ele: HTMLCanvasElement) => void = null, paintingOffScreenRenderingContextId: string = null): WrappedCanvasRenderingContext {
     style = style || {}
-    height = height || innerHeight
-    width = width || innerWidth
+
+    const dpi = window.devicePixelRatio
+  
+    height = height || innerHeight * dpi
+    width = width || innerWidth * dpi
 
     // 创建 离屏canvas元素
     // 离屏所以不考虑绑定事件和样式
@@ -35,6 +38,8 @@ class CanvasManager {
         this.canvasElements.push(canvasOff)
         this.canvasContextMapping.set(id, ctx)
         this.offscreenCanvasMapping.set(id, canvasOff)
+
+        ctx.scale(dpi, dpi)
 
         return ctx
       }
@@ -55,6 +60,8 @@ class CanvasManager {
         this.canvasContextMapping.set(id, ctx)
         this.offscreenCanvasMapping.set(id, canvasEle)
 
+        ctx.scale(dpi, dpi)
+
         return ctx
       }
     }
@@ -64,6 +71,8 @@ class CanvasManager {
 
       canvasEle.width = width
       canvasEle.height = height
+      canvasEle.style.width = width / dpi + 'px'
+      canvasEle.style.height = height / dpi + 'px'
       canvasEle.id = id
 
       if (Object.prototype.toString.call(wiredEvent) === '[object Function]') {
@@ -100,6 +109,8 @@ class CanvasManager {
       else {
         ctx = canvasEle.getContext('2d') as WrappedCanvasRenderingContext2D
         ctx.font = 'lighter 7px Game'
+
+        ctx.scale(dpi, dpi)
       }
 
       ctx.manager = this

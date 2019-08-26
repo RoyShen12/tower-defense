@@ -287,12 +287,12 @@ class Tools {
    * - 绘制扇形
    */
   static renderSector(ctx: CanvasRenderingContext2D, x: number, y: number, r: number, angle1: number, angle2: number, anticlock: boolean) {
-    ctx.save()
+    // ctx.save()
     ctx.beginPath()
     ctx.moveTo(x, y)
     ctx.arc(x, y, r, angle1, angle2, anticlock)
     ctx.closePath()
-    ctx.restore()
+    // ctx.restore()
     return ctx
   }
 
@@ -395,9 +395,10 @@ class Tools {
   /**
    * - 返回一个比较某个属性的比较函数，通常用于作为Array.sort()的参数，如对数组A的b属性排序：A.sort(compareProperties('b'))
    */
-  static compareProperties(properties: string, cFx?: (a: number, b: number) => number, ascend?: boolean) {
+  static compareProperties(properties: string, cFx?: (a: any, b: any) => number, ascend?: boolean) {
     cFx = cFx || function (a, b) { return a - b }
     ascend = ascend || true
+
     return (a: any, b: any) => cFx(a[properties], b[properties]) * (ascend ? 1 : -1)
   }
 
@@ -736,6 +737,7 @@ abstract class ItemBase extends CircleBase {
     return {
       restore() {
         context.resetTransform()
+        context.scale(devicePixelRatio, devicePixelRatio)
       }
     }
   }
@@ -979,6 +981,7 @@ abstract class TowerBase extends ItemBase {
       const rangeR = this.__min_rng_atk_ratio * (1 - R) + this.__max_rng_atk_ratio * R
 
       // console.log(bossR, particularR, trapR, rangeR)
+      console.log(particularR)
       return bossR * particularR * trapR * rangeR
     })
   }
@@ -1669,7 +1672,7 @@ abstract class MonsterBase extends ItemBase {
     this.maxShield = levelShdFx ? levelShdFx(level) : 0
     this.__inner_current_shield = this.maxShield
 
-    this.inner_armor = levelAmrFx(level)
+    this.inner_armor = Math.min(1000, levelAmrFx(level))
 
     this.__base_speed = levelSpdFx(level)
 

@@ -199,7 +199,7 @@ const towerCtors = [
     n: 'knife0',
     p: new Proxy({}, {
       get(_t, p: string, _r) {
-        if (p === 'length') return 200
+        if (p === 'length') return 280
         else return Math.ceil(Math.pow(1.1, +p) * 2000)
       }
     }) as ArrayLike<number>,
@@ -207,7 +207,7 @@ const towerCtors = [
     a: (lvl: number) => lvl * 5.5 + 20,
     h: (lvl: number) => 0.5 + lvl * 0.0225,
     s: (_lvl?: number) => 1,
-    bt: (_lvl?: number) => 6,
+    bt: (lvl: number) => Math.round(lvl / 18) + 1,
     dfpb: (lvl: number) => 0.5 + lvl * 0.0075,
     bctor: 'Blade',
     bn: 'blade_gear'
@@ -2184,6 +2184,7 @@ class EjectBlade extends TowerBase {
   }
 
   produceBullet() {
-    this.bulletCtl.Factory(this.recordDamage.bind(this), this.bulletCtorName, this.position.copy().dithering(this.radius), this.Atk, this.target, this.bulletImage, this.bounceTime, this.damageFadePerBounce)
+    const ratio = this.calculateDamageRatio(this.target)
+    this.bulletCtl.Factory(this.recordDamage.bind(this), this.bulletCtorName, this.position.copy().dithering(this.radius), this.Atk * ratio, this.target, this.bulletImage, this.bounceTime, this.damageFadePerBounce)
   }
 }
