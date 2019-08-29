@@ -142,7 +142,7 @@ const towerCtors = [
     a4: (lvl: number) => 42000 + Math.round((lvl + 32) * (lvl + 32)),
     h: (_lvl?: number) => 0.125,
     s: (_lvl?: number) => 1,
-    ide: (lvl: number) => Math.min(lvl * 0.022 + 0.1, 10),
+    ide: (lvl: number) => lvl * 0.004 + 0.01,
     idr: (lvl: number) => 10000 + 100 * lvl
   },
   {
@@ -1431,13 +1431,19 @@ class BlackMagicTower extends TowerBase {
 
     Game.callAnimation('magic_2', position, w, h, 1, 2)
 
-    // console.log(`基础伤害 ${this.Atk} 额外伤害 ${this.target.__inner_current_health * this.POTCHD}`)
+    console.log(`基础伤害 ${this.Atk} 倍率${this.calculateDamageRatio(this.target)} 额外伤害${this.target.health * this.POTCHD}`)
     this.target.health -= (this.Atk * this.calculateDamageRatio(this.target) + this.target.health * this.POTCHD)
+    console.log(`实际伤害 ${this.target.lastAbsDmg}`)
     this.recordDamage(this.target)
     // 杀死了目标
     if (this.target.isDead) {
       this.imprecationPower += 10
       if (this.imprecationHaste * 100 - 100 < 1600) this.imprecationHaste += 0.05
+    }
+    
+    if (__debug_black_magic_tower_always_enhance) {
+      this.imprecationPower += 10
+      this.imprecationHaste += 0.05
     }
     // 诅咒目标
     this.target.registerImprecate(this.Idr / 1000 * 60, this.Ide)
@@ -1791,26 +1797,29 @@ class _Jet extends TowerBase {
      */
     MachineGun: class _MachineGun extends BulletBase {
       constructor(position: Position, atk: number, target: MonsterBase) {
-        const bVelocity = 18
+        const bVelocity = 22
         super(position, 1, 0, null, 'rgb(55,14,11)', atk, bVelocity, target)
       }
       hit(monster: MonsterBase, magnification = 1) {
-        monster.health -= this.Atk * magnification * (1 - monster.armorResistance * 0.85)
+        monster.health -= this.Atk * magnification * (1 - monster.armorResistance * 0.65)
         this.emitter(monster)
       }
     },
     /**
      * 30mm 机炮
      */
-    AutoCannons: class _AutoCannons extends BulletBase {
+    AutoCannons: class _AutoCannons extends CannonBullet {
       constructor(position: Position, atk: number, target: MonsterBase) {
-        const bVelocity = 6
-        super(position, 2, 1, '#CC3333', '#99CC99', atk, bVelocity, target)
+        const explodeRange = 62
+        const burnDotDamage = atk * .12
+        const extraRatioCalc = (m: MonsterBase) => 1 + m.armorResistance
+        super(position, atk, target, null, atk * 2, explodeRange, burnDotDamage, 150, 3000, 0, extraRatioCalc)
+        // super(position, 2, 1, '#CC3333', '#99CC99', atk * 2, bVelocity, target)
       }
-      hit(monster: MonsterBase, magnification = 1) {
-        monster.health -= this.Atk * magnification * (1 - monster.armorResistance * .75) + monster.inner_armor * .75
-        this.emitter(monster)
-      }
+      // hit(monster: MonsterBase, magnification = 1) {
+      //   monster.health -= this.Atk * magnification * (1 - monster.armorResistance * .455) + monster.inner_armor * 5.5
+      //   this.emitter(monster)
+      // }
     }
   }
 
@@ -1867,12 +1876,17 @@ class _Jet extends TowerBase {
   }
 
   /**
-   * 攻击补正
+   * - 攻击补正
+   * - 对基础攻击的 Δ 补正
    */
   get attackSupplement() {
     return this.weaponMode === 1 ? this.carrierTower.Atk * -0.2 : (Math.pow(this.level + 2, 1.566) * 3)
   }
 
+  /**
+   * - 攻速系数
+   * - 对基础每秒攻击次数的 γ 系数
+   */
   get hasteSupplementRate() {
     return this.weaponMode === 1 ? (1 + this.level * 0.015) : (1 - this.level * 0.0025)
   }

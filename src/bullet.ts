@@ -1,5 +1,8 @@
 /// <reference path="./base.ts" />
 
+/**
+ * 单例
+ */
 class BulletManager {
 
   static instance: BulletManager = null

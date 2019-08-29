@@ -1,6 +1,6 @@
-/// <reference path="./typedef.ts" />
-/// <reference path="./motion.ts" />
-/// <reference path="./legendary-gem.ts" />
+/// <reference path='./typedef.ts' />
+/// <reference path='./motion.ts' />
+/// <reference path='./legendary-gem.ts' />
 
 class Tools {
 
@@ -266,14 +266,14 @@ class Tools {
   }
 
   /**
-   * - 生成指定位数随机字符串
+   * 生成指定位数随机字符串
    */
   static randomStr(bits: number) {
     return new Array(bits).fill(1).map(() => ((Math.random() * 16 | 0) & 0xf).toString(16)).join('')
   }
 
   /**
-   * - 随机正负号
+   * 随机正负号
    */
   static randomSig() {
     return Math.random() < 0.5 ? 1 : -1
@@ -284,7 +284,7 @@ class Tools {
   }
 
   /**
-   * - 绘制扇形
+   * 绘制扇形
    */
   static renderSector(ctx: CanvasRenderingContext2D, x: number, y: number, r: number, angle1: number, angle2: number, anticlock: boolean) {
     // ctx.save()
@@ -297,12 +297,16 @@ class Tools {
   }
 
   /**
-   * - 绘制带圆角的矩形
+   * 绘制带圆角的矩形
    */
-  static renderRoundRect(ctx: CanvasRenderingContext2D, x: number, y: number, width: number, height: number, radius: BorderRadius, fill: boolean = false, stroke: boolean = true) {
+  static renderRoundRect(ctx: CanvasRenderingContext2D, x: number, y: number, width: number, height: number, radius: BorderRadius | number, fill: boolean = false, stroke: boolean = true) {
+
+    if (typeof radius === 'number') {
+      radius = { tr: radius, tl: radius, br: radius, bl: radius }
+    }
 
     (['tr', 'tl', 'br', 'bl'] as BorderPosition[]).forEach((key) => {
-      radius[key] = radius[key] || 5
+      (radius as BorderRadius)[key] = (radius as BorderRadius)[key] || 5
     })
 
     ctx.beginPath()
@@ -324,9 +328,13 @@ class Tools {
     }
   }
 
-  static renderStatistic(ctx: CanvasRenderingContext2D, dataArr: TypedArray, positionTL: Position, width: number, height: number, color?: string) {
-    color = color || '#67C23A'
-    ctx.fillStyle = color
+  static renderStatistic(ctx: CanvasRenderingContext2D, dataArr: TypedArray, positionTL: Position, width: number, height: number, transp?: number, gcolor?: string, wcolor?: string, dcolor?: string) {
+    transp = transp || 0.5
+    gcolor = gcolor || `rgba(103,194,58,${transp})`
+    wcolor = wcolor || `rgba(255,241,184,${transp})`
+    dcolor = dcolor || `rgba(255,120,117,${transp})`
+
+    ctx.fillStyle = gcolor
 
     const maxV = 50
     const horizonSpan = width / dataArr.length
@@ -356,17 +364,34 @@ class Tools {
     }
 
     ctx.clearRect(positionTL.x, positionTL.y, width, drawHeight)
+
     dataArr.forEach((v: number, i: number) => {
+
+      v = Math.min(v, 50)
       const h = Math.round(drawHeight * v / maxV)
       if (h === 0) return
+
       const x = Math.round(positionTL.x + i * horizonSpan)
       const y = Math.round(positionTL.y + drawHeight * (1 - v / maxV))
       // console.log(x, y, h)
+
+      if (v > 16.67) {
+        if (ctx.fillStyle !== dcolor) ctx.fillStyle = dcolor
+      }
+      else if (v > 10) {
+        if (ctx.fillStyle !== wcolor) ctx.fillStyle = wcolor
+      }
+      else if (ctx.fillStyle !== gcolor) {
+        ctx.fillStyle = gcolor
+      }
+
       ctx.fillRect(x, y, 1, h)
+      
     })
   }
 
   /**
+   * - 缓动函数集
    * @reference https://github.com/gdsmith/jquery.easing/blob/master/jquery.easing.js
    */
   static EaseFx = class _Ease {
@@ -480,18 +505,22 @@ class Tools {
       let dotCount = 0;
       const thisId = this.randomStr(8);
 
-      (target[dotDebuffName] as string[]).push(thisId)
+      //@ts-ignore
+      target[dotDebuffName].push(thisId)
 
       // console.log(singleAttack, Math.ceil(duration / interval))
       const itv = setInterval(() => {
         if (++dotCount > duration / interval) {
           // 效果结束、结束计时器
-          (target[dotDebuffName] as string[]) = (target[dotDebuffName] as string[]).filter(d => d !== thisId)
+          //@ts-ignore
+          target[dotDebuffName] = target[dotDebuffName].filter(d => d !== thisId)
           clearInterval(itv)
           return
         }
         if (target.health > 0) {
-          target.health -= singleAttack * (isIgnoreArmor ? 1 : (1 - target.armorResistance))
+          const dotD = singleAttack * (isIgnoreArmor ? 1 : (1 - target.armorResistance))
+          // console.log(dotD)
+          target.health -= dotD
           damageEmitter(target)
         }
         else {
@@ -502,6 +531,10 @@ class Tools {
   }
 }
 
+/**
+ * - 按钮基类
+ * - 使用 DOM 渲染而不是 canvas
+ */
 class ButtonOnDom {
 
   public readonly ele: HTMLButtonElement
@@ -539,16 +572,30 @@ abstract class Base {
  */
 abstract class RectangleBase extends Base {
 
+  /**
+   * 左上角
+   */
   public cornerTL: Position
+  /**
+   * 右上角
+   */
   public cornerBR: Position
   public width: number
   public height: number
   public borderWidth: number
+  /**
+   * - 边线条描述符
+   * - 能被 canvas 的线条样式所接受
+   */
   public borderStyle: string
+  /**
+   * - 填充描述符
+   * - 能被 canvas 的填充样式所接受
+   */
   public fillStyle: string
-  public borderRadius: BorderRadius
+  public borderRadius: BorderRadius | number
 
-  constructor(positionTL: Position, positionBR: Position, bw: number, bs: string, bf: string, br: BorderRadius) {
+  constructor(positionTL: Position, positionBR: Position, bw: number, bs: string, bf: string, br: BorderRadius | number) {
     super()
 
     this.cornerTL = positionTL
@@ -567,8 +614,11 @@ abstract class RectangleBase extends Base {
   }
 
   renderBorder(context: CanvasRenderingContext2D) {
-    context.strokeStyle = this.borderStyle
-    Tools.renderRoundRect(context, this.cornerTL.x, this.cornerTL.y, this.width, this.height, this.borderRadius, false, true)
+    if (this.borderWidth > 0) {
+      context.strokeStyle = this.borderStyle
+      context.lineWidth = this.borderWidth
+      Tools.renderRoundRect(context, this.cornerTL.x, this.cornerTL.y, this.width, this.height, this.borderRadius, false, true)
+    }
   }
 
   renderInside(context: CanvasRenderingContext2D) {
@@ -591,7 +641,7 @@ abstract class CircleBase extends Base {
   public borderWidth: number
   public borderStyle: string
   /**
-   * - Circle的内切正方形边长
+   * Circle的内切正方形边长
    */
   public readonly inscribedSquareSideLength: number
 
@@ -612,11 +662,11 @@ abstract class CircleBase extends Base {
    * - 对设计稿的度量值进行修正，得到正确的相对度量
    * @param r 基于设计稿的距离值 px
    */
-  reviceRange(r: number) {
+  protected reviceRange(r: number) {
     return r * Game.callGridSideSize() / 39
   }
 
-  renderBorder(context: CanvasRenderingContext2D) {
+  protected renderBorder(context: CanvasRenderingContext2D) {
     if (this.borderWidth > 0) {
       context.strokeStyle = this.borderStyle
       context.lineWidth = this.borderWidth
@@ -635,7 +685,7 @@ abstract class ItemBase extends CircleBase {
 
   /**
    * - Item的图形描述符，可以是位图、位图的Promise、动画
-   * - 如果为 null, 则必须具备 fill
+   * - 如果为 null, 则必须具备 fill 属性用以简单填充
    */
   public image: ImageBitmap | AnimationSprite
   /**
@@ -644,6 +694,9 @@ abstract class ItemBase extends CircleBase {
   public fill: string
   public readonly intervalTimers: number[] = []
   public readonly timeoutTimers: number[] = []
+  /**
+   * 
+   */
   public controlable = false
 
   constructor(position: Position, radius: number, borderWidth: number, borderStyle: string, image: string | ImageBitmap | AnimationSprite) {
@@ -659,12 +712,18 @@ abstract class ItemBase extends CircleBase {
     }
   }
 
-  renderSpriteFrame(context: CanvasRenderingContext2D, x: number, y: number) {
+  /**
+   * 绘制动画精灵
+   */
+  private renderSpriteFrame(context: CanvasRenderingContext2D, x: number, y: number) {
     if (this.image instanceof AnimationSprite) {
       this.image.renderOneFrame(context, new Position(x, y), this.inscribedSquareSideLength, this.inscribedSquareSideLength, 0, true, true, false)
     }
   }
 
+  /**
+   * 绘制图片或动画精灵
+   */
   renderImage(context: CanvasRenderingContext2D) {
 
     const x = this.position.x - this.inscribedSquareSideLength * 0.5
@@ -688,22 +747,30 @@ abstract class ItemBase extends CircleBase {
     }
   }
 
-  renderFilled(context: CanvasRenderingContext2D) {
+  /**
+   * 绘制圆填充
+   */
+  private renderFilled(context: CanvasRenderingContext2D) {
 
     context.fillStyle = this.fill
 
-    if (this.radius > 1) {
+    if (this.radius > 2) {
       context.beginPath()
       context.arc(this.position.x, this.position.y, this.radius, 0, Math.PI * 2, true)
       context.closePath()
       context.fill()
     }
-    // 半径<=1, 回退为矩形
+    // 半径<=2, 回退为矩形
+    // 简化绘图复杂度
     else {
-      context.fillRect(Math.floor(this.position.x), Math.floor(this.position.y), 1, 1)
+      const r = Math.round(this.radius)
+      context.fillRect(Math.floor(this.position.x), Math.floor(this.position.y), r, r)
     }
   }
 
+  /**
+   * - 主绘图函数 
+   */
   render(context: CanvasRenderingContext2D, _imgCtrl?: ImageManger) {
     super.renderBorder(context)
 
@@ -725,7 +792,7 @@ abstract class ItemBase extends CircleBase {
    * - rcos(θ) = x, rsin(θ) = y, tan(θ) = y/x => θ = arctan(y/x), r = x/cos(arctan(y/x))
    * - <x, y> --> <x/cos(arctan(y/x)), arctan(y/x)>
    */
-  rotateForward(context: CanvasRenderingContext2D, targetPos: Position) {
+  protected rotateForward(context: CanvasRenderingContext2D, targetPos: Position) {
 
     context.translate(this.position.x, this.position.y)
 
@@ -757,7 +824,7 @@ abstract class ItemBase extends CircleBase {
 
 abstract class TowerBase extends ItemBase {
 
-  static informationDesc = new Map([
+  private static informationDesc = new Map([
     ['等级', '鼠标单击图标或按 [C] 键来消耗金币升级，等级影响很多属性，到达某个等级可以晋升'],
     ['下一级', '升级到下一级需要的金币数量'],
     ['售价', '出售此塔可以返还的金币数量'],
@@ -768,7 +835,7 @@ abstract class TowerBase extends ItemBase {
     ['DPS', '估计的每秒伤害']
   ])
 
-  static Gems: { name: string, ctor: IGemBase & typeof GemBase }[] = [
+  private static Gems: { name: string, ctor: IGemBase & typeof GemBase }[] = [
     {
       ctor: PainEnhancer,
       name: 'PainEnhancer'
@@ -819,16 +886,16 @@ abstract class TowerBase extends ItemBase {
     }
   ]
 
-  static deniedGems: string[] = []
+  protected static deniedGems: string[] = []
 
-  static GemNameToGemCtor(gn: string): IGemBase {
+  private static GemNameToGemCtor(gn: string): IGemBase {
     return this.Gems.find(g => g.name === gn).ctor
   }
 
-  static get GemsToOptionsInnerHtml() {
+  private static get GemsToOptionsInnerHtml() {
     return this.Gems
       .map((gemCtor, idx) => {
-        return `<option value="${gemCtor.name}"${idx === 0 ? ' selected' : ''}${this.deniedGems.includes(gemCtor.name) ? ' disabled' : ''}>${gemCtor.ctor.gemName}${this.deniedGems.includes(gemCtor.name) ? ' - 不能装备到此塔' : ''}</option>`
+        return `<option value='${gemCtor.name}'${idx === 0 ? ' selected' : ''}${this.deniedGems.includes(gemCtor.name) ? ' disabled' : ''}>${gemCtor.ctor.gemName}${this.deniedGems.includes(gemCtor.name) ? ' - 不能装备到此塔' : ''}</option>`
       })
       .join('')
   }
@@ -981,7 +1048,7 @@ abstract class TowerBase extends ItemBase {
       const rangeR = this.__min_rng_atk_ratio * (1 - R) + this.__max_rng_atk_ratio * R
 
       // console.log(bossR, particularR, trapR, rangeR)
-      console.log(particularR)
+      // console.log('particularR', particularR)
       return bossR * particularR * trapR * rangeR
     })
   }
@@ -1465,7 +1532,7 @@ abstract class TowerBase extends ItemBase {
         select.innerHTML = (this.constructor as typeof TowerBase).GemsToOptionsInnerHtml
         Tools.Dom.generateRow(gemElement, 'row_nh', { style: { margin: '0 0 8px 0' } }, [select])
 
-        // const rowimg = Tools.Dom.generateRow(gemElement, null, { innerHTML: `<img src="${(eval(selected)).imgSrc}" class="lg_gem_img"></img>` })
+        // const rowimg = Tools.Dom.generateRow(gemElement, null, { innerHTML: `<img src='${(eval(selected)).imgSrc}' class='lg_gem_img'></img>` })
         const rowimg = Tools.Dom.generateRow(gemElement) as HTMLDivElement & { firstChild: HTMLImageElement }
 
         const ctor = TowerBase.GemNameToGemCtor(selected) as unknown as typeof GemBase
@@ -1616,13 +1683,23 @@ abstract class MonsterBase extends ItemBase {
   static informationDesc = new Map<string, string>()
 
   protected readonly __inner_level: number
+
   public readonly maxHealth: number
   protected __inner_current_health: number
+
+  /**
+   * 护盾会快速恢复，优先承受伤害
+   */
   public readonly maxShield: number
   protected __inner_current_shield: number
+
   public inner_armor: number
+
   public readonly __base_speed: number
   public speedRatio: number = 1
+
+  protected healthChangeHintQueue: number[] = []
+
   public readonly reward: number
   public readonly damage = 1
   // DOT
@@ -1643,20 +1720,34 @@ abstract class MonsterBase extends ItemBase {
   public shockChargeAmount = 0
   public shockLeakChance = 0
   public shockSource: TeslaTower = null
+
   public beTransformed = false
   public transformDurationTick = 0
+
   public beImprisoned = false
   public imprisonDurationTick = 0
+
   public beFrozen = false
   public freezeDurationTick = 0
+
   public beConfused = false
+
   public imprecatedRatio: { pow: number, durTick: number }[] = []
+
   public lastAbsDmg = 0
+
   public isBoss = false
   public isDead = false
+  protected isAbstractItem = false
+  protected isInvincible = false
+
   public name: string = null
   public description: string = null
+
   public exploitsSeq: string[][]
+
+  public textScrollBox: HealthChangeHintScrollBox
+
   public type = '普通怪物'
 
   constructor(position: Position, radius: number, borderWidth: number, borderStyle: string, image: string | ImageBitmap | AnimationSprite, level: number, levelRwdFx: (lvl: number) => number, levelSpdFx: (lvl: number) => number, levelHthFx: (lvl: number) => number, levelAmrFx: (lvl: number) => number, levelShdFx?: (lvl: number) => number) {
@@ -1678,7 +1769,7 @@ abstract class MonsterBase extends ItemBase {
 
     this.reward = Math.round(levelRwdFx(level))
 
-    // this.healthChangeHintQueue = []
+    this.healthChangeHintQueue = []
 
     this.exploitsSeq = [
       ['赏金', Tools.chineseFormatter(this.reward, 0)]
@@ -1686,16 +1777,25 @@ abstract class MonsterBase extends ItemBase {
   }
 
   /**
-   * - 受诅咒
+   * - 当前是否受诅咒
+   * - 计算值
    */
   get beImprecated() {
     return this.imprecatedRatio.length > 0
   }
 
+  /**
+   * - 护甲实际的伤害抵抗程度
+   * - 计算值
+   */
   get armorResistance() {
     return Tools.roundWithFixed(this.inner_armor / (100 + this.inner_armor), 3)
   }
 
+  /**
+   * - 移动速度
+   * - 计算值
+   */
   get speedValue() {
     if (this.beFrozen || this.beImprisoned) return 0
     if (this.beConfused) return this.__base_speed * -0.5
@@ -1711,24 +1811,37 @@ abstract class MonsterBase extends ItemBase {
   }
 
   set health(newHth) {
+    /**
+     * 攻击或治疗造成的实际数值
+     */
     const delta = newHth - this.__inner_current_health
 
     if (delta === 0) return
     if (delta < 0) {
+      // 计算诅咒
       const actualDmg = -Math.round(delta * this.imprecatedRatio.reduce((p, v) => p * v.pow, 1))
+      // 去溢出，记录伤害
       this.lastAbsDmg = Math.min(actualDmg, this.__inner_current_health)
       // console.log(`ih ${this.__inner_current_health}, actual ${actualDmg}, absolute ${this.lastAbsDmg}`)
-      // this.healthChangeHintQueue.push(this.lastAbsDmg)
-
+      // 推入队列
+      this.healthChangeHintQueue.push(this.lastAbsDmg)
+      // 应用变更
       this.__inner_current_health -= this.lastAbsDmg
 
       // console.log(`ih ${this.__inner_current_health}`)
 
       if (this.__inner_current_health <= 0) {
-        this.isDead = true
+        if (this.isInvincible) {
+          this.__inner_current_health = 1
+        }
+        else {
+          this.isDead = true
+        }
       }
     }
     else {
+      // console.log(`delta(${delta}) > 0`)
+      // 去治疗溢出
       this.__inner_current_health = Math.min(newHth, this.maxHealth)
     }
   }
@@ -1758,7 +1871,8 @@ abstract class MonsterBase extends ItemBase {
   }
 
   /**
-   * - 是否正在承受控制类限制效果影响
+   * - 是否承受控制类限制效果影响
+   * - 计算值
    */
   get isTrapped() {
     return this.beTransformed || this.beImprisoned || this.beFrozen || this.beConfused || this.speedRatio < 1
@@ -1879,27 +1993,43 @@ abstract class MonsterBase extends ItemBase {
   run(path: PositionLike[], lifeTokenEmitter: typeof Game.prototype.emitLife, towers: TowerBase[], monsters: MonsterBase[]) {
 
     this.runDebuffs()
+
     if (this.beShocked) this.runShock(monsters)
 
-    if (this.beImprisoned || this.beFrozen) return // 被禁锢、跳过
-    if (path.length === 0) { // 完成任务，造成伤害，杀死自己
+    if (this.beImprisoned || this.beFrozen) { // 被禁锢、冻结，无法行动
+      void 0
+    }
+    else if (path.length === 0) { // 完成任务，造成伤害，杀死自己
       lifeTokenEmitter(-this.damage)
       this.isDead = true
     }
-    else {
+    else { // 移动
       // console.log('move to', path[0].x, path[0].y)
       // console.log('path.length', path.length)
       this.position.moveTo(path[0], this.speedValue)
-
-      this.makeEffect(towers, monsters)
     }
+
+    this.makeEffect(towers, monsters)
   }
 
-  abstract renderHealthChange(context: CanvasRenderingContext2D): void // {
-    // while(this.healthChangeHintQueue.length > 0) {
-    //   context.fillText('- ' + this.healthChangeHintQueue.shift(), this.position.x + this.radius + 2, this.position.y + this.inscribedSquareSideLength / 1.5)
+  renderHealthChange(context: CanvasRenderingContext2D): void {
+    // if (this.isAbstractItem) {
     // }
-  // }
+    if (!this.textScrollBox) {
+      this.textScrollBox = new HealthChangeHintScrollBox(this.position, 200, 14, 8, '#f5222d', 2, 100)
+    }
+
+    if (this.healthChangeHintQueue.length > 0) {
+      this.healthChangeHintQueue
+        .forEach(str => {
+          this.textScrollBox.push(str)
+        })
+
+      this.healthChangeHintQueue.length = 0
+    }
+
+    this.textScrollBox.run(context)
+  }
 
   renderHealthBar(context: CanvasRenderingContext2D) {
     if (this.health <= 0 || this.health / this.maxHealth > 1) return
@@ -1921,6 +2051,16 @@ abstract class MonsterBase extends ItemBase {
       this.healthBarWidth * this.health / this.maxHealth,
       this.healthBarHeight
     )
+
+    if (this.isBoss) {
+      const xaxisOffset = this.healthBarWidth < this.radius * 2 ? 0 : this.healthBarWidth / 2 - this.radius
+
+      context.save()
+      context.fillStyle = this.healthBarTextFillStyle
+      context.font = this.healthBarTextFontStyle
+      context.fillText(`${Tools.chineseFormatter(this.health, 1)}/${Tools.chineseFormatter(this.maxHealth, 1)}`, this.position.x + this.radius + xaxisOffset + 2, this.position.y + this.inscribedSquareSideLength / 1.5 + 5)
+      context.restore()
+    }
   }
 
   renderLevel(context: WrappedCanvasRenderingContext2D) {
@@ -1983,7 +2123,7 @@ abstract class MonsterBase extends ItemBase {
 
     super.render(context)
     this.renderHealthBar(context)
-    // this.renderHealthChange(context)
+    this.renderHealthChange(context)
     // this.renderLevel(context)
     this.renderDebuffs(context, imgCtl)
 

@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "outFile": "./dist/main.js",
-    "target": "es6",
+    "target": "esnext",
     "lib": [
       "dom",
       "es6",
@@ -11,6 +11,7 @@
     ],
     "allowJs": false,
     "allowUmdGlobalAccess": true,
+    "allowUnusedLabels": false,
     "noImplicitAny": true,
     "noImplicitReturns": true,
     "noImplicitThis": true,

@@ -9,6 +9,7 @@ class MonsterManager {
     HighPriest: 'HighPriest',
     Devil: 'Devil'
   }
+
   public monsters: MonsterBase[] = []
   private __mctor_cache: Map<string, IMonsterBase> = new Map()
 
@@ -58,9 +59,47 @@ class MonsterManager {
   }
 }
 
+class Dummy extends MonsterBase {
+  makeEffect(): void {
+    if (this.health < this.maxHealth) {
+      this.health += (this.maxHealth / 100)
+    }
+  }
+
+  static imgName = '$spr::m_spider'
+  static sprSpd = 20
+
+  static rwd = (_lvl?: number) => 0
+  static spd = (_lvl?: number) => 0.001
+  static hth = (lvl: number) => (lvl + 1) * 4e8
+  static amr = (_lvl?: number) => 0
+
+  constructor(position: Position, image: string | AnimationSprite | ImageBitmap, level: number) {
+    super(
+      position,
+      Game.callGridSideSize() / 3 - 2,
+      0,
+      null,
+      image,
+      level,
+      Dummy.rwd,
+      Dummy.spd,
+      Dummy.hth,
+      Dummy.amr
+    )
+
+    this.isInvincible = true
+    this.isBoss = true
+    this.isAbstractItem = true
+
+    this.name = '训练假人'
+    this.type = '抽象装置'
+    this.description = 'Dummy For Test Only'
+  }
+}
+
 class Swordman extends MonsterBase {
   makeEffect(): void {}
-  renderHealthChange(): void {}
 
   static imgName = '$spr::m_act_white_sword'
   static sprSpd = 4
@@ -91,7 +130,6 @@ class Swordman extends MonsterBase {
 
 class Axeman extends MonsterBase {
   makeEffect(): void {}
-  renderHealthChange(): void {}
 
   static imgName = '$spr::m_act_green_axe'
   static sprSpd = 4
@@ -122,7 +160,6 @@ class Axeman extends MonsterBase {
 
 class LionMan extends MonsterBase {
   makeEffect(): void {}
-  renderHealthChange(): void {}
 
   static imgName = '$spr::m_lion'
   static sprSpd = 6
@@ -152,7 +189,6 @@ class LionMan extends MonsterBase {
 }
 
 class HighPriest extends MonsterBase {
-  renderHealthChange(): void {}
 
   static imgName = '$spr::m_b_worm_dragon'
   static sprSpd = 6
@@ -252,26 +288,10 @@ class HighPriest extends MonsterBase {
       this.lastHealTime = performance.now()
     }
   }
-
-  /**
-   * @param {CanvasRenderingContext2D} context
-   */
-  renderHealthBar(context: CanvasRenderingContext2D) {
-    super.renderHealthBar(context)
-
-    const xaxisOffset = this.healthBarWidth < this.radius * 2 ? 0 : this.healthBarWidth / 2 - this.radius
-
-    context.save()
-    context.fillStyle = this.healthBarTextFillStyle
-    context.font = this.healthBarTextFontStyle
-    context.fillText(`${Tools.chineseFormatter(this.health, 1)}/${Tools.chineseFormatter(this.maxHealth, 1)}`, this.position.x + this.radius + xaxisOffset + 2, this.position.y + this.inscribedSquareSideLength / 1.5 + 5)
-    context.restore()
-  }
 }
 
 class Devil extends MonsterBase {
   makeEffect(): void {}
-  renderHealthChange(): void {}
 
   static imgName = '$spr::m_devil'
   static sprSpd = 6
@@ -310,17 +330,5 @@ class Devil extends MonsterBase {
 
   get healthBarHeight() {
     return 4
-  }
-
-  renderHealthBar(context: CanvasRenderingContext2D) {
-    super.renderHealthBar(context)
-
-    const xaxisOffset = this.healthBarWidth < this.radius * 2 ? 0 : this.healthBarWidth / 2 - this.radius
-
-    context.save()
-    context.fillStyle = this.healthBarTextFillStyle
-    context.font = this.healthBarTextFontStyle
-    context.fillText(`${Tools.chineseFormatter(this.health, 1)}/${Tools.chineseFormatter(this.maxHealth, 1)}`, this.position.x + this.radius + xaxisOffset + 2, this.position.y + this.inscribedSquareSideLength / 1.5 + 5)
-    context.restore()
   }
 }

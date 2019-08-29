@@ -118,8 +118,12 @@ class Game extends Base {
   }
 
   private bornStamp: number
+  private setBornStamp = _.once(() => {
+    this.bornStamp = performance.now()
+  })
 
   private __testMode: boolean
+  private __dummy_test_mode: boolean
   /**
    * 控制怪物升级的参数
    */
@@ -200,12 +204,12 @@ class Game extends Base {
   constructor(imageManager: ImageManger, GX = 36, GY = 24) {
     super()
 
-    this.bornStamp = performance.now()
-
     // debug only
     g = this
 
     this.__testMode = localStorage.getItem('debug_mode') === '1'
+    this.__dummy_test_mode = false
+
     this.count = this.__testMode ? 50 : 0
     this.stepDivide = this.__testMode ? 2 : 8
 
@@ -274,7 +278,20 @@ class Game extends Base {
     Game.callRemoveTower = t => this.removeTower(t)
   }
 
+  get objectCount() {
+    return (
+      this.imageCtl.onPlaySprites.length +
+      this.towerCtl.towers.length +
+      this.towerCtl.independentTowers.length +
+      this.monsterCtl.monsters.length +
+      _.sumBy(this.monsterCtl.monsters, mst => mst.textScrollBox ? mst.textScrollBox.boxes.length : 0) +
+      this.bulletsCtl.bullets.length
+    )
+  }
+
   set isPausing(v) {
+    if (!v) this.setBornStamp()
+
     this.startAndPauseButton.ele.textContent = v ? '开始' : '暂停'
     this.__inner_is_pausing = v
   }
@@ -285,6 +302,10 @@ class Game extends Base {
 
   get gridsWithWall() {
     return this.__inner_b_arr.concat(this.grids.map(row => [0, ...row, 0]).concat(this.__inner_b_arr))
+  }
+
+  __debugFlipDummyMode() {
+    if (!this.__dummy_test_mode) this.__dummy_test_mode = true
   }
 
   /**
@@ -675,6 +696,20 @@ class Game extends Base {
       //   break
       // case 'd':
       //   break
+      case 'v':
+        if (this.__testMode) {
+          this.__debugFlipDummyMode()
+          this.placeMonster(100, this.OriginPosition.copy().move(new PolarVector(this.gridSize, 0)).dithering(this.gridSize, this.gridSize / 2), 'Dummy')
+        }
+        break
+      case 'b':
+        if (this.__testMode) {
+          this.__debugFlipDummyMode()
+          for (let i = 0; i < 100; i++) {
+            this.placeMonster(100, this.OriginPosition.copy().move(new PolarVector(this.gridSize, 0)).dithering(this.gridSize, this.gridSize / 2), 'Dummy')
+          }
+        }
+        break
       case 'q':
         CarrierTower.WeaponMode = CarrierTower.WeaponMode === 1 ? 2 : 1
         break
@@ -1144,7 +1179,7 @@ class Game extends Base {
     this.updateTick++
 
     // ------------------ debug ---------------------
-    if (!this.isPausing && !Reflect.get(window, '__d_stop_ms')) {
+    if (!this.isPausing && !Reflect.get(window, '__d_stop_ms') && !this.__dummy_test_mode) {
       // if (this.updateTick === 101) {
       //   this.placeMonster(
       //     40000,
@@ -1195,6 +1230,8 @@ class Game extends Base {
     if (this.__testMode) {
       this.renderStandardText(`[ R Tick ${this.renderTick} ]`, 6, 20, 120)
       this.renderStandardText(`[ U Tick ${this.updateTick} ]`, 6, 40, 120)
+
+      this.renderStandardText(`[ OBJ ${this.objectCount} ]`, 6, 190, 120)
     }
 
     if (this.renderTick % 3 === 0) {
@@ -1233,11 +1270,11 @@ class Game extends Base {
       const now = performance.now()
       const actualLength = Tools.typedArrayPush(this.renderTimeStamps, now)
 
-      if (actualLength < 20) {
+      if (actualLength < 60) {
         this.averageFrameInterval = (now - this.renderTimeStamps[0]) / actualLength
       }
       else {
-        this.averageFrameInterval = (now - this.renderTimeStamps[actualLength - 20]) / 20
+        this.averageFrameInterval = (now - this.renderTimeStamps[actualLength - 60]) / 60
       }
 
       this.renderStandardText(`[ Fps ${(1000 / this.averageFrameInterval).toFixed(1)} ]`, 6, 60, 120, this.averageFrameInterval > 20 ? '#F56C6C' : 'rgb(2,2,2)')

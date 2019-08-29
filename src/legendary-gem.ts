@@ -86,7 +86,7 @@ class PainEnhancer extends GemBase {
   tickHook(): void {}
   damageHook(): void {}
 
-  static readonly gemName = '撕裂'
+  static readonly gemName = '增痛宝石'
 
   static readonly price = 25000
 
@@ -96,9 +96,9 @@ class PainEnhancer extends GemBase {
 
   static readonly chance = 0.5
 
-  static readonly baseBleedDamageRatio = 800
+  static readonly baseBleedDamageRatio = 1250
 
-  static readonly bleedDamageRatioLevelMx = 100
+  static readonly bleedDamageRatioLevelMx = 750
 
   static get stasisDescription() {
     return `攻击敌人有 ${this.chance * 100}% 的几率使其流血，在 3 秒内受到 ${Tools.roundWithFixed(this.baseBleedDamageRatio * 100, 1)}% （+${Tools.roundWithFixed(this.bleedDamageRatioLevelMx * 100, 1)}%/等级）攻击力的伤害`
@@ -153,17 +153,17 @@ class SimplicitysStrength extends GemBase {
   tickHook(): void {}
   damageHook(): void {}
 
-  static readonly gemName = '力量精魄'
+  static readonly gemName = '至简之力'
 
   static readonly price = 18000
 
-  static readonly maxLevel = 5000
+  static readonly maxLevel = 10000
 
   static readonly imgSrc = 'data:image/png;base64,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'
 
-  static readonly baseAttackAddition = 0.75
+  static readonly baseAttackAddition = 0.55
 
-  static readonly attackAdditionLevelMx = 0.1
+  static readonly attackAdditionLevelMx = 0.2
 
   static get stasisDescription() {
     return `提高攻击力 ${Tools.roundWithFixed(this.baseAttackAddition * 100, 1)}%（+${Tools.roundWithFixed(this.attackAdditionLevelMx * 100, 1)}%/等级）`
@@ -207,7 +207,7 @@ class GogokOfSwiftness extends GemBase {
   tickHook(): void {}
   damageHook(): void {}
 
-  static readonly gemName = '迅捷精魄'
+  static readonly gemName = '迅捷勾玉'
 
   static readonly maxLevel = 800
 
@@ -260,7 +260,7 @@ class MirinaeTeardropOfTheStarweaver extends GemBase {
   killHook(): void {}
   damageHook(): void {}
 
-  static readonly gemName = '星辰之泪'
+  static readonly gemName = '银河、织星者之泪'
 
   static readonly price = 120000
 
@@ -405,7 +405,7 @@ class GemOfEase extends GemBase {
   tickHook(): void {}
   damageHook(): void {}
 
-  static readonly gemName = '屯宝者'
+  static readonly gemName = '屯宝者的恩惠'
 
   static readonly price = 10000
 
@@ -459,7 +459,7 @@ class GemOfMysterious extends GemBase {
   tickHook(): void {}
   damageHook(): void {}
 
-  static readonly gemName = '噬法者'
+  static readonly gemName = '窃法者'
 
   static readonly price = 950000
 
@@ -513,7 +513,7 @@ class BaneOfTheTrapped extends GemBase {
   tickHook(): void {}
   damageHook(): void {}
 
-  static readonly gemName = '囚笼'
+  static readonly gemName = '囚笼宝石'
 
   static readonly price = 20500
 
@@ -564,7 +564,7 @@ class ZeisStoneOfVengeance extends GemBase {
   tickHook(): void {}
   damageHook(): void {}
 
-  static readonly gemName = '猎手之魂'
+  static readonly gemName = '贼神的复仇之石'
 
   static readonly price = 17500
 
@@ -767,9 +767,9 @@ class BrokenPieces extends GemBase {
 
   static readonly armorDecreaseStrengthLevelMx = 0.0001
 
-  static readonly baseExtraArmorBasedDamageRatio = 50
+  static readonly baseExtraArmorBasedDamageRatio = 80
 
-  static readonly extraArmorBasedDamageRatioLevelMx = 5
+  static readonly extraArmorBasedDamageRatioLevelMx = 8
 
   static get stasisDescription() {
     return `每次击中都能摧毁敌人 ${Tools.roundWithFixed(this.baseArmorDecreaseStrength * 100, 1)}%（+${Tools.roundWithFixed(this.armorDecreaseStrengthLevelMx * 100, 2)}%/等级）的护甲，` +
