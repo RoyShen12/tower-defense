@@ -1810,10 +1810,10 @@ class _Jet extends TowerBase {
      */
     AutoCannons: class _AutoCannons extends CannonBullet {
       constructor(position: Position, atk: number, target: MonsterBase) {
-        const explodeRange = 62
-        const burnDotDamage = atk * .12
+        const explodeRange = 30
+        const burnDotDamage = atk * .08
         const extraRatioCalc = (m: MonsterBase) => 1 + m.armorResistance
-        super(position, atk, target, null, atk * 2, explodeRange, burnDotDamage, 150, 3000, 0, extraRatioCalc)
+        super(position, atk, target, null, atk * 2, explodeRange, burnDotDamage, 150, 3000, -1, extraRatioCalc)
         // super(position, 2, 1, '#CC3333', '#99CC99', atk * 2, bVelocity, target)
       }
       // hit(monster: MonsterBase, magnification = 1) {
@@ -1880,7 +1880,7 @@ class _Jet extends TowerBase {
    * - 对基础攻击的 Δ 补正
    */
   get attackSupplement() {
-    return this.weaponMode === 1 ? this.carrierTower.Atk * -0.2 : (Math.pow(this.level + 2, 1.566) * 3)
+    return this.weaponMode === 1 ? this.carrierTower.Atk * -0.55 : (Math.pow(this.level + 2, 1.566) * 3)
   }
 
   /**
@@ -1888,7 +1888,7 @@ class _Jet extends TowerBase {
    * - 对基础每秒攻击次数的 γ 系数
    */
   get hasteSupplementRate() {
-    return this.weaponMode === 1 ? (1 + this.level * 0.015) : (1 - this.level * 0.0025)
+    return this.weaponMode === 1 ? (1 + this.level * 0.015) : 0.25
   }
 
   get Atk() {
@@ -1930,13 +1930,13 @@ class _Jet extends TowerBase {
 
   gemHitHook(_idx: number, msts: MonsterBase[]) {
     if (this.carrierTower.gem) {
-      this.carrierTower.gem.hitHook(this, this.target, msts)
+      this.carrierTower.gem.hitHook(this.carrierTower, this.target, msts)
     }
   }
 
   gemAttackHook(msts: MonsterBase[]) {
     if (this.carrierTower.gem) {
-      this.carrierTower.gem.attackHook(this, msts)
+      this.carrierTower.gem.attackHook(this.carrierTower, msts)
     }
   }
 
@@ -2072,7 +2072,7 @@ class CarrierTower extends TowerBase {
 
   public static Jet = _Jet
   private jetCountMap: Map<number, (TowerBase & { carrierTower: CarrierTower })[]> = new Map()
-  public jets = 0
+  public jetCount = 0
   private levelSpdFx = TowerManager.CarrierTower.spd
   private levelKcFx = TowerManager.CarrierTower.child
   private inner_desc_init = '自身无法攻击，释放搭载的载机进行战斗\n使用 [F1] 切换载机的自主/受控模式\n使用 [Q] 切换载机的武器\n+ 载机继承自身属性\n+ 可以对任意位置进行机动打击'
@@ -2114,20 +2114,26 @@ class CarrierTower extends TowerBase {
   }
 
   get shipBoardAircraft() {
-    if (this.jetCountMap.has(this.jets)) {
-      return this.jetCountMap.get(this.jets)
+    if (this.jetCountMap.has(this.jetCount)) {
+      return this.jetCountMap.get(this.jetCount)
     }
     else {
       this.jetCountMap.clear()
       const newJets = Game.callIndependentTowerList().filter(tow => tow.carrierTower && tow.carrierTower === this)
-      this.jetCountMap.set(this.jets, newJets)
+      this.jetCountMap.set(this.jetCount, newJets)
       return newJets
     }
   }
 
+  // inlayGem(gem: string) {
+  //   super.inlayGem(gem)
+
+  //   this.shipBoardAircraft.forEach(airC => airC.gem = this.gem)
+  // }
+
   run() {
-    if (this.canShoot && this.jets < this.KidCount) {
-      Game.callTowerFactory()(
+    if (this.canShoot && this.jetCount < this.KidCount) {
+      /*const jet = */Game.callTowerFactory()(
         'CarrierTower.Jet',
         this.position.copy().dithering(this.radius * 2, this.radius),
         Game.callImageBitMap(TowerManager.CarrierTower.cn),
@@ -2135,7 +2141,10 @@ class CarrierTower extends TowerBase {
         Game.callGridSideSize() / 4,
         this
       )
-      this.jets++
+      
+      // jet.gem = this.gem
+
+      this.jetCount++
     }
   }
 

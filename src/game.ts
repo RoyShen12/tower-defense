@@ -117,7 +117,7 @@ class Game extends Base {
     }
   }
 
-  private bornStamp: number
+  private bornStamp: number | undefined
   private setBornStamp = _.once(() => {
     this.bornStamp = performance.now()
   })
@@ -1301,6 +1301,10 @@ class Game extends Base {
   }
 
   renderInformation() {
+    const DPS = this.bornStamp ? Tools.chineseFormatter(this.towerCtl.totalDamage / (performance.now() - this.bornStamp) * 1000, 3, ' ') : 0
+    const DMG = Tools.chineseFormatter(this.towerCtl.totalDamage, 2, ' ')
+    const TK = Tools.chineseFormatter(this.towerCtl.totalKill, 2, ' ')
+
     const ax = innerWidth - 190
     const ay1 = innerHeight - 120
     const ay2 = ay1 - 30
@@ -1308,11 +1312,11 @@ class Game extends Base {
     // const ay4 = ay3 - 30
 
     // this.contextCtl.refreshText(`CH: ${Tools.chineseFormatter(this.monsterCtl.totalCurrentHealth, 2, ' ')}`, null, new Position(ax, ay1), new Position(ax - 4, ay1 - 20), 190, 26, 'rgb(24,24,24)', true, '14px Game')
-    this.contextCtl.refreshText(`DPS    ${Tools.chineseFormatter(this.towerCtl.totalDamage / (performance.now() - this.bornStamp) * 1000, 3, ' ')}`, null, new Position(ax, ay1), new Position(ax - 4, ay1 - 20), 190, 26, 'rgb(24,24,24)', true, '14px Game')
+    this.contextCtl.refreshText(`DPS    ${DPS}`, null, new Position(ax, ay1), new Position(ax - 4, ay1 - 20), 190, 26, 'rgb(24,24,24)', true, '14px Game')
 
-    this.contextCtl.refreshText(`总伤害    ${Tools.chineseFormatter(this.towerCtl.totalDamage, 2, ' ')}`, null, new Position(ax, ay2), new Position(ax - 4, ay2 - 20), 190, 26, 'rgb(24,24,24)', true, '14px Game')
+    this.contextCtl.refreshText(`总伤害    ${DMG}`, null, new Position(ax, ay2), new Position(ax - 4, ay2 - 20), 190, 26, 'rgb(24,24,24)', true, '14px Game')
 
-    this.contextCtl.refreshText(`总击杀    ${Tools.chineseFormatter(this.towerCtl.totalKill, 2, ' ')}`, null, new Position(ax, ay3), new Position(ax - 4, ay3 - 20), 190, 26, 'rgb(24,24,24)', true, '14px Game')
+    this.contextCtl.refreshText(`总击杀    ${TK}`, null, new Position(ax, ay3), new Position(ax - 4, ay3 - 20), 190, 26, 'rgb(24,24,24)', true, '14px Game')
     // this.contextCtl.refreshText(`CH: ${Tools.chineseFormatter(this.monsterCtl.totalCurrentHealth, 2, ' ')}`, null, new Position(ax, ay4), new Position(ax - 4, ay4 - 20), 190, 26, 'rgb(24,24,24)', true, '14px Game')
   }
 

@@ -695,7 +695,7 @@ abstract class ItemBase extends CircleBase {
   public readonly intervalTimers: number[] = []
   public readonly timeoutTimers: number[] = []
   /**
-   * 
+   * 单位是否可控
    */
   public controlable = false
 

@@ -371,7 +371,7 @@ class BaneOfTheStricken extends GemBase {
     tickHook() { }
     damageHook() { }
     static get stasisDescription() {
-        return `你对敌人造成的每次攻击都会使敌人从你攻击中受到的伤害提高 ${Tools.roundWithFixed(BaneOfTheStricken.baseDamageMakingRatio * 100, 2)}%（+${Tools.roundWithFixed(BaneOfTheStricken.damageMakingRatioLevelMx * 100, 2)}%/等级），对首领造成的伤害提高 ${Tools.roundWithFixed(BaneOfTheStricken.damageMakingRatioOnBoss * 100, 0)}%`;
+        return `你对敌人造成的每次攻击都会使敌人从你攻击中受到的伤害提高 ${Tools.roundWithFixed(BaneOfTheStricken.baseDamageMakingRatio * 100, 2)}%（+${Tools.roundWithFixed(BaneOfTheStricken.damageMakingRatioLevelMx * 100, 3)}%/等级），对首领造成的伤害提高 ${Tools.roundWithFixed(BaneOfTheStricken.damageMakingRatioOnBoss * 100, 0)}%`;
     }
     static get __base_description() {
         return `你对敌人造成的每次攻击都会使敌人从你攻击中受到的伤害提高 $%，对首领造成的伤害提高 ${Tools.roundWithFixed(BaneOfTheStricken.damageMakingRatioOnBoss * 100, 0)}%`;
@@ -380,7 +380,7 @@ class BaneOfTheStricken extends GemBase {
         return BaneOfTheStricken.baseDamageMakingRatio + this.level * BaneOfTheStricken.damageMakingRatioLevelMx;
     }
     get description() {
-        return BaneOfTheStricken.__base_description.replace('$', (this.damageMakingRatioPerHit * 100).toFixed(2));
+        return BaneOfTheStricken.__base_description.replace('$', (this.damageMakingRatioPerHit * 100).toFixed(3));
     }
     get levelUpPoint() {
         return (this.level + 1) * 16 + 40;
@@ -404,8 +404,8 @@ BaneOfTheStricken.price = 65000;
 BaneOfTheStricken.imgSrc = 'data:image/png;base64,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';
 BaneOfTheStricken.maxLevel = 50000;
 BaneOfTheStricken.damageMakingRatioOnBoss = 0.75;
-BaneOfTheStricken.baseDamageMakingRatio = 0.01;
-BaneOfTheStricken.damageMakingRatioLevelMx = 0.0015;
+BaneOfTheStricken.baseDamageMakingRatio = 0.0008;
+BaneOfTheStricken.damageMakingRatioLevelMx = 0.00005;
 class GemOfEase extends GemBase {
     attackHook() { }
     hitHook() { }
@@ -3947,10 +3947,10 @@ class _Jet extends TowerBase {
         this.calculateDamageRatio = mst => this.carrierTower.calculateDamageRatio(mst);
     }
     get attackSupplement() {
-        return this.weaponMode === 1 ? this.carrierTower.Atk * -0.2 : (Math.pow(this.level + 2, 1.566) * 3);
+        return this.weaponMode === 1 ? this.carrierTower.Atk * -0.55 : (Math.pow(this.level + 2, 1.566) * 3);
     }
     get hasteSupplementRate() {
-        return this.weaponMode === 1 ? (1 + this.level * 0.015) : (1 - this.level * 0.0025);
+        return this.weaponMode === 1 ? (1 + this.level * 0.015) : 0.25;
     }
     get Atk() {
         return this.carrierTower.Atk + this.attackSupplement;
@@ -3982,12 +3982,12 @@ class _Jet extends TowerBase {
     }
     gemHitHook(_idx, msts) {
         if (this.carrierTower.gem) {
-            this.carrierTower.gem.hitHook(this, this.target, msts);
+            this.carrierTower.gem.hitHook(this.carrierTower, this.target, msts);
         }
     }
     gemAttackHook(msts) {
         if (this.carrierTower.gem) {
-            this.carrierTower.gem.attackHook(this, msts);
+            this.carrierTower.gem.attackHook(this.carrierTower, msts);
         }
     }
     get __total_damage() {
@@ -4072,10 +4072,10 @@ _Jet.JetWeapons = {
     },
     AutoCannons: class _AutoCannons extends CannonBullet {
         constructor(position, atk, target) {
-            const explodeRange = 62;
-            const burnDotDamage = atk * .12;
+            const explodeRange = 30;
+            const burnDotDamage = atk * .08;
             const extraRatioCalc = (m) => 1 + m.armorResistance;
-            super(position, atk, target, null, atk * 2, explodeRange, burnDotDamage, 150, 3000, 0, extraRatioCalc);
+            super(position, atk, target, null, atk * 2, explodeRange, burnDotDamage, 150, 3000, -1, extraRatioCalc);
         }
     }
 };
@@ -4083,7 +4083,7 @@ class CarrierTower extends TowerBase {
     constructor(position, image, _bimg, radius) {
         super(position, radius, 1, 'rgba(56,243,12,.5)', image, TowerManager.CarrierTower.p, TowerManager.CarrierTower.a, TowerManager.CarrierTower.h, TowerManager.CarrierTower.s, TowerManager.CarrierTower.r);
         this.jetCountMap = new Map();
-        this.jets = 0;
+        this.jetCount = 0;
         this.levelSpdFx = TowerManager.CarrierTower.spd;
         this.levelKcFx = TowerManager.CarrierTower.child;
         this.inner_desc_init = '自身无法攻击，释放搭载的载机进行战斗\n使用 [F1] 切换载机的自主/受控模式\n使用 [Q] 切换载机的武器\n+ 载机继承自身属性\n+ 可以对任意位置进行机动打击';
@@ -4117,20 +4117,20 @@ class CarrierTower extends TowerBase {
         return this.levelSpdFx(this.level);
     }
     get shipBoardAircraft() {
-        if (this.jetCountMap.has(this.jets)) {
-            return this.jetCountMap.get(this.jets);
+        if (this.jetCountMap.has(this.jetCount)) {
+            return this.jetCountMap.get(this.jetCount);
         }
         else {
             this.jetCountMap.clear();
             const newJets = Game.callIndependentTowerList().filter(tow => tow.carrierTower && tow.carrierTower === this);
-            this.jetCountMap.set(this.jets, newJets);
+            this.jetCountMap.set(this.jetCount, newJets);
             return newJets;
         }
     }
     run() {
-        if (this.canShoot && this.jets < this.KidCount) {
+        if (this.canShoot && this.jetCount < this.KidCount) {
             Game.callTowerFactory()('CarrierTower.Jet', this.position.copy().dithering(this.radius * 2, this.radius), Game.callImageBitMap(TowerManager.CarrierTower.cn), null, Game.callGridSideSize() / 4, this);
-            this.jets++;
+            this.jetCount++;
         }
     }
     renderRange() { }
@@ -5252,13 +5252,16 @@ class Game extends Base {
         this.contextCtl.refreshText(Tools.formatterUs.format(this.updateGemPoint), null, new Position(ax, ay), new Position(ax - 4, ay - 20), 160, 26, 'rgb(24,24,24)', true, '14px Game');
     }
     renderInformation() {
+        const DPS = this.bornStamp ? Tools.chineseFormatter(this.towerCtl.totalDamage / (performance.now() - this.bornStamp) * 1000, 3, ' ') : 0;
+        const DMG = Tools.chineseFormatter(this.towerCtl.totalDamage, 2, ' ');
+        const TK = Tools.chineseFormatter(this.towerCtl.totalKill, 2, ' ');
         const ax = innerWidth - 190;
         const ay1 = innerHeight - 120;
         const ay2 = ay1 - 30;
         const ay3 = ay2 - 30;
-        this.contextCtl.refreshText(`DPS    ${Tools.chineseFormatter(this.towerCtl.totalDamage / (performance.now() - this.bornStamp) * 1000, 3, ' ')}`, null, new Position(ax, ay1), new Position(ax - 4, ay1 - 20), 190, 26, 'rgb(24,24,24)', true, '14px Game');
-        this.contextCtl.refreshText(`总伤害    ${Tools.chineseFormatter(this.towerCtl.totalDamage, 2, ' ')}`, null, new Position(ax, ay2), new Position(ax - 4, ay2 - 20), 190, 26, 'rgb(24,24,24)', true, '14px Game');
-        this.contextCtl.refreshText(`总击杀    ${Tools.chineseFormatter(this.towerCtl.totalKill, 2, ' ')}`, null, new Position(ax, ay3), new Position(ax - 4, ay3 - 20), 190, 26, 'rgb(24,24,24)', true, '14px Game');
+        this.contextCtl.refreshText(`DPS    ${DPS}`, null, new Position(ax, ay1), new Position(ax - 4, ay1 - 20), 190, 26, 'rgb(24,24,24)', true, '14px Game');
+        this.contextCtl.refreshText(`总伤害    ${DMG}`, null, new Position(ax, ay2), new Position(ax - 4, ay2 - 20), 190, 26, 'rgb(24,24,24)', true, '14px Game');
+        this.contextCtl.refreshText(`总击杀    ${TK}`, null, new Position(ax, ay3), new Position(ax - 4, ay3 - 20), 190, 26, 'rgb(24,24,24)', true, '14px Game');
     }
     renderStandardText(text, bx, by, maxWidth, color, fsize) {
         color = color || 'rgb(2,2,2)';

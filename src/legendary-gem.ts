@@ -70,12 +70,31 @@ abstract class GemBase {
     }
   }
 
+  /**
+   * 装入宝石时一次性触发
+   */
   abstract initEffect(thisTower: TowerBase) : void
+  /**
+   * - 每次准备攻击时触发
+   */
   abstract attackHook(thisTower: TowerBase, monsters: MonsterBase[]): void
+  /**
+   * 每次发射时触发
+   */
   abstract hitHook(thisTower: TowerBase, monster: MonsterBase, monsters: MonsterBase[]): void
   // abstract afterHitHook(thisTower: TowerBase, monster: MonsterBase, monsters: MonsterBase[]): void
+  /**
+   * 每次击杀时触发
+   */
   abstract killHook(thisTower: TowerBase, monster: MonsterBase): void
+  /**
+   * 每个 Tick 都会触发
+   */
   abstract tickHook(thisTower: TowerBase, monsters: MonsterBase[]): void
+  /**
+   * @todo
+   * @unimplemented
+   */
   abstract damageHook(thisTower: TowerBase, monster: MonsterBase, damage: number): void
 }
 
@@ -352,12 +371,12 @@ class BaneOfTheStricken extends GemBase {
 
   static readonly damageMakingRatioOnBoss = 0.75
 
-  static readonly baseDamageMakingRatio = 0.01
+  static readonly baseDamageMakingRatio = 0.0008
 
-  static readonly damageMakingRatioLevelMx = 0.0015
+  static readonly damageMakingRatioLevelMx = 0.00005
 
   static get stasisDescription() {
-    return `你对敌人造成的每次攻击都会使敌人从你攻击中受到的伤害提高 ${Tools.roundWithFixed(BaneOfTheStricken.baseDamageMakingRatio * 100, 2)}%（+${Tools.roundWithFixed(BaneOfTheStricken.damageMakingRatioLevelMx * 100, 2)}%/等级），对首领造成的伤害提高 ${Tools.roundWithFixed(BaneOfTheStricken.damageMakingRatioOnBoss * 100, 0)}%`
+    return `你对敌人造成的每次攻击都会使敌人从你攻击中受到的伤害提高 ${Tools.roundWithFixed(BaneOfTheStricken.baseDamageMakingRatio * 100, 2)}%（+${Tools.roundWithFixed(BaneOfTheStricken.damageMakingRatioLevelMx * 100, 3)}%/等级），对首领造成的伤害提高 ${Tools.roundWithFixed(BaneOfTheStricken.damageMakingRatioOnBoss * 100, 0)}%`
   }
 
   static get __base_description() {
@@ -371,7 +390,7 @@ class BaneOfTheStricken extends GemBase {
   private readonly damageMakingRatioOnBoss = BaneOfTheStricken.damageMakingRatioOnBoss
 
   get description() {
-    return BaneOfTheStricken.__base_description.replace('$', (this.damageMakingRatioPerHit * 100).toFixed(2))
+    return BaneOfTheStricken.__base_description.replace('$', (this.damageMakingRatioPerHit * 100).toFixed(3))
   }
 
   get levelUpPoint() {
