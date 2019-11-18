@@ -186,7 +186,7 @@ const towerCtors = [
       }
     }) as ArrayLike<number>,
     r: (_lvl?: number) => 150,
-    a: (lvl: number) => 25 + lvl * 8,
+    a: (lvl: number) => 125 + lvl * 8 + lvl * lvl * 0.1,
     h: (lvl: number) => 0.8 + lvl * 0.01,
     s: (_lvl?: number) => 1,
     child: (lvl: number) => 1 + Math.floor(lvl / 20),
@@ -1810,8 +1810,8 @@ class _Jet extends TowerBase {
      */
     AutoCannons: class _AutoCannons extends CannonBullet {
       constructor(position: Position, atk: number, target: MonsterBase) {
-        const explodeRange = 30
-        const burnDotDamage = atk * .08
+        const explodeRange = 20
+        const burnDotDamage = atk * 16/*.16*/
         const extraRatioCalc = (m: MonsterBase) => 1 + m.armorResistance
         super(position, atk, target, null, atk * 2, explodeRange, burnDotDamage, 150, 3000, -1, extraRatioCalc)
         // super(position, 2, 1, '#CC3333', '#99CC99', atk * 2, bVelocity, target)
@@ -1880,7 +1880,7 @@ class _Jet extends TowerBase {
    * - 对基础攻击的 Δ 补正
    */
   get attackSupplement() {
-    return this.weaponMode === 1 ? this.carrierTower.Atk * -0.55 : (Math.pow(this.level + 2, 1.566) * 3)
+    return this.weaponMode === 1 ? this.carrierTower.Atk * -0.55 : (Math.pow(this.level + 2, 2.225/*1.762*/) * 6)
   }
 
   /**
@@ -1888,7 +1888,7 @@ class _Jet extends TowerBase {
    * - 对基础每秒攻击次数的 γ 系数
    */
   get hasteSupplementRate() {
-    return this.weaponMode === 1 ? (1 + this.level * 0.015) : 0.25
+    return this.weaponMode === 1 ? (1 + this.level * 0.028) : 1
   }
 
   get Atk() {

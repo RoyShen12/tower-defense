@@ -763,7 +763,7 @@ abstract class ItemBase extends CircleBase {
     // 半径<=2, 回退为矩形
     // 简化绘图复杂度
     else {
-      const r = Math.round(this.radius)
+      const r = Math.round(this.radius) || 1
       context.fillRect(Math.floor(this.position.x), Math.floor(this.position.y), r, r)
     }
   }

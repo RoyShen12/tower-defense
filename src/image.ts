@@ -39,8 +39,8 @@ class DamageTextBox {
     ctx.fillStyle = this.fontStyle
 
     ctx.fillText(
-      // Tools.britishFormatter(this.damage, 0),
-      Tools.formatterUs.format(this.damage),
+      Tools.britishFormatter(this.damage, 1),
+      // Tools.formatterUs.format(this.damage),
       this.position.x,
       this.position.y,
       this.width

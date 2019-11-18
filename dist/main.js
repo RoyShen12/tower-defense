@@ -1185,7 +1185,7 @@ class ItemBase extends CircleBase {
             context.fill();
         }
         else {
-            const r = Math.round(this.radius);
+            const r = Math.round(this.radius) || 1;
             context.fillRect(Math.floor(this.position.x), Math.floor(this.position.y), r, r);
         }
     }
@@ -2831,7 +2831,7 @@ const towerCtors = [
             }
         }),
         r: (_lvl) => 150,
-        a: (lvl) => 25 + lvl * 8,
+        a: (lvl) => 125 + lvl * 8 + lvl * lvl * 0.1,
         h: (lvl) => 0.8 + lvl * 0.01,
         s: (_lvl) => 1,
         child: (lvl) => 1 + Math.floor(lvl / 20),
@@ -3947,10 +3947,10 @@ class _Jet extends TowerBase {
         this.calculateDamageRatio = mst => this.carrierTower.calculateDamageRatio(mst);
     }
     get attackSupplement() {
-        return this.weaponMode === 1 ? this.carrierTower.Atk * -0.55 : (Math.pow(this.level + 2, 1.566) * 3);
+        return this.weaponMode === 1 ? this.carrierTower.Atk * -0.55 : (Math.pow(this.level + 2, 2.225) * 6);
     }
     get hasteSupplementRate() {
-        return this.weaponMode === 1 ? (1 + this.level * 0.015) : 0.25;
+        return this.weaponMode === 1 ? (1 + this.level * 0.028) : 1;
     }
     get Atk() {
         return this.carrierTower.Atk + this.attackSupplement;
@@ -4072,8 +4072,8 @@ _Jet.JetWeapons = {
     },
     AutoCannons: class _AutoCannons extends CannonBullet {
         constructor(position, atk, target) {
-            const explodeRange = 30;
-            const burnDotDamage = atk * .08;
+            const explodeRange = 20;
+            const burnDotDamage = atk * 16;
             const extraRatioCalc = (m) => 1 + m.armorResistance;
             super(position, atk, target, null, atk * 2, explodeRange, burnDotDamage, 150, 3000, -1, extraRatioCalc);
         }
@@ -4196,7 +4196,7 @@ class DamageTextBox {
         const [t1, t2] = [ctx.font, ctx.fillStyle];
         ctx.font = this.font;
         ctx.fillStyle = this.fontStyle;
-        ctx.fillText(Tools.formatterUs.format(this.damage), this.position.x, this.position.y, this.width);
+        ctx.fillText(Tools.britishFormatter(this.damage, 1), this.position.x, this.position.y, this.width);
         ctx.font = t1;
         ctx.fillStyle = t2;
         this.life--;
