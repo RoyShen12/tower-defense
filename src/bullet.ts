@@ -22,7 +22,7 @@ class BulletManager {
     return BulletManager.instance
   }
 
-  Factory(emitter: typeof TowerBase.prototype.recordDamage, bulletName: string, position: Position, atk: number, target: MonsterBase, image: ImageBitmap | string, ...extraArgs: any[]): BulletBase {
+  Factory(emitter: typeof TowerBase.prototype.recordDamage, bulletName: string, position: Position, atk: number, target: MonsterBase | Position, image: ImageBitmap | string, ...extraArgs: any[]): BulletBase {
 
     let ctor: IBulletBase = null
 
@@ -283,6 +283,85 @@ class NormalArrow extends BulletBase {
      */
     if (this.willTrap) {
       monster.registerImprison(this.trapDuration / 1000 * 60)
+    }
+  }
+}
+
+class PenetratingArrow extends BulletBase {
+
+  static bulletVelocity = 12
+
+  private destination: Position
+  private hittedMap: number[] = []
+
+  constructor(position: Position, atk: number, target: MonsterBase, image: string | ImageBitmap) {
+    super(position, 8, 0, null, image, atk, NormalArrow.bulletVelocity, target)
+
+    this.destination = this.position.copy().moveTo(this.target.position, Game.callDiagonalLength())
+  }
+
+  run(monsters: MonsterBase[]) {
+    this.position.moveTo(this.destination, this.speed)
+
+    monsters.forEach(mst => {
+      if (this.inRange(mst) && !this.hittedMap.includes(mst.id)) {
+        this.hit(mst)
+        this.hittedMap.push(mst.id)
+      }
+    })
+
+    if (this.position.outOfBoundary(Position.O, Game.callBoundaryPosition(), 50)) {
+      this.fulfilled = true
+      this.target = null
+    }
+  }
+
+  hit(monster: MonsterBase) {
+    // 穿甲
+    monster.health -= this.Atk * (1 - monster.armorResistance * .4)
+    this.emitter(monster)
+  }
+}
+
+class MysticBomb extends BulletBase {
+  static bulletVelocity = 12
+
+  private destionation: Position
+  /**
+   * Distance To Destination
+   */
+  private DTT = Infinity
+
+  constructor(position: Position, atk: number, des: Position) {
+    super(position, 3, 1, 'rgba(141,123,51,1)', 'rgba(204,204,204,1)', atk, MysticBomb.bulletVelocity, null)
+
+    this.destionation = des
+  }
+
+  get isReaching() {
+    const disP2 = Position.distancePow2(this.position, this.destionation)
+    if (disP2 > this.DTT) {
+      return true
+    }
+    else {
+      this.DTT = disP2
+      return false
+    }
+  }
+
+  run(monsters: MonsterBase[]) {
+    this.position.moveTo(this.destionation, this.speed)
+
+    // 没有击中任何目标 -> 消散
+    if (this.isReaching) {
+      this.fulfilled = true
+    }
+    else {
+      const anyHitted = monsters.find(mst => this.inRange(mst))
+      if (anyHitted) {
+        this.hit(anyHitted)
+        this.fulfilled = true
+      }
     }
   }
 }
