@@ -197,6 +197,8 @@ class Tools {
     }
   }
 
+  static sleep = async (ms: number) => await new Promise(resolve => setTimeout(resolve, ms))
+
   static formatterUs = new Intl.NumberFormat('en-US')
   static formatterCh = new Intl.NumberFormat('zh-u-nu-hanidec')
 
@@ -2154,6 +2156,11 @@ abstract class BulletBase extends ItemBase {
 
   get isReaching() {
     return Position.distancePow2(this.position, this.target.position) < Math.pow(this.target.radius + this.radius, 2)
+  }
+
+  protected inRange(target: MonsterBase) {
+    const t = this.radius + target.radius
+    return Position.distancePow2(target.position, this.position) < t * t
   }
 
   run(monsters: MonsterBase[]) {
