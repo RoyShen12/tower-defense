@@ -7,7 +7,7 @@ class CanvasManager {
   public offscreenCanvasMapping: Map<string, CanvasEle> = new Map()
 
   getContext(id: string): WrappedAllCanvasRenderingContext {
-    return this.canvasContextMapping.get(id)
+    return this.canvasContextMapping.get(id) as WrappedAllCanvasRenderingContext
   }
 
   /**

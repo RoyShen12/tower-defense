@@ -1050,6 +1050,7 @@ Tools.ObjectFx = class _ObjectFx {
         });
     }
 };
+Tools.sleep = async (ms) => await new Promise(resolve => setTimeout(resolve, ms));
 Tools.formatterUs = new Intl.NumberFormat('en-US');
 Tools.formatterCh = new Intl.NumberFormat('zh-u-nu-hanidec');
 Tools.EaseFx = (_b = class _Ease {
@@ -2083,6 +2084,10 @@ class BulletBase extends ItemBase {
     get isReaching() {
         return Position.distancePow2(this.position, this.target.position) < Math.pow(this.target.radius + this.radius, 2);
     }
+    inRange(target) {
+        const t = this.radius + target.radius;
+        return Position.distancePow2(target.position, this.position) < t * t;
+    }
     run(monsters) {
         this.position.moveTo(this.target.position, this.speed);
         if (this.target.isDead) {
@@ -2288,6 +2293,62 @@ class NormalArrow extends BulletBase {
     }
 }
 NormalArrow.bulletVelocity = 18;
+class PenetratingArrow extends BulletBase {
+    constructor(position, atk, target, image) {
+        super(position, 8, 0, null, image, atk, NormalArrow.bulletVelocity, target);
+        this.hittedMap = [];
+        this.destination = this.position.copy().moveTo(this.target.position, Game.callDiagonalLength());
+    }
+    run(monsters) {
+        this.position.moveTo(this.destination, this.speed);
+        monsters.forEach(mst => {
+            if (this.inRange(mst) && !this.hittedMap.includes(mst.id)) {
+                this.hit(mst);
+                this.hittedMap.push(mst.id);
+            }
+        });
+        if (this.position.outOfBoundary(Position.O, Game.callBoundaryPosition(), 50)) {
+            this.fulfilled = true;
+            this.target = null;
+        }
+    }
+    hit(monster) {
+        monster.health -= this.Atk * (1 - monster.armorResistance * .4);
+        this.emitter(monster);
+    }
+}
+PenetratingArrow.bulletVelocity = 12;
+class MysticBomb extends BulletBase {
+    constructor(position, atk, des) {
+        super(position, 3, 1, 'rgba(141,123,51,1)', 'rgba(204,204,204,1)', atk, MysticBomb.bulletVelocity, null);
+        this.DTT = Infinity;
+        this.destionation = des;
+    }
+    get isReaching() {
+        const disP2 = Position.distancePow2(this.position, this.destionation);
+        if (disP2 > this.DTT) {
+            return true;
+        }
+        else {
+            this.DTT = disP2;
+            return false;
+        }
+    }
+    run(monsters) {
+        this.position.moveTo(this.destionation, this.speed);
+        if (this.isReaching) {
+            this.fulfilled = true;
+        }
+        else {
+            const anyHitted = monsters.find(mst => this.inRange(mst));
+            if (anyHitted) {
+                this.hit(anyHitted);
+                this.fulfilled = true;
+            }
+        }
+    }
+}
+MysticBomb.bulletVelocity = 12;
 class PoisonCan extends BulletBase {
     constructor(position, atk, target, _image, poisonAtk, poisonItv, poisonDur, extraBV) {
         super(position, 2, 1, 'rgba(244,22,33,1)', 'rgba(227,14,233,.9)', atk, PoisonCan.bulletVelocity + (extraBV || 0), target);
@@ -4210,10 +4271,9 @@ class DamageTextBox {
     }
 }
 class HealthChangeHintScrollBox extends Base {
-    constructor(pos, width, fontMax, fontMin, fill, speed, life, transpFunc) {
+    constructor(pos, width, fontMax, fontMin, fill, speed, life) {
         super();
         this.boxes = [];
-        this.transpFunc = (() => 1);
         this.masterPosition = pos;
         this.width = width;
         this.fontMax = fontMax;
@@ -4226,7 +4286,6 @@ class HealthChangeHintScrollBox extends Base {
             time: 0,
             box: null
         };
-        this.transpFunc = transpFunc;
     }
     run(ctx) {
         this.boxes = this.boxes.filter(b => !b.run(ctx));
@@ -4722,6 +4781,7 @@ class Game extends Base {
         Game.callMoney = () => [this.money, this.emitMoney.bind(this)];
         Game.callRemoveTower = t => this.removeTower(t);
     }
+    static callDiagonalLength() { throw new Error("Method not implemented."); }
     static IOC(itm, ctor, _ctx, _txt_Fx, centerX, centerY, R, price) {
         itm.render(_ctx);
         itm.__rerender_text = price => {

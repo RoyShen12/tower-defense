@@ -69,7 +69,7 @@ class HealthChangeHintScrollBox extends Base {
   private fontMax: number
   private fontMin: number
   private fill: string
-  private transpFunc: (x: number) => number = (() => 1)
+  // private transpFunc: (x: number) => number = (() => 1)
   private speed: number
   /**
    * 小于此阈值的两次推入值将被合并
@@ -79,7 +79,7 @@ class HealthChangeHintScrollBox extends Base {
 
   private lastPush: { time: DOMHighResTimeStamp, box: DamageTextBox }
 
-  constructor(pos: Position, width: number, fontMax: number, fontMin: number, fill: string, speed: number, life: number, transpFunc?: (step: number) => number) {
+  constructor(pos: Position, width: number, fontMax: number, fontMin: number, fill: string, speed: number, life: number/*, transpFunc?: (step: number) => number*/) {
     super()
     this.masterPosition = pos
 
@@ -96,8 +96,8 @@ class HealthChangeHintScrollBox extends Base {
       time: 0,
       box: null
     }
-
-    this.transpFunc = transpFunc
+    //
+    // this.transpFunc = transpFunc
   }
 
   run(ctx: CanvasRenderingContext2D) {
