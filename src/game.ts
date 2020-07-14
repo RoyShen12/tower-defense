@@ -9,6 +9,8 @@ class Game extends Base {
 
   static updateGemPoint: number
 
+  static callDiagonalLength(): number { throw new Error("Method not implemented.") }
+
   /**
    * 在[Animation]图层中绘制特效的便捷函数
    */
